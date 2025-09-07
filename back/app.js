@@ -12,10 +12,10 @@ app.use(cors(corsOptions)); // Usa el middleware cors con las opciones definidas
 app.use(express.json()); // Middleware para parsear JSON
 
 const db = mysql.createConnection({ 
-    host: 'mysql-reciclaje.alwaysdata.net',
-    user:  'reciclajedb',
-    password: 'Univalle.',
-    database: 'reciclajebd'     
+    host: "mysql-reciclaje.alwaysdata.net", // tu host
+    user: "reciclaje_admin",                 // tu usuario
+    password: "Univalle.",                   // tu contraseña
+    database: "reciclaje_proyectodb",      
 }); // Configura la conexión a la base de datos
 
 db.connect(err => {
