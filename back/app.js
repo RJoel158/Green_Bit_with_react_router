@@ -81,7 +81,7 @@ app.put('/users/update/:id', (req, res) => {
 });
 
 //Ruta para eliminar logicamente un usuario (soft delete)
-app.put('/users/soft-delete/:id', (req, res) => {
+app.put('/users/delete/:id', (req, res) => {
     const { id } = req.params;
     const query = 'UPDATE users SET state = 1 WHERE id = ?';
     db.query(query, [id], (err, results) => {
@@ -97,22 +97,6 @@ app.put('/users/soft-delete/:id', (req, res) => {
     })
 });
 
-
-// Ruta para eliminar un usuario
-app.delete('/users/delete/:id', (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM users WHERE id = ?';
-    db.query(query, [id], (err, results) => {
-        if (err) {
-            res.status(500).send({
-
-                error: 'Error al eliminar usuario'
-            });
-        } else {
-            res.status(204).send(); // No content
-        }
-    })
-});
 
 const PORT = process.env.PORT || 3000; // Define el puerto
 app.listen(PORT, () =>console.log(`Server listening on port ${PORT}`)); // Inicia el servidor en el puerto definido
