@@ -1,103 +1,44 @@
-import express from 'express'; // Importa express
-import cors from 'cors'; // Importa el paquete cors
-import mysql from 'mysql'; // Importa el paquete mysql
+import express from 'express';
+import cors from 'cors';
+import mysql from 'mysql';
 
-const app = express(); // Crea una aplicación de express
+const app = express();
 
 const corsOptions = {
-    origin: 'http://localhost:'
-};   // Para manejar navegadores antiguos
+    origin: 'http://localhost:5173', // Cambia este puerto si tu Vite usa otro
+};
+app.use(cors(corsOptions));
+app.use(express.json());
 
-app.use(cors(corsOptions)); // Usa el middleware cors con las opciones definidas
-app.use(express.json()); // Middleware para parsear JSON
-
+// Conexión a MySQL
 const db = mysql.createConnection({ 
-    host: "mysql-reciclaje.alwaysdata.net", // tu host
-    user: "reciclaje_admin",                 // tu usuario
-    password: "Univalle.",                   // tu contraseña
-    database: "reciclaje_proyectodb",      
-}); // Configura la conexión a la base de datos
-
+    host: "mysql-reciclaje.alwaysdata.net",
+    user: "reciclaje_admin",
+    password: "Univalle.",
+    database: "reciclaje_proyectodb",
+});
 db.connect(err => {
-    if (err) {
-        console.error('Error connecting to the database:', err);
-        return;
+    if (err) return console.error('Error conectando a la BD:', err);
+    console.log('Conectado a la base de datos');
+});
+
+// Ruta para registrar usuario desde React
+app.post('/api/register', (req, res) => {
+    const { username, email, phone, role_id } = req.body;
+
+    if (!username || !email || !phone) {
+        return res.status(400).json({ success: false, error: 'Todos los campos son requeridos' });
     }
-    console.log('Connected to the database');
-}); // Conecta a la base de datos y maneja errores  
 
-
-// Ruta para obtener todos los usuarios
-app.get ('/users', (req, res) => { 
-    db.query('SELECT * FROM users', (err, results) => {
+    const query = 'INSERT INTO users (username, email, phone, role_id, state) VALUES (?, ?, ?, ?, 0)';
+    db.query(query, [username, email, phone, role_id], (err, results) => {
         if (err) {
-            res.status(500).send({
-                error: 'Error al obtener usuarios'
-            })
-        }else{
-            res.json(results)
+            console.error(err);
+            return res.status(500).json({ success: false, error: 'Error al registrar el usuario' });
         }
-    })
-})
-
-// Ruta para agregar un nuevo usuario
-app.post('/users/add', (req, res) => {
-    const { name, email } = req.body;
-    const query='INSERT INTO users (username, email) VALUES (?, ?)'
-    db.query(query, [name, email], (err, results) => {
-        if (err) {
-            res.status(500).send({
-                error: 'Error al agregar usuario'
-            });
-        } else {
-            res.status(201).json({
-                id: results.insertId,
-                name,
-                email
-            });
-        }
-    })
-})
-
-
-// Ruta para actualizar un usuario existente
-app.put('/users/update/:id', (req, res) => {
-    const { id } = req.params;
-    const { name, email } = req.body;
-    const query = 'UPDATE users SET username = ?, email = ? WHERE id = ?';
-    db.query(query, [name, email, id], (err, results) => {
-        if (err) {
-            res.status(500).send({
-                error: 'Error al actualizar usuario'
-            });
-        } else {
-            res.json({
-                id,
-                name,
-                email
-            });
-        }
-    })
+        res.status(201).json({ success: true, id: results.insertId });
+    });
 });
 
-//Ruta para eliminar logicamente un usuario (soft delete)
-app.put('/users/delete/:id', (req, res) => {
-    const { id } = req.params;
-    const query = 'UPDATE users SET state = 1 WHERE id = ?';
-    db.query(query, [id], (err, results) => {
-        if (err) {
-            res.status(500).send({
-                error: 'Error al eliminar logicamente usuario'
-            });
-        } else {
-            res.json({
-                message: 'Usuario eliminado logicamente'
-            });
-        }
-    })
-});
-
-
-const PORT = process.env.PORT || 3000; // Define el puerto
-app.listen(PORT, () =>console.log(`Server listening on port ${PORT}`)); // Inicia el servidor en el puerto definido
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor escuchando en puerto ${PORT}`));
