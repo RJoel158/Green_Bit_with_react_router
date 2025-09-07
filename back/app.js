@@ -80,6 +80,22 @@ app.put('/users/update/:id', (req, res) => {
     })
 });
 
+//Ruta para eliminar logicamente un usuario (soft delete)
+app.put('/users/soft-delete/:id', (req, res) => {
+    const { id } = req.params;
+    const query = 'UPDATE users SET state = 1 WHERE id = ?';
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            res.status(500).send({
+                error: 'Error al eliminar logicamente usuario'
+            });
+        } else {
+            res.json({
+                message: 'Usuario eliminado logicamente'
+            });
+        }
+    })
+});
 
 
 // Ruta para eliminar un usuario
