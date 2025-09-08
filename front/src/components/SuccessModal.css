@@ -33,7 +33,7 @@
   font-size: 14px;
   color: #49454F;
   font-weight: 400;
-  text-align: left;
+  text-align: center;
   
 }
 .modal-actions {
@@ -51,7 +51,10 @@
   cursor: pointer;
   margin-left: auto;
 }
-
+.modal-button:hover{
+   background-color: #096432;
+  color: #F5F5DC;
+}
 .modal-close {
   margin-top: 10px;
   padding: 8px 12px;
