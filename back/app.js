@@ -1,8 +1,29 @@
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql';
+import { Resend } from 'resend';
+
 
 const app = express();
+const resend = new Resend("re_9xSftQrK_D74rMR9LGz6eN1VZWr7iB7Cu");
+app.get("/", async (req, res) => {
+  const { data, error } = await resend.emails.send({
+    from: "Acme <onboarding@resend.dev>",
+    to: ["svr0035567@est.univalle.edu"],
+    subject: "Hola Tilin",
+    html: "<strong> ya funca el correo che !</strong>",
+  });
+
+  if (error) {
+    return res.status(400).json({ error });
+  }
+
+  res.status(200).json({ data });
+});
+
+
+
+
 
 const corsOptions = {
     origin: 'http://localhost:5173', // Cambia este puerto si tu Vite usa otro
