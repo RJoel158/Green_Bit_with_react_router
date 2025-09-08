@@ -27,7 +27,15 @@ const Register: React.FC = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-     const validationErrors = Validator.validate(form);
+      const usernameError = Validator.validateUsername(form.username);
+      const emailError = Validator.validateEmail(form.email);
+      const phoneError = Validator.validatePhone(form.phone);
+
+      const validationErrors = { username: usernameError, email: emailError, phone: phoneError };
+     
+
+
+
     setErrors(validationErrors);
     
     if (!Validator.isValid(validationErrors)) {
