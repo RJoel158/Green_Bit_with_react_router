@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./Register.css";
 import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
+import {Validator} from "./common/Validator"
 
 type FormData = {
   username: string;
@@ -15,18 +16,7 @@ const Register: React.FC = () => {
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {};
-    if (!form.username.trim()) newErrors.username = "El nombre de usuario es requerido";
-    if (!form.email.trim()) newErrors.email = "El correo es requerido";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Formato de correo inválido";
-    if (!form.phone.trim()) newErrors.phone = "El número celular es requerido";
-    else if (!/^\+?591[67]\d{7}$/.test(form.phone.replace(/\s/g, "")))
-      newErrors.phone = "Formato: +59177777777 o +59167777777";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+ 
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,7 +26,11 @@ const Register: React.FC = () => {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) {
+
+     const validationErrors = Validator.validate(form);
+    setErrors(validationErrors);
+    
+    if (!Validator.isValid(validationErrors)) {
       setMensaje("❌ Por favor corrige los errores en el formulario");
       return;
     }
