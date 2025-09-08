@@ -5,7 +5,7 @@ import emailLogo from "../assets/icons/email-logo.svg";
 interface SuccessModalProps {
   title: string;
   message: string;
-  redirectUrl: string;
+  redirectUrl: string; //Revisar para el cambio entre ventanas
 }
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ title, message, redirectUrl }) => {

@@ -19,7 +19,7 @@ const ChangePasswordModal: React.FC = () => {
     setErrors(validationErrors);
 
     if (Validator.isValid(validationErrors)) {
-      // ✅ Contraseña válida
+     
       setIsChangePasswordOpen(false); 
       setIsSuccessModalOpen(true);   
     }
@@ -70,7 +70,7 @@ const ChangePasswordModal: React.FC = () => {
         <SuccessModal
           title="¡Contraseña actualizada!"
           message="Tu contraseña ha sido cambiada exitosamente."
-          redirectUrl="https://www.google.com/" // puedes cambiar a donde quieras redirigir
+          redirectUrl="https://www.google.com/" //Revisar para el cambio entre ventanas
         />
       )}
     </>
