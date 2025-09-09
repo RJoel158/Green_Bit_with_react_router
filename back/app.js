@@ -36,7 +36,7 @@ const db = mysql.createConnection({
     host: "mysql-reciclaje.alwaysdata.net",
     user: "reciclaje_admin",
     password: "Univalle.",
-    database: "reciclaje_proyectodb",
+    database: "reciclaje_proyecto1db",
 });
 db.connect(err => {
     if (err) return console.error('Error conectando a la BD:', err);
