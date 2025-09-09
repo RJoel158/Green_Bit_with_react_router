@@ -1,3 +1,9 @@
+    /* src/components/HomeComps/Home.css */
+.bg-success.bg-opacity-85 {
+  background-color: rgba(4,78,44,0.85) !important;
+}
+
+    
     /* 🌿 Nueva paleta natural y profesional */
     :root {
       --verde-principal: #2d5016;
