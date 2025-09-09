@@ -3,7 +3,6 @@ import "./Register.css";
 import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
-import SuccessModal from "./components/CommonComp/SuccesModal";
 
 type FormData = {
   username: string;
@@ -16,8 +15,6 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -55,7 +52,7 @@ const Register: React.FC = () => {
       const data = await res.json();
 
       if (data.success) {
-        setShowSuccessModal(true);
+        setMensaje("✅ Registro exitoso.");
         setForm({ username: "", email: "", phone: "" });
         setErrors({});
       } else {
@@ -128,15 +125,7 @@ const Register: React.FC = () => {
         className="register-right d-none d-lg-block flex-grow-1"
         style={{ backgroundImage: `url(${inicioImage})`, backgroundSize: "cover", backgroundPosition: "center" }}
       />
-      {showSuccessModal && (
-      <SuccessModal
-        title="¡Ya estás registrado!"
-        message="Se envió un correo electrónico con la contraseña temporal "
-        redirectUrl="/login"
-      />
-    )}
     </div>
-
   );
 };
 

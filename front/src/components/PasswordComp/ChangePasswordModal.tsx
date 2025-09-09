@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./ChangePasswordModal.css";
-import { Validator } from "../common/Validator";
-import SuccessModal from "./SuccesModal";
+import { Validator } from "../../common/Validator";
+import SuccessModal from "../CommonComp/SuccesModal";
 
 const ChangePasswordModal: React.FC = () => {
   const [password, setPassword] = useState("");
