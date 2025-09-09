@@ -8,15 +8,16 @@ export const getAll = () =>
 
 export const getById = (id) =>
   query(
-    "SELECT u.id, u.username, u.email, u.phone, r.name AS role, u.state FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ? AND u.state = 0",
+    "SELECT u.id, u.username, u.email, u.phone, u.password, r.name AS role, u.state FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = ? AND u.state = 0",
     [id]
   );
-
-  export const getByEmail = (email) =>
+//Cambiar la logica del state
+ export const loginUser = (email) =>
   query(
-    "SELECT u.id, u.username, u.email, u.phone, r.name AS role, u.state FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ? AND u.state = 0",
+    "SELECT u.id, u.username, u.email, u.phone, u.password, r.name AS role, u.state FROM users u JOIN role r ON u.role_id = r.id WHERE u.email = ? AND u.state != 0",
     [email]
   );
+
 
 export const create = (username,password, email, phone, role_id) =>
   query(

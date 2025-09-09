@@ -26,7 +26,7 @@ const Login: React.FC = () => {
 
     // Validaciones frontend
     const emailError = Validator.validateEmail(form.email);
-    const passwordError = Validator.validatePassword ? Validator.validatePassword(form.password) : undefined;
+    const passwordError = form.password.trim() === "" ? "La contraseña no puede estar vacía" : "";
 
     const validationErrors = { email: emailError, password: passwordError };
     setErrors(validationErrors);
@@ -40,24 +40,29 @@ const Login: React.FC = () => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/users", {
+      const res = await fetch("http://localhost:3000/api/users/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 4 }),
+        body: JSON.stringify({ email: form.email, password: form.password }),
       });
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();
 
-      if (data.success) {
-        setMensaje("✅ Registro exitoso.");
-        setForm({ email: "", password: "" });
-        setErrors({});
-      } else {
-        setMensaje("❌ " + (data.error || "Error desconocido"));
+      if (!res.ok) {
+        console.error("Error de login:", data.error);
+        setMensaje("❌ " + (data.error || "Email o contraseña incorrectos"));
+        setForm((f) => ({ ...f, password: "" })); // resetea la contraseña
+        return;
       }
+
+      // Login exitoso
+      setMensaje("✅ Bienvenido, " + data.user.username);
+      setForm({ email: "", password: "" });
+      setErrors({});
+      window.location.href = "/main";
+
     } catch (err) {
-      console.error(err);
+      console.error("Error de conexión:", err);
       setMensaje("❌ No se pudo conectar al servidor.");
     } finally {
       setLoading(false);

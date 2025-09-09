@@ -28,18 +28,46 @@ export const getUserById = async (req, res) => {
   }
 };
 
-export const getUserByEmail = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
-    const user = await UserModel.getByEmail(req.params.email);
-    if (user.length === 0) {
-      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      console.log("Faltan email o contraseña");
+      return res.status(400).json({ success: false, error: "Email y contraseña son requeridos" });
     }
-    res.json({ success: true, user: user[0] });
+
+    // Buscar usuario por email
+    const user = await UserModel.loginUser(email);
+
+    if (user.length === 0) {
+      console.log("Usuario no encontrado:", email);
+      return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
+    }
+
+    // Comparar contraseña
+    if (user[0].password !== password) {
+      console.log("Contraseña incorrecta para:", email);
+      return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
+    }
+
+    const u = user[0];
+    res.json({
+      success: true,
+      user: {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+      },
+    });
+
   } catch (err) {
-    console.error("Error en getUserByEmail:", err);
-    res.status(500).json({ success: false, error: "Error al obtener usuario" });
+    console.error("Error en loginUser:", err);
+    res.status(500).json({ success: false, error: "Error al iniciar sesión" });
   }
 };
+
 
 
 
