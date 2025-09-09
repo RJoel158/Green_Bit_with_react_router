@@ -1,4 +1,3 @@
-import React from "react";
 
 const Card = ({title, children}:{title:string, children:any}) => (
   <div className="col-md-4">

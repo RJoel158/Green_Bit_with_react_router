@@ -1,4 +1,3 @@
-import React from "react";
 import heroImg from "../../assets/logo.png"; // asegúrate de la ruta
 
 export default function Hero(){

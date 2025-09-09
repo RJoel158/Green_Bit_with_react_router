@@ -1,4 +1,3 @@
-import React from "react";
 
 const Stat = ({num, label}:{num:string,label:string}) => (
   <div className="text-center text-white">

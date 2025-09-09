@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./Register.css";
 import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
-import {Validator} from "./common/Validator"
+import { Validator } from "./common/Validator";
 
 type FormData = {
   username: string;
@@ -16,8 +16,6 @@ const Register: React.FC = () => {
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
- 
-
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
@@ -27,17 +25,14 @@ const Register: React.FC = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-      const usernameError = Validator.validateUsername(form.username);
-      const emailError = Validator.validateEmail(form.email);
-      const phoneError = Validator.validatePhone(form.phone);
+    // Validaciones frontend
+    const usernameError = Validator.validateUsername(form.username);
+    const emailError = Validator.validateEmail(form.email);
+    const phoneError = Validator.validatePhone(form.phone);
 
-      const validationErrors = { username: usernameError, email: emailError, phone: phoneError };
-     
-
-
-
+    const validationErrors = { username: usernameError, email: emailError, phone: phoneError };
     setErrors(validationErrors);
-    
+
     if (!Validator.isValid(validationErrors)) {
       setMensaje("❌ Por favor corrige los errores en el formulario");
       return;
@@ -47,17 +42,17 @@ const Register: React.FC = () => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/register", {
+      const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 4 }),
+        body: JSON.stringify({ ...form, role_id: 4 }), // se envía el role_id = 4 por defecto
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();
 
       if (data.success) {
-        setMensaje("✅ Registro exitoso. Revisa tu correo para tu contraseña temporal.");
+        setMensaje("✅ Registro exitoso.");
         setForm({ username: "", email: "", phone: "" });
         setErrors({});
       } else {
@@ -90,9 +85,15 @@ const Register: React.FC = () => {
                   onChange={onChange}
                   type={field === "email" ? "email" : "text"}
                   className={`form-control form-control-lg ${errors[field as keyof FormData] ? "is-invalid" : ""}`}
-                  placeholder={field === "phone" ? "Número celular (+591XXXXXXXXXX)" : field.charAt(0).toUpperCase() + field.slice(1)}
+                  placeholder={
+                    field === "phone"
+                      ? "Número celular (+591XXXXXXXXXX)"
+                      : field.charAt(0).toUpperCase() + field.slice(1)
+                  }
                 />
-                {errors[field as keyof FormData] && <div className="invalid-feedback">{errors[field as keyof FormData]}</div>}
+                {errors[field as keyof FormData] && (
+                  <div className="invalid-feedback">{errors[field as keyof FormData]}</div>
+                )}
               </div>
             ))}
 
@@ -102,7 +103,10 @@ const Register: React.FC = () => {
           </form>
 
           {mensaje && (
-            <div className={`alert mt-3 ${mensaje.includes("✅") ? "alert-success" : "alert-danger"}`} role="alert">
+            <div
+              className={`alert mt-3 ${mensaje.includes("✅") ? "alert-success" : "alert-danger"}`}
+              role="alert"
+            >
               {mensaje}
             </div>
           )}
@@ -110,7 +114,9 @@ const Register: React.FC = () => {
 
         <div className="cta-banner text-center mt-3">
           <span>¿Quieres formar parte del equipo de recolectores? </span>
-          <a href="/registerCollector" className="fw-semibold">Regístrate aquí!</a>
+          <a href="/registerCollector" className="fw-semibold">
+            Regístrate aquí!
+          </a>
         </div>
       </div>
 
