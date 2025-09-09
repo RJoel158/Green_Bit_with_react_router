@@ -12,6 +12,12 @@ export const getById = (id) =>
     [id]
   );
 
+  export const getByEmail = (email) =>
+  query(
+    "SELECT u.id, u.username, u.email, u.phone, r.name AS role, u.state FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ? AND u.state = 0",
+    [email]
+  );
+
 export const create = (username,password, email, phone, role_id) =>
   query(
     "INSERT INTO users (username,password, email, phone, role_id) VALUES (?, ? ,?, ?, ?)",

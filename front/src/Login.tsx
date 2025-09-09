@@ -5,13 +5,12 @@ import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
 
 type FormData = {
-  username: string;
   email: string;
-  phone: string;
+  password: string;
 };
 
-const Register: React.FC = () => {
-  const [form, setForm] = useState<FormData>({ username: "", email: "", phone: "" });
+const Login: React.FC = () => {
+  const [form, setForm] = useState<FormData>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -26,11 +25,10 @@ const Register: React.FC = () => {
     e.preventDefault();
 
     // Validaciones frontend
-    const usernameError = Validator.validateUsername(form.username);
     const emailError = Validator.validateEmail(form.email);
-    const phoneError = Validator.validatePhone(form.phone);
+    const passwordError = Validator.validatePassword ? Validator.validatePassword(form.password) : undefined;
 
-    const validationErrors = { username: usernameError, email: emailError, phone: phoneError };
+    const validationErrors = { email: emailError, password: passwordError };
     setErrors(validationErrors);
 
     if (!Validator.isValid(validationErrors)) {
@@ -45,7 +43,7 @@ const Register: React.FC = () => {
       const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 4 }), // se envía el role_id = 4 por defecto
+        body: JSON.stringify({ ...form, role_id: 4 }),
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
@@ -53,7 +51,7 @@ const Register: React.FC = () => {
 
       if (data.success) {
         setMensaje("✅ Registro exitoso.");
-        setForm({ username: "", email: "", phone: "" });
+        setForm({ email: "", password: "" });
         setErrors({});
       } else {
         setMensaje("❌ " + (data.error || "Error desconocido"));
@@ -72,24 +70,23 @@ const Register: React.FC = () => {
       <div className="register-left d-flex flex-column justify-content-center p-4">
         <div className="auth-card shadow-lg p-4 rounded-4 bg-light">
           <div className="text-center mb-4">
-            <h1 className="auth-title mb-2">Registra tu cuenta de reciclaje</h1>
+            <h1 className="auth-title mb-2">Bienvenidos a GreenBit</h1>
             <img src={logo} alt="Logo EcoVerde" className="register-logo" />
+            <h1 className="auth-title mb-2">¡Es un gran placer para nosotros tenerte a bordo!</h1>
           </div>
 
           <form onSubmit={onSubmit} className="auth-form">
-            {["username", "email", "phone"].map((field) => (
+            {["email", "password"].map((field) => (
               <div className="mb-3" key={field}>
                 <input
                   name={field}
                   value={form[field as keyof FormData]}
                   onChange={onChange}
-                  type={field === "email" ? "email" : "text"}
-                  className={`form-control form-control-lg ${errors[field as keyof FormData] ? "is-invalid" : ""}`}
-                  placeholder={
-                    field === "phone"
-                      ? "Número celular (+591XXXXXXXXXX)"
-                      : field.charAt(0).toUpperCase() + field.slice(1)
-                  }
+                  type={field === "email" ? "email" : "password"}
+                  className={`form-control form-control-lg ${
+                    errors[field as keyof FormData] ? "is-invalid" : ""
+                  }`}
+                  placeholder={field === "email" ? "Correo electrónico" : "Contraseña"}
                 />
                 {errors[field as keyof FormData] && (
                   <div className="invalid-feedback">{errors[field as keyof FormData]}</div>
@@ -98,7 +95,7 @@ const Register: React.FC = () => {
             ))}
 
             <button type="submit" className="btn btn-success btn-lg w-100" disabled={loading}>
-              {loading ? "Registrando..." : "Registrar"}
+              {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
@@ -113,9 +110,9 @@ const Register: React.FC = () => {
         </div>
 
         <div className="cta-banner text-center mt-3">
-          <span>¿Quieres formar parte del equipo de recolectores? </span>
-          <a href="/registerCollector" className="fw-semibold">
-            Regístrate aquí!
+          <span>¿Aún no tienes una cuenta? </span>
+          <a href="/register" className="fw-semibold">
+            Regístrate ya!
           </a>
         </div>
       </div>
@@ -129,4 +126,4 @@ const Register: React.FC = () => {
   );
 };
 
-export default Register;
+export default Login;

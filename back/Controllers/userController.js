@@ -28,6 +28,18 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const getUserByEmail = async (req, res) => {
+  try {
+    const user = await UserModel.getByEmail(req.params.email);
+    if (user.length === 0) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+    res.json({ success: true, user: user[0] });
+  } catch (err) {
+    console.error("Error en getUserByEmail:", err);
+    res.status(500).json({ success: false, error: "Error al obtener usuario" });
+  }
+};
 
 
 
