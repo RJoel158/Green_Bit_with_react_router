@@ -59,6 +59,7 @@ export const loginUser = async (req, res) => {
         username: u.username,
         email: u.email,
         role: u.role,
+        state:u.state,
       },
     });
 
@@ -115,5 +116,34 @@ export const deleteUser = async (req, res) => {
   } catch (err) {
     console.error("Error en deleteUser:", err);
     res.status(500).json({ success: false, error: "Error al eliminar usuario" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { userId } = req.params; // userId desde la URL
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, error: "La contraseña es requerida" });
+    }
+
+    // Verificar que el usuario existe
+    const user = await UserModel.getById(userId);
+    if (user.length === 0) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+
+    // Actualizar contraseña y poner state a 0
+    const result = await UserModel.updatePasswordAndState(userId, password, 0);
+
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ success: false, error: "No se pudo actualizar la contraseña" });
+    }
+
+    res.json({ success: true, message: "Contraseña cambiada correctamente" });
+  } catch (err) {
+    console.error("Error en changePassword:", err);
+    res.status(500).json({ success: false, error: "Error al cambiar la contraseña" });
   }
 };

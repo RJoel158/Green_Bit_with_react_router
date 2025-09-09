@@ -57,9 +57,23 @@ const Login: React.FC = () => {
 
       // Login exitoso
       setMensaje("✅ Bienvenido, " + data.user.username);
+
+      localStorage.setItem("user", JSON.stringify(data.user));
       setForm({ email: "", password: "" });
       setErrors({});
+      switch (data.user.role) {
+    case "admin":
+      window.location.href = "/adminDashboard";
+      break;
+    case "recolector":
+      window.location.href = "/recolectorIndex";
+      break;
+    case "reciclador":
+      window.location.href = "/recicladorIndex";
+      break;
+    default:
       window.location.href = "/main";
+  }
 
     } catch (err) {
       console.error("Error de conexión:", err);
