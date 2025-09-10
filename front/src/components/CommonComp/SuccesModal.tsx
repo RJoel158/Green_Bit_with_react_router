@@ -1,6 +1,6 @@
 import React from "react";
-import "./SuccessModal.css";
-import emailLogo from "../assets/icons/email-logo.svg";
+import "./SuccessModal.css"
+import emailLogo from "../../assets/icons/email-logo.svg";
 
 interface SuccessModalProps {
   title: string;

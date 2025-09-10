@@ -3,6 +3,7 @@ import "./Register.css";
 import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
+import SuccessModal from "./components/CommonComp/SuccesModal";
 
 type FormData = {
   nombres: string;
@@ -21,6 +22,8 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -59,7 +62,7 @@ const Register: React.FC = () => {
       const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 4 }), // se envía role_id = 4 por defecto
+        body: JSON.stringify({ ...form, role_id: 3 }), // se envía role_id = 4 por defecto
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
@@ -68,6 +71,7 @@ const Register: React.FC = () => {
       if (data.success) {
         setMensaje("✅ Registro exitoso.");
         setForm({ nombres: "", apellidos: "", email: "", phone: "" });
+        setShowSuccessModal(true);
         setErrors({});
       } else {
         setMensaje("❌ " + (data.error || "Error desconocido"));
@@ -158,7 +162,15 @@ const Register: React.FC = () => {
           backgroundPosition: "center",
         }}
       />
+      {showSuccessModal && (
+      <SuccessModal
+        title="¡Ya estás registrado!"
+        message="Se envió un correo electrónico con la contraseña temporal "
+        redirectUrl="/login"
+      />
+    )}
     </div>
+
   );
 };
 

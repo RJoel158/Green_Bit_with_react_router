@@ -1,33 +1,85 @@
 // Models/personModel.js
-// Funciones sobre la tabla person. Todas reciben `conn` (conexión) para participar en transacciones.
+import db from "../Config/DBConnect.js";
 
-export const create = async (conn, firstname, lastname, birthdate = null, users_id = null) => {
-  if (users_id !== null) {
+/**
+ * Crear una persona ligada a un usuario (userId).
+ */
+export const create = async (conn, firstname, lastname, userId) => {
+  try {
     const [res] = await conn.query(
-      "INSERT INTO person (firstname, lastname, birthdate, users_id) VALUES (?, ?, ?, ?)",
-      [firstname, lastname, birthdate, users_id]
+      `INSERT INTO person (firstname, lastname, userId)
+       VALUES (?, ?, ?)`,
+      [firstname, lastname, userId]
     );
     return res.insertId;
-  } else {
-    const [res] = await conn.query(
-      "INSERT INTO person (firstname, lastname, birthdate) VALUES (?, ?, ?)",
-      [firstname, lastname, birthdate]
-    );
-    return res.insertId;
+  } catch (err) {
+    console.error("[ERROR] PersonModel.create:", {
+      firstname,
+      lastname,
+      userId,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    throw err;
   }
 };
 
-export const update = async (conn, id, firstname, lastname, birthdate = null) => {
-  const [res] = await conn.query(
-    "UPDATE person SET firstname = ?, lastname = ?, birthdate = ? WHERE id = ?",
-    [firstname, lastname, birthdate, id]
-  );
-  return res.affectedRows > 0;
+export const getAll = async () => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, firstname, lastname, birthdate, userId, state
+       FROM person
+       WHERE state != 0`
+    );
+    return rows;
+  } catch (err) {
+    console.error("[ERROR] PersonModel.getAll:", { message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
+export const getById = async (id) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, firstname, lastname, birthdate, userId, state
+       FROM person
+       WHERE id = ? AND state != 0`,
+      [id]
+    );
+    return rows[0] || null;
+  } catch (err) {
+    console.error("[ERROR] PersonModel.getById:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
+export const update = async (conn, id, firstname, lastname, state = 1, birthdate = null) => {
+  try {
+    const [res] = await conn.query(
+      `UPDATE person
+       SET firstname = ?, lastname = ?, birthdate = ?, state = ?
+       WHERE id = ?`,
+      [firstname, lastname, birthdate, state, id]
+    );
+    return res.affectedRows > 0;
+  } catch (err) {
+    console.error("[ERROR] PersonModel.update:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
 };
 
 export const softDelete = async (conn, id) => {
-  const [cols] = await conn.query("SHOW COLUMNS FROM person LIKE 'deleted_at'");
-  if (cols.length === 0) return false;
-  const [res] = await conn.query("UPDATE person SET deleted_at = NOW() WHERE id = ?", [id]);
-  return res.affectedRows > 0;
+  try {
+    const [res] = await conn.query(
+      `UPDATE person SET state = 0 WHERE id = ?`,
+      [id]
+    );
+    return res.affectedRows > 0;
+  } catch (err) {
+    console.error("[ERROR] PersonModel.softDelete:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
 };

@@ -6,7 +6,7 @@ const pool = mysql.createPool({
   host: "mysql-reciclaje.alwaysdata.net",
   user: "reciclaje_admin",
   password: "Univalle.",
-  database: "reciclaje_proyecto1db",
+  database: "reciclaje_proyecto2db",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
