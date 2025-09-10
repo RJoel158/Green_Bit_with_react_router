@@ -1,0 +1,168 @@
+// Services/emailService.js
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const USER = process.env.GMAIL_USER;
+let PASS = process.env.GMAIL_APP_PASSWORD || "";
+PASS = PASS.replace(/\s+/g, "");
+
+if (!USER || !PASS) {
+  console.error("Falta GMAIL_USER o GMAIL_APP_PASSWORD en .env");
+}
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: USER,
+    pass: PASS,
+  },
+  logger: false, // cambiar a true para debug
+  debug: false,  // cambiar a true para debug
+});
+
+// Plantilla HTML para credenciales
+const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
+  return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    table { border-collapse: collapse !important; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    .email-wrapper { width:100%; background-color:#C9A171; padding:20px 0; }
+    .email-content { width:600px; max-width:600px; margin:0 auto; }
+    .card { background:#F5F3E8; border-radius:12px; border:3px solid #0A5C30; overflow:hidden; }
+    h1 { margin:0; font-size:36px; line-height:1.1; color:#0E7A3A; font-weight:700; }
+    p { margin:0 0 12px 0; color:#2f5441; font-size:15px; line-height:1.4; }
+    .lead { color:#385a45; font-size:15px; line-height:1.4; }
+    .credentials { 
+      background: #e8f5e8; 
+      border: 2px solid #0A5C30; 
+      border-radius: 8px; 
+      padding: 16px; 
+      margin: 16px 0;
+      font-family: 'Courier New', monospace;
+    }
+    .credential-item { 
+      margin: 8px 0; 
+      font-size: 16px; 
+      color: #0A5C30; 
+      font-weight: bold;
+    }
+    .button {
+      display:inline-block;
+      text-decoration:none;
+      padding:12px 28px;
+      border-radius:6px;
+      font-weight:700;
+      background:#14A24F;
+      color:#ffffff;
+    }
+    @media only screen and (max-width:600px) {
+      .email-content { width:94% !important; max-width:94% !important; }
+      h1 { font-size:26px !important; }
+      .card { border-width:2px !important; border-radius:10px !important; }
+      .credentials { padding: 12px !important; }
+      .credential-item { font-size: 14px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#C9A171; font-family:Arial, Helvetica, sans-serif;">
+  <table class="email-wrapper" role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table class="email-content" role="presentation" width="600" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:18px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
+                <tr>
+                  <td align="center" style="padding:26px 30px;">
+                    <h1>¡Bienvenido a EcoRecicla!</h1>
+                    <div style="height:12px;"></div>
+                    <p class="lead">Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:20px 34px;">
+                    <p>Hola <strong>${nombre} ${apellidos}</strong>,</p>
+                    <p>¡Bienvenido a nuestra plataforma de reciclaje! Tu cuenta ha sido creada correctamente.</p>
+                    
+                    <div class="credentials">
+                      <div class="credential-item">👤 Usuario: <span style="color:#14A24F;">${username}</span></div>
+                      <div class="credential-item">🔐 Contraseña: <span style="color:#14A24F;">${password}</span></div>
+                    </div>
+                    
+                    <p><strong>⚠️ Importante:</strong></p>
+                    <ul style="color:#2f5441; padding-left: 20px;">
+                      <li>Guarda estas credenciales en un lugar seguro</li>
+                      <li>Te recomendamos cambiar tu contraseña después del primer inicio de sesión</li>
+                      <li>No compartas estas credenciales con nadie</li>
+                    </ul>
+                    
+                    
+                    <div style="height:14px;"></div>
+                    <p style="color:#6b725f; font-size:12px; margin:0;">
+                      Si no solicitaste esta cuenta, contacta con soporte técnico.<br/>
+                      © EcoRecicla 2025 - Cuidando el planeta juntos
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+};
+
+// Función para enviar credenciales por email
+export const sendCredentialsEmail = async (to, nombre, apellidos, username, password) => {
+  // Verificar si el transporter está configurado
+  if (!transporter) {
+    const error = "❌ No se puede enviar email: falta configurar GMAIL_USER y GMAIL_APP_PASSWORD en .env";
+    console.error(error);
+    throw new Error("Servicio de email no configurado");
+  }
+
+  try {
+    const html = getCredentialsEmailTemplate(nombre, apellidos, username, password);
+    
+    const info = await transporter.sendMail({
+      from: `"EcoRecicla" <${USER}>`,
+      to: to,
+      subject: "🌱 Tus credenciales de acceso - EcoRecicla",
+      html: html,
+    });
+
+    console.log(`✅ Email de credenciales enviado a ${to}:`, info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error enviando email de credenciales:", error);
+    throw error;
+  }
+};
+
+// Función para verificar la conexión SMTP (como en tu código original)
+export const verifyEmailConnection = async () => {
+  if (!transporter) {
+    console.log("⚠️ Transporter no configurado - verifica tu archivo .env");
+    return false;
+  }
+
+  try {
+    await transporter.verify();
+    console.log("✅ Conexión SMTP verificada. Listo para enviar emails.");
+    return true;
+  } catch (err) {
+    console.error("❌ Error verificando SMTP:", err);
+    return false;
+  }
+};
+

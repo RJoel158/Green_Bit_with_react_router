@@ -4,6 +4,7 @@ import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
 import SuccessModal from "./components/CommonComp/SuccesModal";
+//envio de correo desde Service en el backend
 
 type FormData = {
   nombres: string;
@@ -123,6 +124,10 @@ const Register: React.FC = () => {
                 )}
               </div>
             ))}
+            {/* // Botón de envío
+            // al enviar el formulario, se muestra un modal de éxito
+            // y se redirige a la página de login
+            // se envía un correo con la contraseña temporal desde el backend */}
 
             <button
               type="submit"
@@ -132,7 +137,7 @@ const Register: React.FC = () => {
               {loading ? "Registrando..." : "Registrar"}
             </button>
           </form>
-
+          
           {mensaje && (
             <div
               className={`alert mt-3 ${
