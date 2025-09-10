@@ -1,5 +1,12 @@
 export class Validator {
 
+
+  static validatenames(name: string): string {
+    if (!name.trim()) return "El nombre es requerido";
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(name)) return "Solo letras y espacios permitidos";
+    return "";
+  }
+
   static validateUsername(username: string): string {
     if (!username.trim()) return "El nombre de usuario es requerido";
     return "";

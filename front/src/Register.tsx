@@ -5,13 +5,19 @@ import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
 
 type FormData = {
-  username: string;
+  nombres: string;
+  apellidos: string;
   email: string;
   phone: string;
 };
 
 const Register: React.FC = () => {
-  const [form, setForm] = useState<FormData>({ username: "", email: "", phone: "" });
+  const [form, setForm] = useState<FormData>({
+    nombres: "",
+    apellidos: "",
+    email: "",
+    phone: "",
+  });
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -19,18 +25,26 @@ const Register: React.FC = () => {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
-    if (errors[name as keyof FormData]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (errors[name as keyof FormData]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validaciones frontend
-    const usernameError = Validator.validateUsername(form.username);
+    const nombresError = Validator.validatenames?.(form.nombres);
+    const apellidosError = Validator.validatenames?.(form.apellidos);
     const emailError = Validator.validateEmail(form.email);
     const phoneError = Validator.validatePhone(form.phone);
 
-    const validationErrors = { username: usernameError, email: emailError, phone: phoneError };
+    const validationErrors = {
+      nombres: nombresError,
+      apellidos: apellidosError,
+      email: emailError,
+      phone: phoneError,
+    };
     setErrors(validationErrors);
 
     if (!Validator.isValid(validationErrors)) {
@@ -45,7 +59,7 @@ const Register: React.FC = () => {
       const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 4 }), // se envía el role_id = 4 por defecto
+        body: JSON.stringify({ ...form, role_id: 4 }), // se envía role_id = 4 por defecto
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
@@ -53,7 +67,7 @@ const Register: React.FC = () => {
 
       if (data.success) {
         setMensaje("✅ Registro exitoso.");
-        setForm({ username: "", email: "", phone: "" });
+        setForm({ nombres: "", apellidos: "", email: "", phone: "" });
         setErrors({});
       } else {
         setMensaje("❌ " + (data.error || "Error desconocido"));
@@ -77,34 +91,49 @@ const Register: React.FC = () => {
           </div>
 
           <form onSubmit={onSubmit} className="auth-form">
-            {["username", "email", "phone"].map((field) => (
-              <div className="mb-3" key={field}>
+            {[
+              { name: "nombres", placeholder: "Nombres", type: "text" },
+              { name: "apellidos", placeholder: "Apellidos", type: "text" },
+              { name: "email", placeholder: "Correo electrónico", type: "email" },
+              {
+                name: "phone",
+                placeholder: "Número celular (+591XXXXXXXXXX)",
+                type: "text",
+              },
+            ].map((field) => (
+              <div className="mb-3" key={field.name}>
                 <input
-                  name={field}
-                  value={form[field as keyof FormData]}
+                  name={field.name}
+                  value={form[field.name as keyof FormData]}
                   onChange={onChange}
-                  type={field === "email" ? "email" : "text"}
-                  className={`form-control form-control-lg ${errors[field as keyof FormData] ? "is-invalid" : ""}`}
-                  placeholder={
-                    field === "phone"
-                      ? "Número celular (+591XXXXXXXXXX)"
-                      : field.charAt(0).toUpperCase() + field.slice(1)
-                  }
+                  type={field.type}
+                  className={`form-control form-control-lg ${
+                    errors[field.name as keyof FormData] ? "is-invalid" : ""
+                  }`}
+                  placeholder={field.placeholder}
                 />
-                {errors[field as keyof FormData] && (
-                  <div className="invalid-feedback">{errors[field as keyof FormData]}</div>
+                {errors[field.name as keyof FormData] && (
+                  <div className="invalid-feedback">
+                    {errors[field.name as keyof FormData]}
+                  </div>
                 )}
               </div>
             ))}
 
-            <button type="submit" className="btn btn-success btn-lg w-100" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-success btn-lg w-100"
+              disabled={loading}
+            >
               {loading ? "Registrando..." : "Registrar"}
             </button>
           </form>
 
           {mensaje && (
             <div
-              className={`alert mt-3 ${mensaje.includes("✅") ? "alert-success" : "alert-danger"}`}
+              className={`alert mt-3 ${
+                mensaje.includes("✅") ? "alert-success" : "alert-danger"
+              }`}
               role="alert"
             >
               {mensaje}
@@ -123,7 +152,11 @@ const Register: React.FC = () => {
       {/* Lado derecho */}
       <div
         className="register-right d-none d-lg-block flex-grow-1"
-        style={{ backgroundImage: `url(${inicioImage})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        style={{
+          backgroundImage: `url(${inicioImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       />
     </div>
   );
