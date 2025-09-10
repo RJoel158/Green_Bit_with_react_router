@@ -1,142 +1,107 @@
 // Controllers/userController.js
 import * as UserModel from "../Models/userModel.js";
+import { passwordGenerater } from "../PasswordGenerator/passGen.js";
 
-/**
- * Genera un username seguro:
- * - Si existe email, usa la parte antes del '@'
- * - Si no, genera uno a partir de nombres+apellidos (sin espacios, todo minúsculas)
- * - Añade un sufijo numérico aleatorio si hace falta (evita colisiones simples)
- */
-const generateUsername = (nombres, apellidos, email) => {
-  if (email && typeof email === "string" && email.includes("@")) {
-    const base = email.split("@")[0].replace(/[^a-zA-Z0-9._-]/g, "").toLowerCase();
-    return `${base}_${Math.floor(Math.random() * 9000 + 1000)}`; // ej: miguel_4821
-  }
-  const n = (nombres || "user").toString().trim().replace(/\s+/g, "").toLowerCase();
-  const a = (apellidos || "").toString().trim().replace(/\s+/g, "").toLowerCase();
-  const base = (n + (a ? `.${a}` : "")).replace(/[^a-z0-9._-]/g, "");
-  return `${base}_${Math.floor(Math.random() * 9000 + 1000)}`;
-};
 
-// Obtener todos
+
+
 export const getUsers = async (req, res) => {
   try {
     const users = await UserModel.getAllWithPersona();
     res.json({ success: true, users });
   } catch (err) {
-    console.error("Error en getUsers:", err);
+    console.error("[ERROR] getUsers controller:", { message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al obtener usuarios" });
   }
 };
 
-// Obtener por id
 export const getUserById = async (req, res) => {
   try {
-    const user = await UserModel.getByIdWithPersona(req.params.id);
-    if (!user) return res.status(404).json({ success: false, error: "Usuario no encontrado" });
-    res.json({ success: true, user });
+    const user = await UserModel.getById(req.params.id);
+    if (user.length === 0) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+    res.json({ success: true, user: user[0] });
   } catch (err) {
-    console.error("Error en getUserById:", err);
+    console.error("[ERROR] getUserById controller:", { params: req.params, message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al obtener usuario" });
   }
 };
 
-// Crear usuario + persona (acepta campos en español enviados por el frontend)
-export const createUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
-    // Log para depuración: muestra exactamente lo que llega
-    console.log("POST /users body:", req.body);
+    const { email, password } = req.body;
 
-    // Aceptamos nombres en español desde el frontend
-    const {
-      nombres,
-      apellidos,
-      birthdate = null, // opcional (si no viene, queda null)
-      username: usernameIncoming,
-      email,
-      phone,
-      role_id,
-    } = req.body;
-
-    // Validación básica
-    if (!nombres || !apellidos || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        error: "Campos requeridos: nombres, apellidos, email, phone",
-      });
+    if (!email || !password) {
+      console.log("Faltan email o contraseña");
+      return res.status(400).json({ success: false, error: "Email y contraseña son requeridos" });
     }
 
-    // Si no llega username, lo generamos
-    const username = usernameIncoming && usernameIncoming.trim()
-      ? usernameIncoming.trim()
-      : generateUsername(nombres, apellidos, email);
+    // Buscar usuario por email
+    const user = await UserModel.loginUser(email);
 
-    // Llamamos al modelo (mapeando nombres->firstname, apellidos->lastname)
-    const result = await UserModel.createWithPersona(
-      nombres,          // firstname
-      apellidos,        // lastname
-      birthdate,        // birthdate (puede ser null)
-      username,         // username
-      email,            // email
-      phone,            // phone
-      role_id ?? 4      // role_id (usa 4 por defecto si no viene)
-    );
+    if (user.length === 0) {
+      console.log("Usuario no encontrado:", email);
+      return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
+    }
 
-    // En desarrollo devolvemos la password temporal generada para pruebas.
-    // EN PRODUCCIÓN: no devuelvas la password en texto plano; envíala por correo o fuerza cambio.
-    res.status(201).json({
+    // Comparar contraseña
+    if (user[0].password !== password) {
+      console.log("Contraseña incorrecta para:", email);
+      return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
+    }
+
+    const u = user[0];
+    res.json({
       success: true,
-      id: result.userId,
-      personId: result.personId,
-      password: result.password,
+      user: {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        state:u.state,
+      },
     });
+
   } catch (err) {
-    console.error("Error en createUser:", err);
-    // Si hay mensaje de esquema circular, devolverlo para que lo veas
-    if (err.message && err.message.includes("dependencia circular")) {
-      return res.status(500).json({ success: false, error: err.message });
-    }
-    res.status(500).json({ success: false, error: "Error al registrar usuario", detail: err.message });
+    console.error("Error en loginUser:", err);
+    res.status(500).json({ success: false, error: "Error al iniciar sesión" });
   }
 };
 
-// Actualizar usuario + persona (acepta nombres/apellidos en español)
+
+
+
+export const createUser = async (req, res) => {
+  try {
+    const { username,password, email, phone, role_id } = req.body;
+    if (!username || !email || !phone) {
+      return res.status(400).json({ success: false, error: "Todos los campos son requeridos" });
+    }
+    const result = await UserModel.create(username,passwordGenerater(12), email, phone, 3);
+    res.status(201).json({ success: true, id: result.insertId });
+  } catch (err) {
+    console.error("Error en createUser:", err);
+    res.status(500).json({ success: false, error: "Error al registrar usuario" });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const {
-      nombres,
-      apellidos,
-      birthdate = null,
-      username,
-      email,
-      phone,
-      role_id,
-      state,
-    } = req.body;
 
-    // Nota: el modelo espera firstname, lastname, birthdate, username, email, phone, role_id, state
-    const updated = await UserModel.updateWithPersona(
-      id,
-      nombres,
-      apellidos,
-      birthdate,
-      username,
-      email,
-      phone,
-      role_id,
-      state
-    );
+    const result = await UserModel.update(id, username, email, phone, role_id, state);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
 
-    if (!updated) return res.status(404).json({ success: false, error: "Usuario no encontrado" });
     res.json({ success: true });
   } catch (err) {
-    console.error("Error en updateUser:", err);
+    console.error("[ERROR] updateUser controller:", { params: req.params, body: req.body, message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al actualizar usuario" });
   }
 };
 
-// Borrado lógico
 export const deleteUser = async (req, res) => {
   try {
     const id = req.params.id;
@@ -144,7 +109,36 @@ export const deleteUser = async (req, res) => {
     if (!deleted) return res.status(404).json({ success: false, error: "Usuario no encontrado" });
     res.json({ success: true });
   } catch (err) {
-    console.error("Error en deleteUser:", err);
+    console.error("[ERROR] deleteUser controller:", { params: req.params, message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al eliminar usuario" });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { userId } = req.params; // userId desde la URL
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ success: false, error: "La contraseña es requerida" });
+    }
+
+    // Verificar que el usuario existe
+    const user = await UserModel.getById(userId);
+    if (user.length === 0) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+
+    // Actualizar contraseña y poner state a 0
+    const result = await UserModel.updatePasswordAndState(userId, password, 0);
+
+    if (result.affectedRows === 0) {
+      return res.status(500).json({ success: false, error: "No se pudo actualizar la contraseña" });
+    }
+
+    res.json({ success: true, message: "Contraseña cambiada correctamente" });
+  } catch (err) {
+    console.error("Error en changePassword:", err);
+    res.status(500).json({ success: false, error: "Error al cambiar la contraseña" });
   }
 };

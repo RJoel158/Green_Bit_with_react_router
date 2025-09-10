@@ -1,27 +1,52 @@
 import React, { useState } from "react";
 import "./ChangePasswordModal.css";
-import { Validator } from "../common/Validator";
-import SuccessModal from "./SuccesModal";
+import { Validator } from "../../common/Validator";
+import SuccessModal from "../CommonComp/SuccesModal";
 
-const ChangePasswordModal: React.FC = () => {
+interface ChangePasswordModalProps {
+  userId: number;
+  role: string;
+}
+
+const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role }) => {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [errors, setErrors] = useState<{ password?: string; repeatPassword?: string }>({});
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+
     const passwordError = Validator.validatePassword(password);
-    const repeatPasswordError =
-      password !== repeatPassword ? "Las contraseñas no coinciden" : "";
+    const repeatPasswordError = password !== repeatPassword ? "Las contraseñas no coinciden" : "";
 
     const validationErrors = { password: passwordError, repeatPassword: repeatPasswordError };
     setErrors(validationErrors);
 
-    if (Validator.isValid(validationErrors)) {
-     
-      setIsChangePasswordOpen(false); 
-      setIsSuccessModalOpen(true);   
+    if (!Validator.isValid(validationErrors)) return;
+
+    try {
+      
+      const res = await fetch(`http://localhost:3000/api/users/changePassword/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Error al cambiar la contraseña");
+
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        u.state = 2; // indica que ya cambió la contraseña
+        localStorage.setItem("user", JSON.stringify(u));
+      }
+      setIsChangePasswordOpen(false);
+      setIsSuccessModalOpen(true);
+    } catch (err: any) {
+      console.error("Error al cambiar la contraseña:", err);
+      alert("No se pudo cambiar la contraseña: " + err.message);
     }
   };
 
@@ -70,7 +95,13 @@ const ChangePasswordModal: React.FC = () => {
         <SuccessModal
           title="¡Contraseña actualizada!"
           message="Tu contraseña ha sido cambiada exitosamente."
-          redirectUrl="https://www.google.com/" //Revisar para el cambio entre ventanas
+          redirectUrl={
+            role === "admin"
+              ? "/admin-dashboard"
+              : role === "reciclador"
+              ? "/recicladorIndex"
+              : "/main"
+          }
         />
       )}
     </>
