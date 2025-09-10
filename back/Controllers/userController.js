@@ -1,5 +1,7 @@
 // Controllers/userController.js
+import bcrypt from "bcrypt";
 import * as UserModel from "../Models/userModel.js";
+import { sendCredentialsEmail } from "../Services/emailService.js";
 
 /** GET /users */
 export const getUsers = async (req, res) => {
@@ -40,7 +42,9 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
     }
 
-    if (user.password !== password) {
+    // 🔐 validar contraseña encriptada
+    const validPass = await bcrypt.compare(password, user.password);
+    if (!validPass) {
       console.warn("[WARN] loginUser - invalid password for", { email });
       return res.status(401).json({ success: false, error: "Usuario o contraseña incorrectos" });
     }
@@ -61,7 +65,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-/** POST /users -> crea user + person */
+/** POST /users -> crea user + person con contraseña temporal */
 export const createUser = async (req, res) => {
   try {
     console.log("[INFO] POST /users body:", { ...req.body, password: undefined });
@@ -78,6 +82,10 @@ export const createUser = async (req, res) => {
 
     const roleIdParsed = role_id !== undefined ? Number(role_id) : undefined;
 
+    // 🔐 generar contraseña temporal
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
     try {
       const result = await UserModel.createWithPersona(
         nombres,
@@ -85,7 +93,8 @@ export const createUser = async (req, res) => {
         usernameIncoming,
         email,
         phone,
-        roleIdParsed
+        roleIdParsed,
+        hashedPassword // guardamos en BD el hash
       );
 
       res.status(201).json({
@@ -93,15 +102,26 @@ export const createUser = async (req, res) => {
         id: result.userId,
         personId: result.personId,
         username: result.username,
-        password: result.password,
+        tempPassword, // ⚡ enviamos solo al registrar para mandar por correo
+        
       });
+      await sendCredentialsEmail(email, nombres, apellidos, email, tempPassword);
     } catch (err) {
-      console.error("[ERROR] createUser model error:", { body: req.body, message: err.message, code: err.code || null, stack: err.stack });
+      console.error("[ERROR] createUser model error:", {
+        body: req.body,
+        message: err.message,
+        code: err.code || null,
+        stack: err.stack,
+      });
       if (err.code === "ER_ROLE_NOT_FOUND" || err.code === "ER_NO_ROLES") {
         return res.status(400).json({ success: false, error: err.message });
       }
       if (err && err.code === "ER_NO_REFERENCED_ROW_2") {
-        return res.status(400).json({ success: false, error: "Violación de FK al crear usuario (verifica role/foreign keys)", detail: err.sqlMessage || err.message });
+        return res.status(400).json({
+          success: false,
+          error: "Violación de FK al crear usuario (verifica role/foreign keys)",
+          detail: err.sqlMessage || err.message,
+        });
       }
       throw err;
     }
@@ -160,7 +180,8 @@ export const changePassword = async (req, res) => {
     const user = await UserModel.getById(userId);
     if (!user) return res.status(404).json({ success: false, error: "Usuario no encontrado" });
 
-    const updated = await UserModel.updatePasswordAndState(userId, password);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const updated = await UserModel.updatePasswordAndState(userId, hashedPassword);
     if (!updated) return res.status(500).json({ success: false, error: "No se pudo actualizar la contraseña" });
 
     res.json({ success: true, message: "Contraseña cambiada correctamente" });
