@@ -1,4 +1,5 @@
 // Models/userModel.js
+import bcrypt from "bcrypt";
 import db from "../Config/DBConnect.js";
 import * as PersonModel from "./personModel.js";
 import { passwordGenerater } from "../PasswordGenerator/passGen.js";
@@ -63,6 +64,7 @@ export const getById = async (id) => {
 };
 
 export const loginUser = async (email) => {
+  console.log("[INFO] loginUser model called with email:", email);
   const [rows] = await db.query(
     `SELECT u.id, u.username, u.email, u.phone, u.password, r.name AS role, u.state
      FROM users u
@@ -70,6 +72,7 @@ export const loginUser = async (email) => {
      WHERE u.email = ? AND u.state != 0`,
     [email]
   );
+  console.log("[INFO] loginUser model result:", rows.length > 0 ? "User found" : "User not found");
   return rows[0] || null;
 };
 
@@ -131,7 +134,11 @@ export const createWithPersona = async (
 
     await conn.beginTransaction();
 
-    const password = passwordGenerater(12);
+    // ⚡ SIEMPRE generar contraseña temporal nueva
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    
+    console.log("[INFO] Generated password length:", tempPassword.length, "Hash starts with:", hashedPassword.substring(0, 10));
 
     let usernameBase = usernameIncoming && usernameIncoming.toString().trim();
     if (!usernameBase) {
@@ -145,7 +152,7 @@ export const createWithPersona = async (
     }
     console.log("[INFO] createWithPersona - usernameBase prepared:", { usernameBase });
 
-    const { userId, usernameUsed } = await insertUserWithRetry(conn, usernameBase, password, roleId, email, phone);
+    const { userId, usernameUsed } = await insertUserWithRetry(conn, usernameBase, hashedPassword, roleId, email, phone);
 
     console.log("[INFO] createWithPersona - inserting person referencing userId", { userId, firstname, lastname });
     const personId = await PersonModel.create(conn, firstname, lastname, userId);
@@ -154,7 +161,7 @@ export const createWithPersona = async (
     await conn.commit();
     console.log("[INFO] createWithPersona - transaction committed", { userId, personId });
 
-    return { userId, personId, password, username: usernameUsed };
+    return { userId, personId, password: tempPassword, username: usernameUsed };
   } catch (err) {
     console.error("[ERROR] createWithPersona - transaction error:", {
       firstname,
@@ -250,7 +257,7 @@ export const softDeleteWithPersona = async (userId) => {
 };
 
 export const softDelete = async (id) => {
-  const [res] = await db.query("UPDATE users SET state = 1 WHERE id = ?", [id]);
+  const [res] = await db.query("UPDATE users SET state = 0 WHERE id = ?", [id]);
   return res.affectedRows > 0;
 };
 
