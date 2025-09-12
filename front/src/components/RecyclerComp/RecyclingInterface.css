@@ -1,0 +1,343 @@
+/* RecyclingInterface.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.recycling-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #ffffff, #fffdfd);
+  font-family: 'Arial', sans-serif;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: rgba(200, 168, 130, 0.8);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.leaf {
+  font-size: 24px;
+}
+
+.bottle {
+  font-size: 20px;
+  color: #2D4A3E;
+}
+
+.logo-text {
+  font-size: 28px;
+  font-weight: bold;
+  color: #4CAF50;
+  font-style: italic;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+}
+
+.user-name {
+  color: #4CAF50;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: #8B6F47;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.notification-dot {
+  width: 12px;
+  height: 12px;
+  background: #4CAF50;
+  border-radius: 50%;
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+
+/* Main Content */
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 40px;
+  gap: 40px;
+  min-height: calc(100vh - 80px);
+}
+
+/* Banner Styles */
+.banner-left,
+.banner-right {
+  width: 300px;
+  height: 500px;
+  background: linear-gradient(135deg, #6B46C1 0%, #9333EA 50%, #C084FC 100%);
+  border-radius: 20px;
+  padding: 40px 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.banner-content {
+  z-index: 2;
+  position: relative;
+}
+
+.banner-arrows {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arrow-up {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 20px;
+  text-align: center;
+}
+
+.banner-title {
+  color: white;
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.banner-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 30px;
+}
+
+.banner-button {
+  background: #FFC107;
+  color: #000;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.banner-button:hover {
+  transform: translateY(-2px);
+}
+
+.banner-pattern {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+}
+
+.dots::before {
+  content: '• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •';
+  color: white;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 12px;
+  line-height: 20px;
+  width: 120px;
+}
+
+.banner-person {
+  position: absolute;
+  bottom: 0;
+  right: 20px;
+  width: 150px;
+  height: 200px;
+  z-index: 1;
+}
+
+.banner-person img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Recycling Section */
+.recycling-section {
+  flex: 1;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.recycling-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  background: #4CAF50;
+  padding: 20px 60px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.recycle-icon {
+  font-size: 40px;
+  color: white;
+}
+
+.recycling-title {
+  color: white;
+  font-size: 36px;
+  font-weight: bold;
+  letter-spacing: 8px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.recyclers-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+  color: #4CAF50;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.card-subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.recyclers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.recycler-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #F8F9FA;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+}
+
+.recycler-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recycler-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #8B6F47, #A0845C);
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.recycler-name {
+  flex: 1;
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+}
+
+.recycler-points {
+  color: #666;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .main-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  
+  .banner-left,
+  .banner-right {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .recycling-section {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .main-content {
+    padding: 20px;
+  }
+  
+  .banner-left,
+  .banner-right {
+    height: 400px;
+  }
+  
+  .banner-title {
+    font-size: 32px;
+  }
+  
+  .recycling-title {
+    font-size: 28px;
+    letter-spacing: 4px;
+  }
+  
+  .recyclers-card {
+    padding: 20px;
+  }
+}

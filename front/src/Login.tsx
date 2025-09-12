@@ -66,7 +66,7 @@ const Login: React.FC = () => {
       window.location.href = "/adminDashboard";
       break;
     case "recolector":
-      window.location.href = "/recolectorIndex";
+      window.location.href = "/recicladorIndex";
       break;
     case "reciclador":
       window.location.href = "/recicladorIndex";

@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/HomeComps/Home";
 import Register from "./Register";
 import Login from "./Login";
-import RecicladorIndex from "./reciclador";
+import RecicladorIndex from "./components/RecyclerComp/RecyclingInterface";
+
 
 
 function App() {

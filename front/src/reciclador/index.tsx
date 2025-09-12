@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ChangePasswordModal from "../components/PasswordComp/ChangePasswordModal";
 
-const RecicladorIndex: React.FC = () => {
+const RecicladorIndexPrueba: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -39,4 +39,4 @@ const RecicladorIndex: React.FC = () => {
   );
 };
 
-export default RecicladorIndex;
+export default RecicladorIndexPrueba;
