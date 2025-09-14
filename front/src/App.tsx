@@ -3,6 +3,7 @@ import Home from "./components/HomeComps/Home";
 import Register from "./Register";
 import Login from "./Login";
 import RecicladorIndex from "./components/RecyclerComp/RecyclingInterface";
+import UserInfo from "./components/UserInfoComp/UserInfoInterface";
 
 
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/recicladorIndex" element={<RecicladorIndex />} />
+        <Route path="/userInfo" element={<UserInfo />} />
       </Routes>
     </Router>
   );

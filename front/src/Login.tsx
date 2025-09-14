@@ -4,15 +4,19 @@ import inicioImage from "./assets/inicio.png";
 import logo from "./assets/logo.png";
 import { Validator } from "./common/Validator";
 
+//Estructura del formulario del login
 type FormData = {
   email: string;
   password: string;
 };
 
 const Login: React.FC = () => {
+  //Estado del formulario
   const [form, setForm] = useState<FormData>({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  //Mensaje de error o éxito
   const [mensaje, setMensaje] = useState("");
+  //Errores de validación
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,10 +61,12 @@ const Login: React.FC = () => {
 
       // Login exitoso
       setMensaje("✅ Bienvenido, " + data.user.username);
-
+      //Guardado de sesión
       localStorage.setItem("user", JSON.stringify(data.user));
+      //Limpieza del formulario y erores
       setForm({ email: "", password: "" });
       setErrors({});
+      //Redirección segun el rol
       switch (data.user.role) {
     case "admin":
       window.location.href = "/adminDashboard";
