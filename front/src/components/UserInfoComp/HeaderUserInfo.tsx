@@ -1,15 +1,22 @@
 import React from "react";
 import "./UserInfo.css";
-import logoText from "../../assets/logoText.svg";
+import logo from "../../assets/logo.png";
 
 const HeaderUserInfo: React.FC = () => {
   return (
-    <header className="header d-flex justify-content-between align-items-center px-3 px-md-5 py-3">
-      <div className="logo d-flex align-items-center">
-        <img src={logoText} alt="Logo GreenBit" className="logo-img" />
+    <header className="header d-flex align-items-center justify-content-between px-3 px-md-5">
+     
+      <div className="logo d-flex align-items-center flex-shrink-0">
+        <img src={logo} alt="Logo GreenBit" className="logo-img img-fluid" />
       </div>
-      
-      <h1 className="header-title">Información de usuario</h1>
+
+     
+      <h1 className="header-title text-center flex-grow-1 fw-bold">
+        Información de usuario
+      </h1>
+
+     
+      <div style={{ width: "120px" }}></div>
     </header>
   );
 };
