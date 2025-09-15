@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import "./Register.css";
-import inicioImage from "./assets/inicio.png";
-import logo from "./assets/logo.png";
-import { Validator } from "./common/Validator";
-import SuccessModal from "./components/CommonComp/SuccesModal";
-//envio de correo desde Service en el backend
+import "../Auth/Register.css";
+import inicioImage from "../assets/inicio.png";
+import logo from "../assets/logo.png";
+import cardBg from "../assets/SideBarImg.png";
+import { Validator } from "../common/Validator";
+import SuccessModal from "../components/CommonComp/SuccesModal";
 
 type FormData = {
   nombres: string;
@@ -13,7 +13,7 @@ type FormData = {
   phone: string;
 };
 
-const Register: React.FC = () => {
+const RegisterInstitution: React.FC = () => {
   const [form, setForm] = useState<FormData>({
     nombres: "",
     apellidos: "",
@@ -24,7 +24,6 @@ const Register: React.FC = () => {
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,7 +62,7 @@ const Register: React.FC = () => {
       const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 3 }), // se envía role_id = 4 por defecto
+        body: JSON.stringify({ ...form, role_id: 3 }),
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
@@ -88,8 +87,18 @@ const Register: React.FC = () => {
   return (
     <div className="register-page d-flex align-items-stretch">
       {/* Lado izquierdo */}
-      <div className="register-left d-flex flex-column justify-content-center p-4">
-        <div className="auth-card shadow-lg p-4 rounded-4 bg-light">
+      <div
+        className="register-left d-flex flex-column justify-content-center p-4"
+        /* La imagen de fondo la manejamos por CSS con la variable cardBg (claro que aquí la dejamos inline para que funcione con webpack/CRA) */
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.15)), url(${cardBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          color: "#fff",
+        }}
+      >
+        <div className="auth-card shadow-lg p-4 rounded-4" id="registerPage">
           <div className="text-center mb-4">
             <h1 className="auth-title mb-2">Registra tu cuenta de reciclaje</h1>
             <img src={logo} alt="Logo EcoVerde" className="register-logo" />
@@ -124,10 +133,6 @@ const Register: React.FC = () => {
                 )}
               </div>
             ))}
-            {/* // Botón de envío
-            // al enviar el formulario, se muestra un modal de éxito
-            // y se redirige a la página de login
-            // se envía un correo con la contraseña temporal desde el backend */}
 
             <button
               type="submit"
@@ -137,7 +142,7 @@ const Register: React.FC = () => {
               {loading ? "Registrando..." : "Registrar"}
             </button>
           </form>
-          
+
           {mensaje && (
             <div
               className={`alert mt-3 ${
@@ -151,8 +156,12 @@ const Register: React.FC = () => {
         </div>
 
         <div className="cta-banner text-center mt-3">
-          <span>¿Quieres formar parte del equipo de recolectores? </span>
-          <a href="/registerCollector" className="fw-semibold">
+          <span>
+            <p style={{ fontSize: "1rem", fontWeight: "600" }}>
+              ¿Quieres formar parte del equipo de recolectores?
+            </p>
+          </span>
+          <a href="/registerCollector" style={{ fontSize: "1.1rem", fontWeight: "600" }} className="fw-semibold">
             Regístrate aquí!
           </a>
         </div>
@@ -168,15 +177,14 @@ const Register: React.FC = () => {
         }}
       />
       {showSuccessModal && (
-      <SuccessModal
-        title="¡Ya estás registrado!"
-        message="Se envió un correo electrónico con la contraseña temporal "
-        redirectUrl="/login"
-      />
-    )}
+        <SuccessModal
+          title="¡Ya estás registrado!"
+          message="Se envió un correo electrónico con la contraseña temporal "
+          redirectUrl="/login"
+        />
+      )}
     </div>
-
   );
 };
 
-export default Register;
+export default RegisterInstitution;

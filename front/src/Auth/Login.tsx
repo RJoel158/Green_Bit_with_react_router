@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import "./Register.css";
-import inicioImage from "./assets/inicio.png";
-import logo from "./assets/logo.png";
-import { Validator } from "./common/Validator";
+import inicioImage from "../assets/inicio.png";
+import logo from "../assets/logo.png";
+import { Validator } from "../common/Validator";
 
 type FormData = {
   email: string;

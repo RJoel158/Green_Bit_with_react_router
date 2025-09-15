@@ -1,0 +1,153 @@
+:root {
+  --verde-principal: #2d5016;
+  --verde-medio: #4a7c59;
+  --verde-claro: #7fb069;
+  --arena: #dcc2a4;
+  --crema: #fffdf8;
+  --error: #dc3545;
+  --success: #28a745;
+}
+
+/* Reset básico */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--crema);
+  color: #333;
+}
+
+/* Layout principal */
+.register-page {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Lado izquierdo: formulario */
+.register-left {
+  max-width: 480px;
+  width: 100%;
+  background: #f6fbf4;
+  border-right: 2px solid rgba(74,124,89,.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Tarjeta del formulario */
+.auth-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--verde-medio);
+}
+
+.register-logo {
+  width: 230px;
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 15px;
+}
+
+/* Inputs */
+.auth-form .form-control {
+  border: 2px solid #e4e9e4;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+.auth-form .form-control:focus {
+  border-color: var(--verde-claro);
+  box-shadow: 0 0 0 .2rem rgba(127,176,105,.15);
+  outline: none;
+}
+.auth-form .is-invalid {
+  border-color: var(--error) !important;
+}
+.invalid-feedback {
+  font-size: 0.85rem;
+  color: var(--error);
+  margin-top: 4px;
+}
+
+/* Botón de registro */
+.btn-success {
+  background: var(--verde-medio);
+  border: none;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+.btn-success:hover {
+  background: var(--verde-principal);
+}
+.btn-success:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Mensajes */
+.alert {
+  border-radius: 12px;
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+}
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Banner inferior */
+.cta-banner {
+  background: #f3e4cf;
+  border: 2px solid #b58f6a;
+  color: #4b3f33;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: .9rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+.cta-banner a { 
+  color: #137f4a; 
+  text-decoration: none; 
+  font-weight: 600;
+}
+.cta-banner a:hover { 
+  text-decoration: underline; 
+}
+
+/* Lado derecho: imagen */
+.register-right {
+  flex-grow: 1;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .register-right { display: none; }
+  .register-left {
+    max-width: 100%;
+    border-right: none;
+    padding: 1.5rem;
+  }
+}
