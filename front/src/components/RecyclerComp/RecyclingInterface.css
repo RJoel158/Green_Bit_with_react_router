@@ -1,4 +1,4 @@
-/* RecyclingInterface.css */
+/* Reset */
 * {
   margin: 0;
   padding: 0;
@@ -91,111 +91,36 @@
   min-height: calc(100vh - 80px);
 }
 
-/* Banner Styles */
+/* Banners laterales: solo fondo violeta */
 .banner-left,
 .banner-right {
   width: 300px;
   height: 500px;
-  background: linear-gradient(135deg, #6B46C1 0%, #9333EA 50%, #C084FC 100%);
+  background: #6B46C1;
   border-radius: 20px;
-  padding: 40px 30px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
 }
 
-.banner-content {
-  z-index: 2;
-  position: relative;
-}
-
-.banner-arrows {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.arrow-up {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 20px;
-  text-align: center;
-}
-
-.banner-title {
+/* Botón RECICLA */
+.recycling-button {
+  background: #4CAF50;
   color: white;
-  font-size: 42px;
-  font-weight: 900;
-  line-height: 1.1;
-  margin-bottom: 20px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.banner-subtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-  line-height: 1.4;
-  margin-bottom: 30px;
-}
-
-.banner-button {
-  background: #FFC107;
-  color: #000;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
+  font-size: 28px;
   font-weight: bold;
-  font-size: 14px;
+  letter-spacing: 8px;
+  border: none;
+  padding: 20px 60px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: transform 0.3s ease;
 }
 
-.banner-button:hover {
-  transform: translateY(-2px);
+.recycling-button:hover {
+  transform: translateY(-3px);
+  background: #45a049;
 }
 
-.banner-pattern {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.1;
-}
-
-.dots::before {
-  content: '• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •';
-  color: white;
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 12px;
-  line-height: 20px;
-  width: 120px;
-}
-
-.banner-person {
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-  width: 150px;
-  height: 200px;
-  z-index: 1;
-}
-
-.banner-person img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-/* Recycling Section */
+/* Card recicladores */
 .recycling-section {
   flex: 1;
   max-width: 600px;
@@ -203,30 +128,6 @@
   flex-direction: column;
   align-items: center;
   gap: 30px;
-}
-
-.recycling-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 30px;
-  background: #4CAF50;
-  padding: 20px 60px;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.recycle-icon {
-  font-size: 40px;
-  color: white;
-}
-
-.recycling-title {
-  color: white;
-  font-size: 36px;
-  font-weight: bold;
-  letter-spacing: 8px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .recyclers-card {
@@ -275,10 +176,16 @@
 .recycler-avatar {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #8B6F47, #A0845C);
   border-radius: 50%;
+  overflow: hidden;
   border: 3px solid #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.recycler-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .recycler-name {
@@ -326,16 +233,12 @@
   
   .banner-left,
   .banner-right {
-    height: 400px;
+    height: 200px;
   }
   
-  .banner-title {
-    font-size: 32px;
-  }
-  
-  .recycling-title {
-    font-size: 28px;
-    letter-spacing: 4px;
+  .recycling-button {
+    font-size: 22px;
+    padding: 15px 40px;
   }
   
   .recyclers-card {
