@@ -5,6 +5,7 @@ import Login from "./Auth/Login";
 import RecicladorIndex from "./components/RecyclerComp/RecyclingInterface";
 import ResgisterCollector from "./Auth/registerCollector";
 import RegisterInstitution from "./Auth/registerInstitution";
+import UserInfo from "./components/UserInfoComp/UserInfoInterface";
 
 
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/recicladorIndex" element={<RecicladorIndex />} />
         <Route path="/registerCollector" element={<ResgisterCollector/>} />
         <Route path="/registerInstitution" element={<RegisterInstitution/>} />
+        <Route path="/userInfo" element={<UserInfo />} />
       </Routes>
     </Router>
   );

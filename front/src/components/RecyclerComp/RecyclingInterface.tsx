@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./RecyclingInterface.css";
 import Header from "./headerRecycler";
+import { useNavigate } from "react-router-dom";
 
 interface Recycler {
   id: number;
@@ -25,13 +26,19 @@ const recyclers: Recycler[] = [
 
 const RecyclingInterface: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
-    if (userStr) {
-      setUser(JSON.parse(userStr));
+    //Revisa si hay un usuario con la sesión iniciada
+   if (!userStr) {
+
+      navigate("/login", { replace: true });
+      return;
     }
-  }, []);
+
+    setUser(JSON.parse(userStr));
+  }, [navigate]);
 
   return (
     <div className="recycling-container">

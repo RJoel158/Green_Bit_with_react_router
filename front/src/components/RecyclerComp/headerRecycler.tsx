@@ -3,6 +3,7 @@ import "./RecyclingInterface.css";
 import logoText from "../../assets/logoText.svg";
 import bellIcon from "../../assets/icons/bell.svg";
 
+//Definicion de usuario
 interface User {
   id: number;
   username: string;
@@ -14,6 +15,7 @@ interface User {
 interface HeaderProps {
   user: User | null;
 }
+
 const handleLogout = () => {
   localStorage.removeItem("user"); // borra la sesión
   window.location.replace("/login"); // reemplaza la URL y evita volver atrás
@@ -47,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
               <span className="ms-1 dropdown-arrow">↴</span>
           </button>
           <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li><a className="dropdown-item" href="#">Perfil</a></li>
+            <li><a className="dropdown-item" href="/UserInfo">Perfil</a></li>
             <li><hr className="dropdown-divider" /></li>
             <li>
               <button className="dropdown-item" onClick={handleLogout}>
