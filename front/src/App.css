@@ -15,18 +15,14 @@
   --nav-underline: rgba(144,238,144,0.95);
   --nav-transition: 200ms cubic-bezier(.2,.9,.3,1);
 }
-
-
+ 
 #root {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
 }
-
-
-
-
+ 
 /* ---------------------------
    NAVBAR - ESTILOS PRINCIPALES
    --------------------------- */
@@ -35,7 +31,7 @@
   border-bottom: 1px solid rgba(0,0,0,0.08);
   z-index: 1050;
 }
-
+ 
 /* Logo */
 .site-logo,
 .navbar-brand img {
@@ -46,7 +42,7 @@
   margin-bottom: -8px;
   transition: width .18s ease, height .18s ease;
 }
-
+ 
 /* Marca textual */
 .site-brand-text .fw-bold {
   font-size: 1.2rem;
@@ -58,7 +54,7 @@
   color: var(--muted-white);
   font-size: 0.88rem;
 }
-
+ 
 /* Links de navegación */
 .site-nav-link {
   color: var(--text-on-green);
@@ -71,7 +67,7 @@
   transition: color var(--nav-transition), transform var(--nav-transition);
   -webkit-font-smoothing: antialiased;
 }
-
+ 
 /* subrayado animado */
 .site-nav-link::after {
   content: "";
@@ -87,7 +83,7 @@
   display: inline-block;
   transition: color var(--nav-transition), transform var(--nav-transition);
 }
-
+ 
 /* Subrayado animado */
 .site-nav-link::after {
   content: "";
@@ -102,7 +98,7 @@
   transition: width var(--nav-transition), opacity var(--nav-transition);
   opacity: 0;
 }
-
+ 
 /* Hover */
 .site-nav-link:hover {
   color: var(--accent-light);
@@ -112,7 +108,7 @@
   width: 60%;
   opacity: 1;
 }
-
+ 
 /* Activo (para NavLink o aria-current) */
 .site-nav-link.active,
 .site-nav-link[aria-current="page"] {
@@ -125,7 +121,7 @@
   opacity: 1;
   background-color: var(--accent-strong);
 }
-
+ 
   transform: translateX(-50%) scaleX(0);
   transform-origin: center;
   width: 60%;
@@ -135,7 +131,7 @@
   transition: transform var(--nav-transition) ease, opacity var(--nav-transition);
   opacity: 0;
 }
-
+ 
 /* Hover / focus */
 @media (hover: hover) and (pointer: fine) {
   .site-nav-link:hover,
@@ -152,7 +148,7 @@
     opacity: 1;
   }
 }
-
+ 
 /* Active link */
 .site-nav-link.active,
 .site-nav-link[aria-current="page"] {
@@ -169,14 +165,14 @@
   width: 70%;
   background: var(--accent-strong);
 }
-
+ 
 /* Click/touch feedback */
 .site-nav-link:active {
   transform: scale(0.98);
   background: var(--nav-hover-bg);
   border-radius: 6px;
 }
-
+ 
 /* ---------------------------
    BOTONES
    --------------------------- */
@@ -189,12 +185,12 @@
   padding: .45rem .9rem;
   transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease;
 }
-.btn-ghost:hover { 
-  background-color: rgba(255,255,255,0.18); 
-  transform: translateY(-2px); 
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12); 
+.btn-ghost:hover {
+  background-color: rgba(255,255,255,0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
-
+ 
 .btn-primary-register {
   background-color: var(--accent-light);
   color: #2d5016;
@@ -204,12 +200,12 @@
   box-shadow: 0 2px 8px rgba(144, 238, 144, 0.25);
   transition: transform .18s ease, box-shadow .18s ease;
 }
-.btn-primary-register:hover { 
-  background-color: var(--accent-strong); 
-  transform: translateY(-2px); 
-  box-shadow: 0 8px 20px rgba(34,120,34,0.18); 
+.btn-primary-register:hover {
+  background-color: var(--accent-strong);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(34,120,34,0.18);
 }
-
+ 
 /* ---------------------------
    RESPONSIVE
    --------------------------- */
@@ -220,24 +216,24 @@
   .site-brand-text small { font-size: 0.92rem; }
   .site-nav-link { font-size: 1rem; padding: .6rem 1rem; }
 }
-
+ 
 @media (min-width: 992px) {
   .site-logo,
   .navbar-brand img { width: 110px; height: 110px; }
   .site-brand-text .fw-bold { font-size: 1.7rem; }
   .site-brand-text small { font-size: 0.95rem; }
 }
-
+ 
 @media (max-width: 991.98px) {
   .navbar-collapse .navbar-nav .nav-item { width: 100%; }
-  .navbar-collapse .site-nav-link { 
-    padding: 1rem 0; 
-    font-size: 1.05rem; 
-    display: block; 
-    width: 100%; 
+  .navbar-collapse .site-nav-link {
+    padding: 1rem 0;
+    font-size: 1.05rem;
+    display: block;
+    width: 100%;
   }
   .header-actions { margin-top: .5rem; }
-
+ 
   .navbar-collapse.show .site-nav-link {
     background: transparent;
     border-left: 4px solid transparent;

@@ -1,41 +1,45 @@
-
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-
-const Card = ({ icon, title, children }: { icon: string; title: string; children: any }) => (
-  <div className="col-md-4">
-    <div className="card border-0 shadow-sm h-100 text-center p-3 hover-shadow">
-      <div className="d-flex justify-content-center align-items-center mb-3">
-        <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center"
-             style={{ width: 70, height: 70, fontSize: "2rem" }}>
-          <i className={`bi ${icon}`} color="black"></i>
-        </div>
+const ServiceCard = ({ 
+  icon, 
+  title, 
+  children 
+}: { 
+  icon: string; 
+  title: string; 
+  children: React.ReactNode; 
+}) => (
+  <div className="col-md-4 mb-4">
+    <div className="service-card fade-in-up">
+      <div className="service-icon">
+        <i className={`bi ${icon}`}></i>
       </div>
-      <div className="card-body">
-        <h5 className="card-title fw-semibold">{title}</h5>
-        <p className="card-text text-muted">{children}</p>
-      </div>
+      <h5 className="service-title text-center">{title}</h5>
+      <p className="service-description text-center">{children}</p>
     </div>
   </div>
 );
 
 export default function Services() {
   return (
-    <section id="servicios" className="py-5 bg-light">
+    <section id="servicios" className="services-section">
       <div className="container">
         <h3 className="text-center mb-5 landing-title">
           Soluciones integrales para un futuro sostenible
         </h3>
-        <div className="row g-4">
-          <Card icon="bi-truck" title="Recolección inteligente">
-            Servicios programados y rutas optimizadas.
-          </Card>
-          <Card icon="bi-recycle" title="Procesamiento industrial">
-            Tratamiento y valorización de residuos complejos.
-          </Card>
-          <Card icon="bi-lightbulb" title="Consultoría y educación">
-            Capacitaciones y proyectos de economía circular.
-          </Card>
+        <div className="row">
+          <ServiceCard icon="bi-truck" title="Recolección inteligente">
+            Servicios programados y rutas optimizadas para maximizar la eficiencia
+            y reducir el impacto ambiental en cada recolección.
+          </ServiceCard>
+          <ServiceCard icon="bi-recycle" title="Procesamiento industrial">
+            Tratamiento avanzado y valorización de residuos complejos con tecnología
+            de punta para el máximo aprovechamiento.
+          </ServiceCard>
+          <ServiceCard icon="bi-lightbulb" title="Consultoría y educación">
+            Capacitaciones especializadas y proyectos de economía circular para
+            transformar organizaciones y comunidades.
+          </ServiceCard>
         </div>
       </div>
     </section>
