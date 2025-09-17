@@ -1,8 +1,8 @@
-// Models/personModel.js
+// Models/institutionModel.js
 import db from "../Config/DBConnect.js";
 
 /**
- * Crear una persona ligada a un usuario (userId).
+ * Crear una institución ligada a un usuario (userId).
  */
 export const create = async (conn, companyName, nit, userId) => {
   try {
@@ -27,10 +27,13 @@ export const create = async (conn, companyName, nit, userId) => {
   }
 };
 
+/**
+ * Obtener todas las instituciones activas (state != 0).
+ */
 export const getAll = async () => {
   try {
     const [rows] = await db.query(
-      `SELECT id, companyName, nit, userId
+      `SELECT id, companyName, nit, userId, state
        FROM institution
        WHERE state != 0`
     );
@@ -41,10 +44,13 @@ export const getAll = async () => {
   }
 };
 
+/**
+ * Obtener institución por ID.
+ */
 export const getById = async (id) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, companyName, nit, userId
+      `SELECT id, companyName, nit, userId, state
        FROM institution
        WHERE id = ? AND state != 0`,
       [id]
@@ -56,13 +62,16 @@ export const getById = async (id) => {
   }
 };
 
-export const update = async (conn, id, companyName, nit) => {
+/**
+ * Actualizar institución (nombre, nit, state).
+ */
+export const update = async (conn, id, companyName, nit, state = 1) => {
   try {
     const [res] = await conn.query(
       `UPDATE institution
-       SET companyName = ?, companyName = ?
+       SET companyName = ?, nit = ?, state = ?
        WHERE id = ?`,
-      [companyName, nit, id]
+      [companyName, nit, state, id]
     );
     return res.affectedRows > 0;
   } catch (err) {
@@ -71,6 +80,9 @@ export const update = async (conn, id, companyName, nit) => {
   }
 };
 
+/**
+ * Borrado lógico (state = 0).
+ */
 export const softDelete = async (conn, id) => {
   try {
     const [res] = await conn.query(

@@ -68,7 +68,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-/** POST /users -> crea user + person con contraseña temporal */
+/** POST /users -> crea user + person reciclador con contraseña temporal */
 export const createUser = async (req, res) => {
   try {
     console.log("[INFO] POST /users body:", { ...req.body, password: undefined });
@@ -145,6 +145,60 @@ export const createUser = async (req, res) => {
   }
 };
 
+
+/** POST /users/collector -> crea user + persona de recolector con state = 0 */
+export const createCollectorUser = async (req, res) => {
+  try {
+    const { nombres, apellidos, email, phone, username } = req.body;
+
+    if (!nombres || !apellidos || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        error: "Campos requeridos: nombres, apellidos, email, phone",
+      });
+    }
+
+    // role_id fijo para recolector
+    const roleId = 3;
+    const state = 0; // pendiente
+
+    const result = await UserModel.createCollectorWithPersona(
+      nombres,
+      apellidos,
+      username,
+      email,
+      phone,
+      roleId,
+      state
+    );
+
+    res.status(201).json({
+      success: true,
+      id: result.userId,
+      personId: result.personId,
+      username: result.username,
+      tempPassword: result.password,
+    });
+
+    // Enviar correo con contraseña temporal
+    if (result.password) {
+      await sendCredentialsEmail(email, nombres, apellidos, email, result.password);
+    }
+  } catch (err) {
+    console.error("[ERROR] createCollectorUser:", {
+      body: req.body,
+      message: err.message,
+      stack: err.stack,
+    });
+    res.status(500).json({
+      success: false,
+      error: "Error al registrar usuario recolector",
+      detail: err.message,
+    });
+  }
+};
+
+
 /** PUT /users/:id */
 export const updateUser = async (req, res) => {
   try {
@@ -202,5 +256,111 @@ export const changePassword = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] changePassword controller:", { params: req.params, message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al cambiar la contraseña" });
+  }
+};
+
+
+//Insitution User Model
+
+
+/** POST /users/institution -> crea user + institution */
+export const createUserWithInstitution = async (req, res) => {
+  try {
+    const { companyName, nit, email, phone, role_id, username } = req.body;
+    if (!companyName || !nit || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        error: "Campos requeridos: companyName, nit, email, phone",
+      });
+    }
+
+    const roleIdParsed = role_id !== undefined ? Number(role_id) : undefined;
+
+    const result = await UserModel.createWithInstitution(
+      companyName,
+      nit,
+      username,
+      email,
+      phone,
+      roleIdParsed
+    );
+
+    res.status(201).json({
+      success: true,
+      id: result.userId,
+      institutionId: result.institutionId,
+      username: result.username,
+      tempPassword: result.password,
+    });
+
+    if (result.password) {
+      await sendCredentialsEmail(email, companyName, "", email, result.password);
+    }
+  } catch (err) {
+    console.error("[ERROR] createUserWithInstitution:", { body: req.body, message: err.message });
+    res.status(500).json({ success: false, error: "Error al registrar usuario con institución" });
+  }
+};
+
+/** PUT /users/institution/:id */
+export const updateUserWithInstitution = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { companyName, nit, username, email, phone, role_id, state } = req.body;
+
+    const updated = await UserModel.updateWithInstitution(
+      id,
+      companyName,
+      nit,
+      username,
+      email,
+      phone,
+      role_id,
+      state
+    );
+
+    if (!updated) return res.status(404).json({ success: false, error: "Usuario/Institución no encontrado" });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[ERROR] updateUserWithInstitution:", { message: err.message });
+    res.status(500).json({ success: false, error: "Error al actualizar usuario con institución" });
+  }
+};
+
+/** DELETE /users/institution/:id */
+export const deleteUserWithInstitution = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const deleted = await UserModel.softDeleteWithInstitution(id);
+    if (!deleted) return res.status(404).json({ success: false, error: "Usuario/Institución no encontrado" });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[ERROR] deleteUserWithInstitution:", { message: err.message });
+    res.status(500).json({ success: false, error: "Error al eliminar usuario con institución" });
+  }
+};
+
+
+/** GET /users/withInstitution */
+export const getUsersWithInstitution = async (req, res) => {
+  try {
+    const users = await UserModel.getAllWithInstitution();
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error("[ERROR] getUsersWithInstitution:", { message: err.message });
+    res.status(500).json({ success: false, error: "Error al obtener usuarios con institución" });
+  }
+};
+
+/** GET /users/withInstitution/:id */
+export const getUserWithInstitutionById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const user = await UserModel.getInstitutionById(id);
+    if (!user) return res.status(404).json({ success: false, error: "Usuario/Institución no encontrado" });
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error("[ERROR] getUserWithInstitutionById:", { id, message: err.message });
+    res.status(500).json({ success: false, error: "Error al obtener usuario con institución" });
   }
 };

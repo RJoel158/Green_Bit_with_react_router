@@ -59,11 +59,11 @@ const Register: React.FC = () => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 3 }),
-      });
+      const res = await fetch("http://localhost:3000/api/users/collector", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, username: "" })
+        });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();

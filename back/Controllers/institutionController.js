@@ -1,76 +1,81 @@
-// Controllers/personController.js
-import * as PersonModel from "../Models/personModel.js";
+// Controllers/institutionController.js
+import * as InstitutionModel from "../Models/institutionModel.js";
 import db from "../Config/DBConnect.js";
 
 /**
- * Obtener todas las personas
+ * Obtener todas las instituciones
  */
-export const getPersons = async (req, res) => {
+export const getInstitutions = async (req, res) => {
   try {
-    const persons = await PersonModel.getAll();
-    res.json({ success: true, persons });
+    const institutions = await InstitutionModel.getAll();
+    res.json({ success: true, institutions });
   } catch (err) {
-    console.error("[ERROR] getPersons:", {
+    console.error("[ERROR] getInstitutions:", {
       message: err.message,
       stack: err.stack,
     });
-    res.status(500).json({ success: false, error: "Error al obtener personas" });
+    res.status(500).json({ success: false, error: "Error al obtener instituciones" });
   }
 };
 
 /**
- * Obtener persona por ID
+ * Obtener institución por ID
  */
-export const getPersonById = async (req, res) => {
+export const getInstitutionById = async (req, res) => {
   try {
     const { id } = req.params;
-    const person = await PersonModel.getById(id);
+    const institution = await InstitutionModel.getById(id);
 
-    if (!person) {
+    if (!institution) {
       return res
         .status(404)
-        .json({ success: false, error: "Persona no encontrada" });
+        .json({ success: false, error: "Institución no encontrada" });
     }
 
-    res.json({ success: true, person });
+    res.json({ success: true, institution });
   } catch (err) {
-    console.error("[ERROR] getPersonById:", {
+    console.error("[ERROR] getInstitutionById:", {
       id: req.params.id,
       message: err.message,
       stack: err.stack,
     });
-    res.status(500).json({ success: false, error: "Error al obtener persona" });
+    res.status(500).json({ success: false, error: "Error al obtener institución" });
   }
 };
 
 /**
- * Crear persona (requiere userId existente)
+ * Crear institución (requiere userId existente)
  */
-export const createPerson = async (req, res) => {
+export const createInstitution = async (req, res) => {
   try {
-    const { firstname, lastname, birthdate, userId } = req.body;
+    const { companyName, nit, userId } = req.body;
 
-    if (!firstname || !lastname || !userId) {
+    if (!companyName || !userId) {
       return res
         .status(400)
-        .json({ success: false, error: "Firstname, lastname y userId son requeridos" });
+        .json({ success: false, error: "companyName y userId son requeridos" });
     }
 
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      const personId = await PersonModel.create(conn, firstname, lastname, userId, birthdate || null);
+      const institutionId = await InstitutionModel.create(
+        conn,
+        companyName,
+        nit || null,
+        userId
+      );
       await conn.commit();
-      res.status(201).json({ success: true, id: personId, message: "Persona creada con éxito" });
+      res.status(201).json({ success: true, id: institutionId, message: "Institución creada con éxito" });
     } catch (err) {
       await conn.rollback();
-      console.error("[ERROR] createPerson - model error:", { body: req.body, message: err.message, stack: err.stack });
-      res.status(500).json({ success: false, error: "Error al crear persona", detail: err.message });
+      console.error("[ERROR] createInstitution - model error:", { body: req.body, message: err.message, stack: err.stack });
+      res.status(500).json({ success: false, error: "Error al crear institución", detail: err.message });
     } finally {
       conn.release();
     }
   } catch (err) {
-    console.error("[ERROR] createPerson:", {
+    console.error("[ERROR] createInstitution outer:", {
       body: req.body,
       message: err.message,
       code: err.code || null,
@@ -78,68 +83,74 @@ export const createPerson = async (req, res) => {
       sql: err.sql || null,
       stack: err.stack,
     });
-    res.status(500).json({ success: false, error: "Error al crear persona" });
+    res.status(500).json({ success: false, error: "Error al crear institución" });
   }
 };
 
 /**
- * Actualizar persona
+ * Actualizar institución
  */
-export const updatePerson = async (req, res) => {
+export const updateInstitution = async (req, res) => {
   try {
     const { id } = req.params;
-    const { firstname, lastname, birthdate, state } = req.body;
+    const { companyName, nit, state } = req.body;
 
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      const updated = await PersonModel.update(conn, id, firstname, lastname, state ?? 1, birthdate || null);
+      const updated = await InstitutionModel.update(
+        conn,
+        id,
+        companyName,
+        nit,
+        state ?? 1
+      );
       await conn.commit();
       if (!updated) {
         return res
           .status(404)
-          .json({ success: false, error: "Persona no encontrada o sin cambios" });
+          .json({ success: false, error: "Institución no encontrada o sin cambios" });
       }
-      res.json({ success: true, message: "Persona actualizada con éxito" });
+      res.json({ success: true, message: "Institución actualizada con éxito" });
     } catch (err) {
       await conn.rollback();
-      console.error("[ERROR] updatePerson:", { id: req.params.id, body: req.body, message: err.message, stack: err.stack });
-      res.status(500).json({ success: false, error: "Error al actualizar persona", detail: err.message });
+      console.error("[ERROR] updateInstitution:", { id: req.params.id, body: req.body, message: err.message, stack: err.stack });
+      res.status(500).json({ success: false, error: "Error al actualizar institución", detail: err.message });
     } finally {
       conn.release();
     }
   } catch (err) {
-    console.error("[ERROR] updatePerson outer:", { id: req.params.id, body: req.body, message: err.message, stack: err.stack });
-    res.status(500).json({ success: false, error: "Error al actualizar persona" });
+    console.error("[ERROR] updateInstitution outer:", { id: req.params.id, body: req.body, message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al actualizar institución" });
   }
 };
 
 /**
- * Borrado lógico de persona
+ * Borrado lógico de institución
  */
-export const deletePerson = async (req, res) => {
+export const deleteInstitution = async (req, res) => {
   try {
     const { id } = req.params;
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      const deleted = await PersonModel.softDelete(conn, id);
+      const deleted = await InstitutionModel.softDelete(conn, id);
       await conn.commit();
       if (!deleted) {
         return res
           .status(404)
-          .json({ success: false, error: "Persona no encontrada" });
+          .json({ success: false, error: "Institución no encontrada" });
       }
-      res.json({ success: true, message: "Persona eliminada con éxito" });
+      res.json({ success: true, message: "Institución eliminada con éxito" });
     } catch (err) {
       await conn.rollback();
-      console.error("[ERROR] deletePerson:", { id: req.params.id, message: err.message, stack: err.stack });
-      res.status(500).json({ success: false, error: "Error al eliminar persona", detail: err.message });
+      console.error("[ERROR] deleteInstitution:", { id: req.params.id, message: err.message, stack: err.stack });
+      res.status(500).json({ success: false, error: "Error al eliminar institución", detail: err.message });
     } finally {
       conn.release();
     }
   } catch (err) {
-    console.error("[ERROR] deletePerson outer:", { id: req.params.id, message: err.message, stack: err.stack });
-    res.status(500).json({ success: false, error: "Error al eliminar persona" });
+    console.error("[ERROR] deleteInstitution outer:", { id: req.params.id, message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al eliminar institución" });
   }
 };

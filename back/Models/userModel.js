@@ -120,7 +120,7 @@ const insertUserWithRetry = async (conn, usernameBase, password, roleId, email, 
   throw lastErr || new Error("No se pudo insertar user tras varios intentos");
 };
 
-export const createWithPersona = async (
+export const  createWithPersona = async (
   firstname,
   lastname,
   usernameIncoming,
@@ -191,6 +191,48 @@ export const createWithPersona = async (
     }
   }
 };
+
+export const createCollectorWithPersona = async (
+  firstname,
+  lastname,
+  usernameIncoming,
+  email,
+  phone,
+  roleId = 3, // recolector
+  state = 0   // pendiente
+) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // Generar contraseña temporal
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Preparar username
+    let usernameBase = usernameIncoming?.toString().trim();
+    if (!usernameBase && email?.includes("@")) {
+      usernameBase = email.split("@")[0].replace(/[^a-zA-Z0-9._-]/g, "").toLowerCase();
+    }
+
+    const { userId, usernameUsed } = await insertUserWithRetry(conn, usernameBase, hashedPassword, roleId, email, phone);
+
+    // Crear persona con state específico
+    const personId = await PersonModel.create(conn, firstname, lastname, userId, state);
+
+    await conn.commit();
+    return { userId, personId, password: tempPassword, username: usernameUsed };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+
+
+
 
 export const updateWithPersona = async (userId, firstname, lastname, username, email, phone, roleId, state) => {
   const conn = await db.getConnection();
@@ -264,4 +306,131 @@ export const softDelete = async (id) => {
 export const updatePasswordAndState = async (id, password) => {
   const [res] = await db.query("UPDATE users SET password = ?, state = 2 WHERE id = ?", [password, id]);
   return res.affectedRows > 0;
+};
+
+
+
+
+// Institucion Model
+
+
+/**
+ * Crear user + institution con contraseña temporal.
+ */
+export const createWithInstitution = async (companyName, nit, username, email, phone, roleId) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 🔑 Generar contraseña temporal
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // 1️⃣ Crear usuario
+    const [userRes] = await conn.query(
+      `INSERT INTO users (username, email, password, phone, role_id, state)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      [username, email, hashedPassword, phone, roleId || null]
+    );
+    const userId = userRes.insertId;
+
+    // 2️⃣ Crear institución ligada a este userId
+    const institutionId = await createInstitution(conn, companyName, nit, userId);
+
+    await conn.commit();
+
+    return {
+      userId,
+      institutionId,
+      username,
+      password: tempPassword, // para enviar por email
+    };
+  } catch (err) {
+    await conn.rollback();
+    console.error("[ERROR] UserModel.createWithInstitution:", {
+      companyName,
+      nit,
+      username,
+      email,
+      message: err.message,
+      stack: err.stack,
+    });
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+/**
+ * Actualizar user + institution.
+ */
+export const updateWithInstitution = async (
+  id,
+  companyName,
+  nit,
+  username,
+  email,
+  phone,
+  roleId,
+  state
+) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 1️⃣ Actualizar usuario
+    const [userRes] = await conn.query(
+      `UPDATE users
+       SET username = ?, email = ?, phone = ?, role_id = ?, state = ?
+       WHERE id = ?`,
+      [username, email, phone, roleId || null, state, id]
+    );
+
+    // 2️⃣ Actualizar institución ligada
+    const [instRes] = await conn.query(
+      `UPDATE institution
+       SET companyName = ?, nit = ?
+       WHERE userId = ? AND state != 0`,
+      [companyName, nit, id]
+    );
+
+    await conn.commit();
+    return userRes.affectedRows > 0 || instRes.affectedRows > 0;
+  } catch (err) {
+    await conn.rollback();
+    console.error("[ERROR] UserModel.updateWithInstitution:", {
+      id,
+      message: err.message,
+      stack: err.stack,
+    });
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+/**
+ * Soft delete (user + institution).
+ */
+export const softDeleteWithInstitution = async (id) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [userRes] = await conn.query(`UPDATE users SET state = 0 WHERE id = ?`, [id]);
+    const [instRes] = await conn.query(`UPDATE institution SET state = 0 WHERE userId = ?`, [id]);
+
+    await conn.commit();
+    return userRes.affectedRows > 0 || instRes.affectedRows > 0;
+  } catch (err) {
+    await conn.rollback();
+    console.error("[ERROR] UserModel.softDeleteWithInstitution:", {
+      id,
+      message: err.message,
+      stack: err.stack,
+    });
+    throw err;
+  } finally {
+    conn.release();
+  }
 };
