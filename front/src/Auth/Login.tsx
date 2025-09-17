@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Register.css";
 import inicioImage from "../assets/inicio.png";
+import cardBg from "../assets/SideBarImg.png";
 import logo from "../assets/logo.png";
 import { Validator } from "../common/Validator";
 
@@ -86,7 +87,17 @@ const Login: React.FC = () => {
   return (
     <div className="register-page d-flex align-items-stretch">
       {/* Lado izquierdo */}
-      <div className="register-left d-flex flex-column justify-content-center p-4">
+      <div
+        className="register-left d-flex flex-column justify-content-center p-4"
+        /* La imagen de fondo la manejamos por CSS con la variable cardBg (claro que aquí la dejamos inline para que funcione con webpack/CRA) */
+        style={{
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.15)), url(${cardBg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          color: "#fff",
+        }}
+      >
         <div className="auth-card shadow-lg p-4 rounded-4 bg-light">
           <div className="text-center mb-4">
             <h1 className="auth-title mb-2">Bienvenidos a GreenBit</h1>

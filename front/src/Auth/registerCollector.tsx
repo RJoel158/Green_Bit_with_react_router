@@ -99,8 +99,8 @@ const Register: React.FC = () => {
         }}
       >
         <div className="auth-card shadow-lg p-4 rounded-4" id="registerPage">
-          <div className="text-center mb-4">
-            <h1 className="auth-title mb-2">Registra tu cuenta de recolector</h1>
+          <div className="text-center mb-2">
+            <h1 className="auth-title mb-0">Registra tu cuenta de recolector</h1>
             <img src={logo} alt="Logo EcoVerde" className="register-logo" />
             <div className="cta-banner text-center mt-0">
                 <span>
@@ -171,7 +171,7 @@ const Register: React.FC = () => {
               ¿Quieres formar parte del equipo de recicladores?
             </p>
           </span>
-          <a href="/registerCollector" style={{ fontSize: "1.1rem", fontWeight: "600" }} className="fw-semibold">
+          <a href="/register" style={{ fontSize: "1.1rem", fontWeight: "600" }} className="fw-semibold">
             Regístrate aquí!
           </a>
         </div>
