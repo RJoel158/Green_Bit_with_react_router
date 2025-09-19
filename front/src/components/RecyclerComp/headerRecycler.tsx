@@ -23,9 +23,27 @@ const handleLogout = () => {
 
 const Header: React.FC<HeaderProps> = ({ user }) => {
   return (
-    <header className="header d-flex justify-content-between align-items-center px-3 py-2">
-      <div className="logo d-flex align-items-center">
-        <img src={logoText} alt="Logo GreenBit" className="logo-img" />
+    <header className="header d-flex justify-content-between align-items-center px-3">
+      <div 
+        className="logo-container d-flex align-items-center"
+        style={{
+          width: '350px',
+          height: '100px',
+          minWidth: '350px' // Asegura que no se comprima
+        }}
+      >
+        <img 
+          src={logoText} 
+          alt="Logo GreenBit" 
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            objectPosition: 'left center',
+            maxWidth: 'none',
+            maxHeight: 'none'
+          }}
+        />
       </div>
 
       <div className="user-profile d-flex align-items-center gap-2">
@@ -46,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
             aria-expanded="false"
           >
             <span className="me-1 user-name">{user ? user.username : "Invitado"}</span>
-              <span className="ms-1 dropdown-arrow">↴</span>
+            <span className="ms-1 dropdown-arrow">↴</span>
           </button>
           <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li><a className="dropdown-item" href="/UserInfo">Perfil</a></li>

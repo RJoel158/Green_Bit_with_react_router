@@ -18,16 +18,28 @@
   background-size: cover;   
   background-position: center; 
   background-repeat: no-repeat; 
-  min-height: 70px; 
+  min-height: 140px ; 
+  padding: 20px 0 !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .logo-img{
-  width: 350px;
-  height: auto;
+  
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
-.logo {
-  display: flex;
+.logo-container {
+ 
+  width: 350px ;
+  height: 100px ;
+  min-width: 350px;
+   display: flex;
   align-items: center;
-  gap: 15px;
+  justify-content: flex-start;
+
 }
 
 .logo-icon {
