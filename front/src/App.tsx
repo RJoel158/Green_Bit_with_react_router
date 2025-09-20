@@ -7,7 +7,7 @@ import ResgisterCollector from "./Auth/registerCollector";
 import RegisterInstitution from "./Auth/registerInstitution";
 import UserInfo from "./components/UserInfoComp/UserInfoInterface";
 
-//CAMBIOS EFECTUADOS EN PANTALLAS DE INICIO
+//CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
 function App() {
   return (
