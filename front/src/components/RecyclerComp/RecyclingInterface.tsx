@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./RecyclingInterface.css";
 import Header from "./headerRecycler";
 import { useNavigate } from "react-router-dom";
+import RequestAndAppoint from "./request_&_appoint";
 
 interface Recycler {
   id: number;
@@ -74,7 +75,9 @@ const RecyclingInterface: React.FC = () => {
         {/* Banner Derecho */}
         <div className="banner-right"></div>
       </div>
+       <RequestAndAppoint />
     </div>
+    
   );
 };
 

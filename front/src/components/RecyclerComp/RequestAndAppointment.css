@@ -1,0 +1,85 @@
+.request-appoint-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin: 2rem auto;
+  max-width: 1200px;
+  padding: 1rem;
+}
+
+.appointments-column {
+  background: #fffdf8;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #eee;
+  min-height: 350px;
+}
+
+.appointments-column h3 {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #2d5016;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #dcc2a4;
+  padding-bottom: 0.5rem;
+}
+
+.appointment-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #dcb996;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #fffdf8;
+}
+
+.appointment-icon {
+  font-size: 2rem;
+  color: #2d5016;
+  flex-shrink: 0;
+}
+
+.appointment-details {
+  flex-grow: 1;
+}
+
+.appointment-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+}
+
+.appointment-desc {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 0.8rem;
+}
+
+.details-button {
+  display: inline-block;
+  background: #2d5016;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.details-button:hover {
+  background: #4a7c59;
+}
+
+/* Footer ligero */
+.footer {
+  height: 120px;
+  margin-top: 2rem;
+  padding: 1rem;
+  text-align: center;
+  background-image: url('../../assets/SideBarImg.png');
+  color: #fffdf8;
+  font-size: 0.9rem;
+}
