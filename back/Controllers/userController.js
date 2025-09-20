@@ -86,15 +86,16 @@ export const createUser = async (req, res) => {
     const roleIdParsed = role_id !== undefined ? Number(role_id) : undefined;
 
     try {
-      // ⚡ DEJAR QUE EL MODELO GENERE LA CONTRASEÑA
+      //  DEJAR QUE EL MODELO GENERE LA CONTRASEÑA
       // NO generar contraseña aquí, dejar que createWithPersona lo haga
+       const roleId = 2;
       const result = await UserModel.createWithPersona(
         nombres,
         apellidos,
         usernameIncoming,
         email,
         phone,
-        roleIdParsed
+        roleId
         // ⚡ NO pasar hashedPassword, que el modelo lo maneje
       );
 
@@ -109,7 +110,7 @@ export const createUser = async (req, res) => {
         id: result.userId,
         personId: result.personId,
         username: result.username,
-        tempPassword: result.password, // ⚡ Contraseña generada por el modelo
+        tempPassword: result.password, //  Contraseña generada por el modelo
       });
 
       // ⚡ Enviar la MISMA contraseña que generó el modelo

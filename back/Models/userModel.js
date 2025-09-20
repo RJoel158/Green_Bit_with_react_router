@@ -126,7 +126,7 @@ export const  createWithPersona = async (
   usernameIncoming,
   email,
   phone,
-  roleId = undefined
+  roleId = 3
 ) => {
   const conn = await db.getConnection();
   try {
@@ -198,7 +198,7 @@ export const createCollectorWithPersona = async (
   usernameIncoming,
   email,
   phone,
-  roleId = 3, // recolector
+  roleId = 2, // recolector
   state = 0   // pendiente
 ) => {
   const conn = await db.getConnection();
