@@ -175,16 +175,12 @@ export const createCollectorUser = async (req, res) => {
 
     res.status(201).json({
       success: true,
+      message: "Registro de recolector creado con estado pendiente. Espera aprobación del administrador.",
       id: result.userId,
       personId: result.personId,
-      username: result.username,
-      tempPassword: result.password,
+      username: result.username
     });
 
-    // Enviar correo con contraseña temporal
-    if (result.password) {
-      await sendCredentialsEmail(email, nombres, apellidos, email, result.password);
-    }
   } catch (err) {
     console.error("[ERROR] createCollectorUser:", {
       body: req.body,
@@ -198,6 +194,7 @@ export const createCollectorUser = async (req, res) => {
     });
   }
 };
+
 
 
 /** PUT /users/:id */
