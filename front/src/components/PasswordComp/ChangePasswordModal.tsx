@@ -62,7 +62,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
               <label className="form-label">Establece una contraseña:</label>
               <input
                 type="password"
-                placeholder="***********1"
+                placeholder="***********"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={`form-control custom-input ${errors.password ? "is-invalid" : ""}`}
@@ -74,7 +74,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
               <label className="form-label">Confirma la contraseña:</label>
               <input
                 type="password"
-                placeholder="***********1"
+                placeholder="***********"
                 value={repeatPassword}
                 onChange={(e) => setRepeatPassword(e.target.value)}
                 className={`form-control custom-input ${errors.repeatPassword ? "is-invalid" : ""}`}
@@ -99,8 +99,8 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
             role === "admin"
               ? "/admin-dashboard"
               : role === "reciclador"
-              ? "/recicladorIndex"
-              : "/main"
+              ? "/recicladorIndex" 
+              : "/recicladorIndex"
           }
         />
       )}

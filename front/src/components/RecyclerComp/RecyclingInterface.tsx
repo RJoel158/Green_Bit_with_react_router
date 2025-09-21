@@ -3,6 +3,7 @@ import "./RecyclingInterface.css";
 import Header from "./headerRecycler";
 import { useNavigate } from "react-router-dom";
 import RequestAndAppoint from "./request_&_appoint";
+import ChangePasswordModal from "../PasswordComp/ChangePasswordModal";
 
 interface Recycler {
   id: number;
@@ -26,6 +27,7 @@ const recyclers: Recycler[] = [
 ];
 
 const RecyclingInterface: React.FC = () => {
+  const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
@@ -38,14 +40,32 @@ const RecyclingInterface: React.FC = () => {
       return;
     }
 
+
+    const u = JSON.parse(userStr);
+    u.state = Number(u.state); // asegurarse de que sea número
+    setUser(u);
+
+    if (u.state === 1) {
+      console.log("✅ El modal de cambio de contraseña debería aparecer"); // <-- Aquí
+      setShowModal(true);
+    }
+
     setUser(JSON.parse(userStr));
   }, [navigate]);
+   if (!user) return null;
 
   return (
+    
     <div className="recycling-container">
       {/* Header separado */}
       <Header user={user} />
-
+      {showModal && (
+        <ChangePasswordModal
+          userId={user.id}
+          role={user.role}
+          
+        />
+      )}
       <div className="main-content">
         {/* Banner Izquierdo */}
         <div className="banner-left"></div>
