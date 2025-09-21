@@ -145,10 +145,18 @@ const Login: React.FC = () => {
           )}
         </div>
 
-        <div className="cta-banner text-center mt-3">
-          <span>¿Aún no tienes una cuenta? </span>
-          <a href="/register" className="fw-semibold">
-            Regístrate ya!
+       <div className="cta-banner text-center mb-5">
+          <span>
+            <p style={{ fontSize: "1rem", fontWeight: "600" }}>
+              ¿Aún no tienes cuenta?
+            </p>
+          </span>
+          <a
+            href="/register"
+            style={{ fontSize: "1.1rem", fontWeight: "600" }}
+            className="fw-semibold"
+          >
+            Regístrate aquí!
           </a>
         </div>
       </div>

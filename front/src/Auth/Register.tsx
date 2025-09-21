@@ -33,6 +33,10 @@ const Register: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    window.history.back();
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -89,7 +93,6 @@ const Register: React.FC = () => {
       {/* Lado izquierdo */}
       <div
         className="register-left d-flex flex-column justify-content-center p-4"
-        /* La imagen de fondo la manejamos por CSS con la variable cardBg (claro que aquí la dejamos inline para que funcione con webpack/CRA) */
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.15)), url(${cardBg})`,
           backgroundSize: "cover",
@@ -99,6 +102,17 @@ const Register: React.FC = () => {
         }}
       >
         <div className="auth-card shadow-lg p-4 rounded-4" id="registerPage">
+          {/* Botón volver arriba */}
+          <div className="mt-10 text-start">
+            <button
+              type="button"
+              className="btn-back btn btn-success"
+              onClick={handleBack}
+            >
+              ← Volver
+            </button>
+          </div>
+
           <div className="text-center mb-4">
             <h1 className="auth-title mb-2">Registra tu cuenta de reciclaje</h1>
             <img src={logo} alt="Logo EcoVerde" className="register-logo" />
@@ -155,13 +169,17 @@ const Register: React.FC = () => {
           )}
         </div>
 
-        <div className="cta-banner text-center mt-3">
+        <div className="cta-banner text-center mb-5">
           <span>
             <p style={{ fontSize: "1rem", fontWeight: "600" }}>
               ¿Quieres formar parte del equipo de recolectores?
             </p>
           </span>
-          <a href="/registerCollector" style={{ fontSize: "1.1rem", fontWeight: "600" }} className="fw-semibold">
+          <a
+            href="/registerCollector"
+            style={{ fontSize: "1.1rem", fontWeight: "600" }}
+            className="fw-semibold"
+          >
             Regístrate aquí!
           </a>
         </div>
@@ -179,7 +197,7 @@ const Register: React.FC = () => {
       {showSuccessModal && (
         <SuccessModal
           title="¡Ya estás registrado!"
-          message="Se envió un correo electrónico con la contraseña temporal "
+          message="Tu solicitud fue enviada y está pendiente de aprobación."
           redirectUrl="/login"
         />
       )}

@@ -188,8 +188,8 @@ const Register: React.FC = () => {
       />
       {showSuccessModal && (
         <SuccessModal
-          title="¡Ya estás registrado!"
-          message="Se envió un correo electrónico con la contraseña temporal "
+          title="¡Solicitud de cuenta enviada!"
+          message="Tu solicitud para ser recolector ha sido enviada exitosamente. Nos pondremos en contacto contigo pronto."
           redirectUrl="/login"
         />
       )}
