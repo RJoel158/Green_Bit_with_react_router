@@ -6,6 +6,7 @@ import RecicladorIndex from "./components/RecyclerComp/RecyclingInterface";
 import ResgisterCollector from "./Auth/registerCollector";
 import RegisterInstitution from "./Auth/registerInstitution";
 import UserInfo from "./components/UserInfoComp/UserInfoInterface";
+import RecolectorIndex from "./components/RecollectorComp/RecollectingInterface";
 
 //CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
@@ -17,6 +18,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/recicladorIndex" element={<RecicladorIndex />} />
+        <Route path="/recolectorIndex" element={<RecolectorIndex />} />
         <Route path="/registerCollector" element={<ResgisterCollector/>} />
         <Route path="/registerInstitution" element={<RegisterInstitution/>} />
         <Route path="/userInfo" element={<UserInfo />} />
