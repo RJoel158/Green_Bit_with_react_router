@@ -12,6 +12,7 @@ interface Recycler {
   avatar: string;
 }
 
+// Definición de la interfaz User
 interface User {
   id: number;
   username: string;
@@ -31,6 +32,8 @@ const RecyclingInterface: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
+
+  //Cargar datos del usuario al montar el componente  
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     //Revisa si hay un usuario con la sesión iniciada
@@ -58,7 +61,10 @@ const RecyclingInterface: React.FC = () => {
     
     <div className="recycling-container">
       {/* Header separado */}
-      <Header user={user} />
+
+
+      {/* PASO DE CONST USER EN SESION ACTIVA */}
+      <Header user={user} /> 
       {showModal && (
         <ChangePasswordModal
           userId={user.id}

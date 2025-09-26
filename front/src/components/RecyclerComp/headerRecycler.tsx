@@ -20,7 +20,7 @@ const handleLogout = () => {
   localStorage.removeItem("user"); // borra la sesión
   window.location.replace("/login"); // reemplaza la URL y evita volver atrás
 };
-
+//Paso el usuario como prop
 const Header: React.FC<HeaderProps> = ({ user }) => {
   return (
     <header className="header d-flex justify-content-between align-items-center px-3">
