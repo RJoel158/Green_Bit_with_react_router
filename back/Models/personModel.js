@@ -4,12 +4,12 @@ import db from "../Config/DBConnect.js";
 /**
  * Crear una persona ligada a un usuario (userId).
  */
-export const create = async (conn, firstname, lastname, userId) => {
+export const create = async (conn, firstname, lastname, userId,state) => {
   try {
     const [res] = await conn.query(
-      `INSERT INTO person (firstname, lastname, userId)
-       VALUES (?, ?, ?)`,
-      [firstname, lastname, userId]
+      `INSERT INTO person (firstname, lastname, userId,state)
+       VALUES (?, ?, ?, ?)`,
+      [firstname, lastname, userId, state]
     );
     return res.insertId;
   } catch (err) {
@@ -17,6 +17,7 @@ export const create = async (conn, firstname, lastname, userId) => {
       firstname,
       lastname,
       userId,
+      state,
       message: err.message,
       code: err.code || null,
       sqlMessage: err.sqlMessage || null,

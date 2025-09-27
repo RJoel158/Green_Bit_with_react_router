@@ -36,7 +36,7 @@ router.post("/collector", createCollectorUser);
 //  Users con Institución
 router.get("/withInstitution", getUsersWithInstitution);
 router.get("/withInstitution/:id", getUserWithInstitutionById);
-router.post("/withInstitution", createUserWithInstitution);
+router.post('/institution', createUserWithInstitution);
 router.put("/withInstitution/:id", updateUserWithInstitution);
 
 export default router;

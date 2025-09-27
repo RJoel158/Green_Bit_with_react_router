@@ -66,7 +66,14 @@ const Register: React.FC = () => {
       const res = await fetch("http://localhost:3000/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 3 }),
+        body: JSON.stringify({
+          nombres: form.nombres,
+          apellidos: form.apellidos,
+          email: form.email,
+          phone: form.phone,
+          role_id: 3, // reciclador
+          // state: 1, // pendiente (opcional, si quieres forzar)
+        }),
       });
 
       if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
@@ -197,7 +204,7 @@ const Register: React.FC = () => {
       {showSuccessModal && (
         <SuccessModal
           title="¡Ya estás registrado!"
-          message="Tu solicitud fue enviada y está pendiente de aprobación."
+          message="Revisa tu correo electronico, enviaremos tus credenciales."
           redirectUrl="/login"
         />
       )}
