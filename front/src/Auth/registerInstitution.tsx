@@ -6,17 +6,56 @@ import cardBg from "../assets/SideBarImg.png";
 import { Validator } from "../common/Validator";
 import SuccessModal from "../components/CommonComp/SuccesModal";
 
+/**
+ * Formulario de registro para instituciones.
+ * Optimizado y alineado al modelo de base de datos:
+ * { companyName, nit, userId, state }
+ */
+
+// Tipos para el formulario
 type FormData = {
-  nombres: string;
-  apellidos: string;
+  companyName: string;
+  nit: string;
   email: string;
   phone: string;
 };
 
+// Componente de input reutilizable
+interface InputFieldProps {
+  name: keyof FormData;
+  placeholder: string;
+  type?: string;
+  value: string;
+  error?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+const InputField: React.FC<InputFieldProps> = ({
+  name,
+  placeholder,
+  type = "text",
+  value,
+  error,
+  onChange,
+}) => (
+  <div className="mb-3">
+    <input
+      id={name}
+      name={name}
+      value={value}
+      onChange={onChange}
+      type={type}
+      className={`form-control form-control-lg ${error ? "is-invalid" : ""}`}
+      placeholder={placeholder}
+      autoComplete="off"
+    />
+    {error && <div className="invalid-feedback">{error}</div>}
+  </div>
+);
+
 const RegisterInstitution: React.FC = () => {
   const [form, setForm] = useState<FormData>({
-    nombres: "",
-    apellidos: "",
+    companyName: "",
+    nit: "",
     email: "",
     phone: "",
   });
@@ -25,6 +64,7 @@ const RegisterInstitution: React.FC = () => {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Maneja cambios en los campos del formulario
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
@@ -33,24 +73,26 @@ const RegisterInstitution: React.FC = () => {
     }
   };
 
+  // Validación de campos según modelo
+  const validate = (data: FormData) => ({
+  companyName: Validator.validateCompanyName(data.companyName),
+  nit: Validator.validateNIT(data.nit),
+  email: Validator.validateEmail(data.email),
+  phone: Validator.validatePhone(data.phone),
+});
+
+  // Maneja el envío del formulario
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validaciones frontend
-    const nombresError = Validator.validatenames?.(form.nombres);
-    const apellidosError = Validator.validatenames?.(form.apellidos);
-    const emailError = Validator.validateEmail(form.email);
-    const phoneError = Validator.validatePhone(form.phone);
-
-    const validationErrors = {
-      nombres: nombresError,
-      apellidos: apellidosError,
-      email: emailError,
-      phone: phoneError,
-    };
+    const validationErrors = validate(form);
     setErrors(validationErrors);
 
-    if (!Validator.isValid(validationErrors)) {
+    // Ensure all error values are strings (not undefined)
+    const stringErrors = Object.fromEntries(
+      Object.entries(validationErrors).map(([k, v]) => [k, v ?? ""])
+    );
+
+    if (!Validator.isValid(stringErrors)) {
       setMensaje("❌ Por favor corrige los errores en el formulario");
       return;
     }
@@ -59,18 +101,24 @@ const RegisterInstitution: React.FC = () => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/users", {
+      // POST a /api/users/collector
+      const res = await fetch("http://localhost:3000/api/users/institution", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, role_id: 3 }),
+        body: JSON.stringify({
+          companyName: form.companyName,
+          nit: form.nit,
+          email: form.email,
+          phone: form.phone,
+          role_id: 2, // institución colectora
+          // state: 1, // pendiente (opcional, si quieres forzar)
+        }),
       });
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
       const data = await res.json();
-
       if (data.success) {
         setMensaje("✅ Registro exitoso.");
-        setForm({ nombres: "", apellidos: "", email: "", phone: "" });
+        setForm({ companyName: "", nit: "", email: "", phone: "" });
         setShowSuccessModal(true);
         setErrors({});
       } else {
@@ -84,12 +132,13 @@ const RegisterInstitution: React.FC = () => {
     }
   };
 
+
+
   return (
     <div className="register-page d-flex align-items-stretch">
-      {/* Lado izquierdo */}
+      {/* Lado izquierdo: Formulario */}
       <div
         className="register-left d-flex flex-column justify-content-center p-4"
-        /* La imagen de fondo la manejamos por CSS con la variable cardBg (claro que aquí la dejamos inline para que funcione con webpack/CRA) */
         style={{
           backgroundImage: `linear-gradient(rgba(0,0,0,0.10), rgba(0,0,0,0.15)), url(${cardBg})`,
           backgroundSize: "cover",
@@ -100,39 +149,40 @@ const RegisterInstitution: React.FC = () => {
       >
         <div className="auth-card shadow-lg p-4 rounded-4" id="registerPage">
           <div className="text-center mb-4">
-            <h1 className="auth-title mb-2">Registra tu cuenta de reciclaje</h1>
-            <img src={logo} alt="Logo EcoVerde" className="register-logo" />
+            <h1 className="auth-title mb-2">Registro de Institución</h1>
+            <img src={logo} alt="Logo GreenBit" className="register-logo" />
           </div>
 
           <form onSubmit={onSubmit} className="auth-form">
-            {[
-              { name: "nombres", placeholder: "Nombres", type: "text" },
-              { name: "apellidos", placeholder: "Apellidos", type: "text" },
-              { name: "email", placeholder: "Correo electrónico", type: "email" },
-              {
-                name: "phone",
-                placeholder: "Número celular (+591XXXXXXXXXX)",
-                type: "text",
-              },
-            ].map((field) => (
-              <div className="mb-3" key={field.name}>
-                <input
-                  name={field.name}
-                  value={form[field.name as keyof FormData]}
-                  onChange={onChange}
-                  type={field.type}
-                  className={`form-control form-control-lg ${
-                    errors[field.name as keyof FormData] ? "is-invalid" : ""
-                  }`}
-                  placeholder={field.placeholder}
-                />
-                {errors[field.name as keyof FormData] && (
-                  <div className="invalid-feedback">
-                    {errors[field.name as keyof FormData]}
-                  </div>
-                )}
-              </div>
-            ))}
+            <InputField
+              name="companyName"
+              placeholder="Razón Social"
+              value={form.companyName}
+              error={errors.companyName}
+              onChange={onChange}
+            />
+            <InputField
+              name="nit"
+              placeholder="NIT"
+              value={form.nit}
+              error={errors.nit}
+              onChange={onChange}
+            />
+            <InputField
+              name="email"
+              placeholder="Correo Electrónico"
+              type="email"
+              value={form.email}
+              error={errors.email}
+              onChange={onChange}
+            />
+            <InputField
+              name="phone"
+              placeholder="Teléfono"
+              value={form.phone}
+              error={errors.phone}
+              onChange={onChange}
+            />
 
             <button
               type="submit"
@@ -161,13 +211,17 @@ const RegisterInstitution: React.FC = () => {
               ¿Quieres formar parte del equipo de recolectores?
             </p>
           </span>
-          <a href="/registerCollector" style={{ fontSize: "1.1rem", fontWeight: "600" }} className="fw-semibold">
+          <a
+            href="/registerCollector"
+            style={{ fontSize: "1.1rem", fontWeight: "600" }}
+            className="fw-semibold"
+          >
             Regístrate aquí!
           </a>
         </div>
       </div>
 
-      {/* Lado derecho */}
+      {/* Lado derecho: Imagen */}
       <div
         className="register-right d-none d-lg-block flex-grow-1"
         style={{
@@ -178,8 +232,8 @@ const RegisterInstitution: React.FC = () => {
       />
       {showSuccessModal && (
         <SuccessModal
-          title="¡Ya estás registrado!"
-          message="Se envió un correo electrónico con la contraseña temporal "
+          title="¡Solicitud enviada!"
+          message="Se le enviara el correo con sus credenciales una vez su cuenta haya sido aprobada."
           redirectUrl="/login"
         />
       )}

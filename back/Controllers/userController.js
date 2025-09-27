@@ -72,7 +72,7 @@ export const loginUser = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
     console.log("[INFO] POST /users body:", { ...req.body, password: undefined });
-    const { nombres, apellidos, email, phone, role_id, username: usernameIncoming } = req.body;
+    const { nombres, apellidos, email, phone, role_id } = req.body;
 
     if (!nombres || !apellidos || !email || !phone) {
       console.warn("[WARN] createUser - missing fields", { body: req.body });
@@ -83,25 +83,20 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ success: false, error: "Email inválido" });
     }
 
-    const roleIdParsed = role_id !== undefined ? Number(role_id) : undefined;
+    // Usa el role_id recibido o por defecto 3 (reciclador)
+    const roleId = role_id !== undefined ? Number(role_id) : 3;
 
     try {
-      //  DEJAR QUE EL MODELO GENERE LA CONTRASEÑA
-      // NO generar contraseña aquí, dejar que createWithPersona lo haga
-       const roleId = 2;
       const result = await UserModel.createWithPersona(
         nombres,
         apellidos,
-        usernameIncoming,
         email,
         phone,
         roleId
-        // ⚡ NO pasar hashedPassword, que el modelo lo maneje
       );
 
       console.log("[INFO] createUser - result from model:", { 
         userId: result.userId, 
-        username: result.username, 
         hasPassword: !!result.password 
       });
 
@@ -109,11 +104,9 @@ export const createUser = async (req, res) => {
         success: true,
         id: result.userId,
         personId: result.personId,
-        username: result.username,
-        tempPassword: result.password, //  Contraseña generada por el modelo
+        tempPassword: result.password,
       });
 
-      // ⚡ Enviar la MISMA contraseña que generó el modelo
       if (result.password) {
         console.log("[INFO] Sending credentials email with generated password");
         await sendCredentialsEmail(email, nombres, apellidos, email, result.password);
@@ -150,7 +143,7 @@ export const createUser = async (req, res) => {
 /** POST /users/collector -> crea user + persona de recolector con state = 0 */
 export const createCollectorUser = async (req, res) => {
   try {
-    const { nombres, apellidos, email, phone, username } = req.body;
+    const { nombres, apellidos, email, phone } = req.body;
 
     if (!nombres || !apellidos || !email || !phone) {
       return res.status(400).json({
@@ -160,13 +153,12 @@ export const createCollectorUser = async (req, res) => {
     }
 
     // role_id fijo para recolector
-    const roleId = 3;
+    const roleId = 2;
     const state = 0; // pendiente
 
     const result = await UserModel.createCollectorWithPersona(
       nombres,
       apellidos,
-      username,
       email,
       phone,
       roleId,
@@ -178,7 +170,6 @@ export const createCollectorUser = async (req, res) => {
       message: "Registro de recolector creado con estado pendiente. Espera aprobación del administrador.",
       id: result.userId,
       personId: result.personId,
-      username: result.username
     });
 
   } catch (err) {
@@ -260,11 +251,10 @@ export const changePassword = async (req, res) => {
 
 //Insitution User Model
 
-
-/** POST /users/institution -> crea user + institution */
+/** POST /users/institution -> crea user + institution (pendiente, sin contraseña) */
 export const createUserWithInstitution = async (req, res) => {
   try {
-    const { companyName, nit, email, phone, role_id, username } = req.body;
+    const { companyName, nit, email, phone, role_id } = req.body;
     if (!companyName || !nit || !email || !phone) {
       return res.status(400).json({
         success: false,
@@ -272,28 +262,26 @@ export const createUserWithInstitution = async (req, res) => {
       });
     }
 
-    const roleIdParsed = role_id !== undefined ? Number(role_id) : undefined;
+    const roleIdParsed = role_id !== undefined ? Number(role_id) : 3; 
 
+    // El modelo debe crear el usuario con password: null y state: 0
     const result = await UserModel.createWithInstitution(
       companyName,
       nit,
-      username,
       email,
       phone,
-      roleIdParsed
+      roleIdParsed,
+      0 // state pendiente
     );
 
     res.status(201).json({
       success: true,
       id: result.userId,
       institutionId: result.institutionId,
-      username: result.username,
-      tempPassword: result.password,
+      state: 0
     });
 
-    if (result.password) {
-      await sendCredentialsEmail(email, companyName, "", email, result.password);
-    }
+    // No enviar correo ni contraseña aquí
   } catch (err) {
     console.error("[ERROR] createUserWithInstitution:", { body: req.body, message: err.message });
     res.status(500).json({ success: false, error: "Error al registrar usuario con institución" });
@@ -360,5 +348,64 @@ export const getUserWithInstitutionById = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] getUserWithInstitutionById:", { id, message: err.message });
     res.status(500).json({ success: false, error: "Error al obtener usuario con institución" });
+  }
+};
+
+/** POST /users/registerCollector */
+export const registerCollector = async (req, res) => {
+  try {
+    // Registro de institución
+    if (req.body.companyName && req.body.nit) {
+      if (!req.body.companyName || !req.body.nit || !req.body.email || !req.body.phone) {
+        return res.status(400).json({
+          success: false,
+          error: "Campos requeridos: companyName, nit, email, phone",
+        });
+      }
+      // Crear usuario
+      const user = await UserModel.create({
+        email: req.body.email,
+        phone: req.body.phone,
+        role_id: 3,
+        state: 0,
+      });
+      // Crear institución
+      const institution = await InstitutionModel.create({
+        companyName: req.body.companyName,
+        nit: req.body.nit,
+        userId: user.id,
+        state: 0,
+      });
+      return res.status(201).json({ success: true, userId: user.id, institutionId: institution.id });
+    }
+
+    // Registro de persona
+    if (req.body.nombres && req.body.apellidos) {
+      if (!req.body.nombres || !req.body.apellidos || !req.body.email || !req.body.phone) {
+        return res.status(400).json({
+          success: false,
+          error: "Campos requeridos: nombres, apellidos, email, phone",
+        });
+      }
+      const user = await UserModel.create({
+        nombres: req.body.nombres,
+        apellidos: req.body.apellidos,
+        email: req.body.email,
+        phone: req.body.phone,
+        role_id: 2,
+        state: 0,
+      });
+      
+      return res.status(201).json({ success: true, userId: user.id });
+    }
+
+    // Si no es ninguno de los dos
+    return res.status(400).json({
+      success: false,
+      error: "Datos insuficientes para registrar persona o institución",
+    });
+  } catch (err) {
+    console.error("[ERROR] registerCollector:", err);
+    return res.status(500).json({ success: false, error: "Error en el registro" });
   }
 };
