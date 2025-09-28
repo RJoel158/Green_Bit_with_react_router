@@ -6,7 +6,7 @@ import bellIcon from "../../assets/icons/bell.svg";
 //Definicion de usuario
 interface User {
   id: number;
-  username: string;
+  email: string;
   role: string;
   state: number;
   avatar?: string;
@@ -63,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <span className="me-1 user-name">{user ? user.username : "Invitado"}</span>
+            <span className="me-1 user-name">{user ? user.email : "Invitado"}</span>
             <span className="ms-1 dropdown-arrow">↴</span>
           </button>
           <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">

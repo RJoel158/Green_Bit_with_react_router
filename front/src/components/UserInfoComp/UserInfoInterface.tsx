@@ -94,7 +94,7 @@ const UserInfo: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label>Inicio como Recolector:</label>
+              <label>Inicio como {role || ""}:</label>
               <input
                 type="text"
                 className="form-control form-input"
