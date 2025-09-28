@@ -1,0 +1,365 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+   font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  z-index: 1050;
+}
+
+.modal-box-compact {
+  background: transparent;
+  border-radius: 15px;
+  max-width: 380px;
+  width: 85%;
+  max-height: none;
+  overflow: visible;
+}
+
+.cardboard-container {
+  background-image: url('../../assets/Cardboard.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 12px;
+  border-radius: 15px;
+  position: relative;
+}
+
+.cardboard-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(210,180,140,0.2) 0%, rgba(160,130,100,0.2) 100%);
+  border-radius: 15px;
+  pointer-events: none;
+}
+
+.pickup-card {
+  background: #FBF8F1;
+  border-radius: 10px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1;
+}
+
+.pickup-title {
+  color: #2d5a27;
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 80px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image-placeholder img {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.description {
+  text-align: left;
+  margin-bottom: 0.75rem;
+}
+
+.description p {
+  font-size: 0.8rem;
+  margin-bottom: 0;
+  line-height: 1.3;
+}
+
+.section-title {
+  color: #2d5a27;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.days-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.day-item {
+  flex: 1;
+  min-width: 38px;
+}
+
+.day-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  margin: 0 auto 4px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.day-checkbox.available {
+  border: 1px solid #7B7B7B;
+  background: #7cb342;
+}
+
+.day-checkbox.unavailable {
+  border: 1px solid #7B7B7B;
+  background: transparent;
+  opacity: 0.5;
+}
+
+.day-label {
+  color: #6c757d;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.schedule-info {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.schedule-time {
+  background: #f8f9fa;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-weight: 600;
+  color: #495057;
+  display: inline-block;
+  font-size: 0.85rem;
+}
+
+.form-label {
+  color: #2d5a27;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.5rem;
+  transition: border-color 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.form-select:focus {
+  border-color: #7cb342;
+  box-shadow: 0 0 0 0.1rem rgba(124, 179, 66, 0.25);
+}
+
+.time-picker-container {
+  position: relative;
+}
+
+.time-picker {
+  border: 2px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.5rem 2rem 0.5rem 0.5rem;
+  transition: border-color 0.3s ease;
+  font-size: 0.85rem;
+  background: white;
+}
+
+.time-picker:focus {
+  border-color: #7cb342;
+  box-shadow: 0 0 0 0.1rem rgba(124, 179, 66, 0.25);
+  outline: none;
+}
+
+.time-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  pointer-events: none;
+  color: #6c757d;
+}
+.schedule-time{
+    color: #7cb342;
+}
+
+.time-picker::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  
+}
+
+.time-picker::-webkit-datetime-edit {
+  padding: 0;
+}
+
+.time-picker::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+.time-picker::-webkit-datetime-edit-hour-field,
+.time-picker::-webkit-datetime-edit-minute-field {
+  color: #495057;
+  font-weight: 500;
+}
+
+.time-picker::-webkit-datetime-edit-text {
+  color: #6c757d;
+  padding: 0 1px;
+}
+
+.modal-button {
+  background-color: #7cb342;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  font-size: 0.85rem;
+}
+
+.modal-button:hover:not(:disabled) {
+  background-color: #689f38;
+  color: white;
+}
+
+.modal-button:disabled {
+  background-color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.text-success {
+  color: #7cb342 !important;
+  font-weight: 600;
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-box-compact {
+    width: 90%;
+    max-width: 400px;
+  }
+  
+  .pickup-card {
+    padding: 1.25rem;
+  }
+  
+  .pickup-title {
+    font-size: 1.2rem;
+  }
+  
+  .image-placeholder {
+    height: 100px;
+  }
+  
+  .days-container {
+    gap: 4px;
+  }
+  
+  .day-checkbox {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .day-label {
+    font-size: 0.7rem;
+  }
+  
+  .cardboard-container {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-box-compact {
+    width: 95%;
+    max-width: 350px;
+  }
+  
+  .pickup-card {
+    padding: 1rem;
+  }
+  
+  .pickup-title {
+    font-size: 1.1rem;
+  }
+  
+  .image-placeholder {
+    height: 80px;
+  }
+  
+  .day-checkbox {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .days-container {
+    gap: 3px;
+  }
+  
+  .day-item {
+    min-width: 35px;
+  }
+  
+  .form-label {
+    font-size: 0.8rem;
+  }
+  
+  .form-select, 
+  .time-picker {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .modal-button {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+  
+  .cardboard-container {
+    padding: 10px;
+  }
+}
+
+@media (max-height: 700px) {
+  .pickup-card {
+    padding: 1rem;
+  }
+  
+  .image-placeholder {
+    height: 80px;
+  }
+  
+  .description {
+    margin-bottom: 0.75rem;
+  }
+  
+  .schedule-info {
+    margin-bottom: 0.75rem;
+  }
+}
