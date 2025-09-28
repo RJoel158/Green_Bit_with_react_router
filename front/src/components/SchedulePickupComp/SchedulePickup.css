@@ -20,7 +20,7 @@
 }
 
 .cardboard-container {
-  background-image: url('../../assets/Cardboard.png');
+  background-image: url('../../assets/SideBarImg.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -149,7 +149,7 @@
 }
 
 .form-label {
-  color: #2d5a27;
+  color: #4C7C5B  !important;
   font-weight: 600;
   font-size: 0.8rem;
   margin-bottom: 0.3rem;
@@ -229,15 +229,15 @@
   padding: 0 1px;
 }
 
-.modal-button {
-  background-color: #7cb342;
-  color: white;
+.modal-button  {
+  background-color: #4C7C5B !important;
+  color: white !important;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
+  padding: 8px 16px I !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
   transition: background-color 0.3s ease;
-  font-size: 0.85rem;
+  font-size: 0.85rem I !important;
 }
 
 .modal-button:hover:not(:disabled) {
@@ -250,7 +250,7 @@
   cursor: not-allowed;
 }
 
-.text-success {
+.text-date {
   color: #7cb342 !important;
   font-weight: 600;
   display: block;

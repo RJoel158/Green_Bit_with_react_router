@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import './SchedulePickupModal.css';
+import './SchedulePickup.css';
 import cardboardImage from "../../assets/SideBarImg.png";
+import SuccessModal from '../CommonComp/SuccesModal';
 
 interface SchedulePickupModalProps {
   show: boolean;
@@ -17,6 +18,7 @@ interface DayAvailability {
 const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({ show, onClose }) => {
   const [selectedDay, setSelectedDay] = useState<string>('Viernes');
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   
   // Lista de días y su disponibilidad (solo visualización, estático por ahora)
   const [daysAvailability] = useState<DayAvailability[]>([
@@ -60,17 +62,17 @@ const getNextDateForDay = (dayName: string): string => {
 };
 
 
-  const handleConfirm = () => {
-    // Lógica para confirmar el recojo
-    console.log('Día seleccionado:', selectedDay);
-    console.log('Hora seleccionada:', selectedTime);
-    console.log('Días disponibles:', daysAvailability.filter(d => d.selected));
-    onClose();
+ const handleConfirm = () => {
+    if (!selectedTime) return;
+    // Abrimos el SuccessModal
+    setShowSuccess(true);
   };
+
 
   if (!show) return null;
 
   return (
+    <>
     <div className="modal-overlay d-flex justify-content-center align-items-center"
     onClick={onClose}>
       <div className="modal-box-compact"
@@ -123,7 +125,7 @@ const getNextDateForDay = (dayName: string): string => {
                     <option value="Viernes">Viernes</option>
                     <option value="Domingo">Domingo</option>
                   </select>
-                  <small className="text-success">{getNextDateForDay(selectedDay)}</small>
+                  <small className="text-date">{getNextDateForDay(selectedDay)}</small>
                 </div>
                 
                 <div className="col-md-6 mb-2">
@@ -143,19 +145,31 @@ const getNextDateForDay = (dayName: string): string => {
               </div>
             </div>
             
-            <div className="text-center">
-              <button 
-                className="btn modal-button"
-                onClick={handleConfirm}
-                disabled={!selectedTime}
-              >
-                Confirmar tu recojo
-              </button>
+              <div className="text-center">
+                <button 
+                  className="btn modal-button"
+                  onClick={handleConfirm}
+                  disabled={!selectedTime}
+                >
+                  Confirmar tu recojo
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {showSuccess && (
+        <SuccessModal
+          title="¡Recojo agendado!"
+          message={`Has agendado tu recojo para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador. `}
+          //Cambiar cuando se tenga el mapa
+          redirectUrl="/recicladorIndex" 
+        />
+      )}
+    </>
+
+    
   );
   
 };

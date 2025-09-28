@@ -1,6 +1,14 @@
 import "./requestandappointment.css";
 
+// Agregado para la logica de mostrar modal
+import { useState } from "react";
+// Agregado para la logica de mostrar modal
+import SchedulePickupModal from "../SchedulePickupComp/SchedulePickupModal";
+
+
 export default function RequestAndAppoint() {
+  // Agregado para la logica del modal
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   return (
     <div>
       <div className="request-appoint-container">
@@ -14,7 +22,10 @@ export default function RequestAndAppoint() {
               <p className="appointment-desc">
                 2 cajas medianas de cartón en buen estado
               </p>
-              <a href="#" className="details-button">Ver Detalles</a>
+              {/* Cambiado para logica de mostrar el modal */}
+              <button className="details-button" onClick={() => setShowScheduleModal(true)}>
+                Abrir Schedule Pickup
+              </button>
             </div>
           </div>
         </div>
@@ -64,6 +75,15 @@ export default function RequestAndAppoint() {
       <footer className="footer">
         © 2025 GreenBit · Todos los derechos reservados
       </footer>
+
+      
+      {/* Agregado para el modal */}
+       <SchedulePickupModal
+        show={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+      />
     </div>
+    
   );
+  
 }
