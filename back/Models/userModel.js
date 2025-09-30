@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import db from "../Config/DBConnect.js";
 import * as PersonModel from "./personModel.js";
 import { passwordGenerater } from "../PasswordGenerator/passGen.js";
+import { create } from "./institutionModel.js";
 
 /**
  * Asegura que exista el roleId en la tabla role.
@@ -31,7 +32,7 @@ const ensureRoleExists = async (conn, roleId) => {
 
 export const getAllWithPersona = async () => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.username, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
             p.id AS personId, p.firstname, p.lastname, p.state AS personState
      FROM users u
      LEFT JOIN person p ON p.userId = u.id
@@ -42,7 +43,7 @@ export const getAllWithPersona = async () => {
 
 export const getByIdWithPersona = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.username, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
             p.userId AS personId, p.firstname, p.lastname, p.state AS personState
      FROM users u
      LEFT JOIN person p ON p.userId = u.id
@@ -54,7 +55,7 @@ export const getByIdWithPersona = async (id) => {
 
 export const getById = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id, u.username, u.email, u.phone, u.password, r.name AS role, u.state
+    `SELECT u.id, u.email, u.phone, u.password, r.name AS role, u.state
      FROM users u
      LEFT JOIN role r ON u.roleId = r.id
      WHERE u.id = ? AND u.state != 0`,
@@ -66,7 +67,7 @@ export const getById = async (id) => {
 export const loginUser = async (email) => {
   console.log("[INFO] loginUser model called with email:", email);
   const [rows] = await db.query(
-    `SELECT u.id, u.username, u.email, u.phone, u.password, r.name AS role, u.state
+    `SELECT u.id, u.email, u.phone, u.password, r.name AS role, u.state
      FROM users u
      LEFT JOIN role r ON u.roleId = r.id
      WHERE u.email = ? AND u.state != 0`,
@@ -76,31 +77,30 @@ export const loginUser = async (email) => {
   return rows[0] || null;
 };
 
-const insertUserWithRetry = async (conn, usernameBase, password, roleId, email, phone, maxAttempts = 5) => {
+const insertUserWithRetry = async (conn, password, roleId, email, phone, state = 1, maxAttempts = 5) => {
   let attempt = 0;
   let lastErr = null;
 
   roleId = await ensureRoleExists(conn, roleId);
 
   while (attempt < maxAttempts) {
-    const usernameAttempt = attempt === 0 ? usernameBase : `${usernameBase}_${Math.floor(Math.random() * 9000 + 1000)}`;
     try {
-      console.log("[INFO] insertUserWithRetry - params:", { attempt, usernameAttempt, roleId, email, phone });
+      console.log("[INFO] insertUserWithRetry - params:", { attempt, roleId, email, phone, state });
 
       const [res] = await conn.query(
-        "INSERT INTO users (username, password, roleId, state, registerDate, email, phone) VALUES (?, ?, ?, 1, NOW(), ?, ?)",
-        [usernameAttempt, password, roleId, email, phone]
+        "INSERT INTO users (password, roleId, state, registerDate, email, phone) VALUES (?, ?, ?, NOW(), ?, ?)",
+        [password, roleId, state, email, phone]
       );
 
-      console.log("[INFO] insertUserWithRetry - success:", { insertId: res.insertId, usernameAttempt });
-      return { userId: res.insertId, usernameUsed: usernameAttempt };
+      console.log("[INFO] insertUserWithRetry - success:", { insertId: res.insertId });
+      return { userId: res.insertId };
     } catch (err) {
       console.error("[ERROR] insertUserWithRetry - insert error:", {
         attempt,
-        usernameAttempt,
         roleId,
         email,
         phone,
+        state,
         errCode: err.code,
         errno: err.errno,
         sqlMessage: err.sqlMessage,
@@ -120,53 +120,38 @@ const insertUserWithRetry = async (conn, usernameBase, password, roleId, email, 
   throw lastErr || new Error("No se pudo insertar user tras varios intentos");
 };
 
-export const  createWithPersona = async (
+export const createWithPersona = async (
   firstname,
   lastname,
-  usernameIncoming,
   email,
   phone,
-  roleId = 3
+  roleId,  // reciclador por defecto
+  state = 1   // pendiente por defecto
 ) => {
   const conn = await db.getConnection();
   try {
-    console.log("[INFO] createWithPersona - start", { firstname, lastname, usernameIncoming, email, phone, roleId });
+    console.log("[INFO] createWithPersona - start", { firstname, lastname, email, phone, roleId, state });
 
     await conn.beginTransaction();
 
-    // ⚡ SIEMPRE generar contraseña temporal nueva
+    // Generar contraseña temporal nueva
     const tempPassword = passwordGenerater(12);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
-    
-    console.log("[INFO] Generated password length:", tempPassword.length, "Hash starts with:", hashedPassword.substring(0, 10));
 
-    let usernameBase = usernameIncoming && usernameIncoming.toString().trim();
-    if (!usernameBase) {
-      if (email && typeof email === "string" && email.includes("@")) {
-        usernameBase = email.split("@")[0].replace(/[^a-zA-Z0-9._-]/g, "").toLowerCase();
-      } else {
-        const n = (firstname || "user").toString().trim().split(" ")[0].toLowerCase();
-        const a = (lastname || "").toString().trim().split(" ")[0].toLowerCase();
-        usernameBase = `${n}${a}`.replace(/[^a-z0-9._-]/g, "") || `user${Math.floor(Math.random() * 10000)}`;
-      }
-    }
-    console.log("[INFO] createWithPersona - usernameBase prepared:", { usernameBase });
+    // PASA EL STATE AQUÍ
+    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone, state);
 
-    const { userId, usernameUsed } = await insertUserWithRetry(conn, usernameBase, hashedPassword, roleId, email, phone);
-
-    console.log("[INFO] createWithPersona - inserting person referencing userId", { userId, firstname, lastname });
-    const personId = await PersonModel.create(conn, firstname, lastname, userId);
-    console.log("[INFO] createWithPersona - person created", { personId });
+    // Crear persona con el mismo state
+    const personId = await PersonModel.create(conn, firstname, lastname, userId, state);
 
     await conn.commit();
     console.log("[INFO] createWithPersona - transaction committed", { userId, personId });
 
-    return { userId, personId, password: tempPassword, username: usernameUsed };
+    return { userId, personId, password: tempPassword };
   } catch (err) {
     console.error("[ERROR] createWithPersona - transaction error:", {
       firstname,
       lastname,
-      usernameIncoming,
       email,
       phone,
       roleId,
@@ -183,19 +168,13 @@ export const  createWithPersona = async (
     }
     throw err;
   } finally {
-    try {
-      conn.release();
-      console.log("[INFO] createWithPersona - connection released");
-    } catch (relErr) {
-      console.error("[ERROR] createWithPersona - release error:", { message: relErr.message });
-    }
+    try { conn.release(); } catch {}
   }
 };
 
 export const createCollectorWithPersona = async (
   firstname,
   lastname,
-  usernameIncoming,
   email,
   phone,
   roleId = 2, // recolector
@@ -209,19 +188,13 @@ export const createCollectorWithPersona = async (
     const tempPassword = passwordGenerater(12);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    // Preparar username
-    let usernameBase = usernameIncoming?.toString().trim();
-    if (!usernameBase && email?.includes("@")) {
-      usernameBase = email.split("@")[0].replace(/[^a-zA-Z0-9._-]/g, "").toLowerCase();
-    }
-
-    const { userId, usernameUsed } = await insertUserWithRetry(conn, usernameBase, hashedPassword, roleId, email, phone);
+    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone);
 
     // Crear persona con state específico
     const personId = await PersonModel.create(conn, firstname, lastname, userId, state);
 
     await conn.commit();
-    return { userId, personId, password: tempPassword, username: usernameUsed };
+    return { userId, personId, password: tempPassword };
   } catch (err) {
     await conn.rollback();
     throw err;
@@ -230,14 +203,10 @@ export const createCollectorWithPersona = async (
   }
 };
 
-
-
-
-
-export const updateWithPersona = async (userId, firstname, lastname, username, email, phone, roleId, state) => {
+export const updateWithPersona = async (userId, firstname, lastname, email, phone, roleId, state) => {
   const conn = await db.getConnection();
   try {
-    console.log("[INFO] updateWithPersona - start", { userId, firstname, lastname, username, email, phone, roleId, state });
+    console.log("[INFO] updateWithPersona - start", { userId, firstname, lastname, email, phone, roleId, state });
     await conn.beginTransaction();
 
     const [uRows] = await conn.query("SELECT id FROM users WHERE id = ?", [userId]);
@@ -248,8 +217,8 @@ export const updateWithPersona = async (userId, firstname, lastname, username, e
     }
 
     await conn.query(
-      "UPDATE users SET username = ?, email = ?, phone = ?, roleId = ?, state = ? WHERE id = ?",
-      [username, email, phone, roleId, state, userId]
+      "UPDATE users SET email = ?, phone = ?, roleId = ?, state = ? WHERE id = ?",
+      [email, phone, roleId, state, userId]
     );
 
     const [pRows] = await conn.query("SELECT id FROM person WHERE userId = ?", [userId]);
@@ -308,49 +277,38 @@ export const updatePasswordAndState = async (id, password) => {
   return res.affectedRows > 0;
 };
 
-
-
-
 // Institucion Model
-
 
 /**
  * Crear user + institution con contraseña temporal.
  */
-export const createWithInstitution = async (companyName, nit, username, email, phone, roleId) => {
+export const createWithInstitution = async (companyName, nit, email, phone, roleId) => {
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // 🔑 Generar contraseña temporal
-    const tempPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
     // 1️⃣ Crear usuario
     const [userRes] = await conn.query(
-      `INSERT INTO users (username, email, password, phone, role_id, state)
-       VALUES (?, ?, ?, ?, ?, 1)`,
-      [username, email, hashedPassword, phone, roleId || null]
+      `INSERT INTO users (email, phone, roleId, state)
+       VALUES (?, ?, ?, 1)`,
+      [ email, phone, roleId || null]
     );
     const userId = userRes.insertId;
 
     // 2️⃣ Crear institución ligada a este userId
-    const institutionId = await createInstitution(conn, companyName, nit, userId);
+    const institutionId = await create(conn, companyName, nit, userId);
 
     await conn.commit();
 
     return {
       userId,
       institutionId,
-      username,
-      password: tempPassword, // para enviar por email
     };
   } catch (err) {
     await conn.rollback();
     console.error("[ERROR] UserModel.createWithInstitution:", {
       companyName,
       nit,
-      username,
       email,
       message: err.message,
       stack: err.stack,
@@ -368,7 +326,6 @@ export const updateWithInstitution = async (
   id,
   companyName,
   nit,
-  username,
   email,
   phone,
   roleId,
@@ -381,9 +338,9 @@ export const updateWithInstitution = async (
     // 1️⃣ Actualizar usuario
     const [userRes] = await conn.query(
       `UPDATE users
-       SET username = ?, email = ?, phone = ?, role_id = ?, state = ?
+       SET email = ?, phone = ?, role_id = ?, state = ?
        WHERE id = ?`,
-      [username, email, phone, roleId || null, state, id]
+      [email, phone, roleId || null, state, id]
     );
 
     // 2️⃣ Actualizar institución ligada
