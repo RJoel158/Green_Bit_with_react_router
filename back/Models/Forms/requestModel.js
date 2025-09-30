@@ -1,22 +1,25 @@
-// Models/Forms/materialModel.js
+// Models/Forms/requestModel.js
 import db from "../../Config/DBConnect.js";
 
 /**
- * Crear un material
+ * Crear una solicitud (request)
  */
-export const create = async (conn, name, description, modifiedBy = null) => {
+export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = 'open') => {
   try {
     const [res] = await conn.query(
-      `INSERT INTO material (name, description, modifiedBy, createdDate, state)
-       VALUES (?, ?, ?, NOW(), 1)`,
-      [name, description, modifiedBy]
+      `INSERT INTO request (idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate)
+       VALUES (?, ?, ?, NOW(), ?, ?, ?, NOW())`,
+      [idUser, description, state, materialId, latitude, longitude]
     );
     return res.insertId;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.create:", {
-      name,
+    console.error("[ERROR] RequestModel.create:", {
+      idUser,
       description,
-      modifiedBy,
+      materialId,
+      latitude,
+      longitude,
+      state,
       message: err.message,
       code: err.code || null,
       sqlMessage: err.sqlMessage || null,
@@ -28,34 +31,19 @@ export const create = async (conn, name, description, modifiedBy = null) => {
 };
 
 /**
- * Obtener todos los materiales activos - compatible con tu estructura de BD
+ * Obtener todas las solicitudes (requests)
  */
 export const getAll = async () => {
   try {
-    console.log("[INFO] MaterialModel.getAll - fetching materials");
-    
+    console.log("[INFO] RequestModel.getAll - fetching requests");
     const [rows] = await db.query(
-      `SELECT id, name, 
-              COALESCE(description, '') as description,
-              state,
-              createdDate
-       FROM material
-       WHERE state = 1
-       ORDER BY name ASC`
+      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
+       FROM request
+       ORDER BY registerDate DESC`
     );
-    
-    console.log("[INFO] MaterialModel.getAll - found materials:", rows.length);
-    
-    // Transformar para compatibilidad con frontend
-    const materials = rows.map(material => ({
-      id: material.id,
-      name: material.name,
-      description: material.description || ''
-    }));
-    
-    return materials;
+    return rows;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.getAll:", { 
+    console.error("[ERROR] RequestModel.getAll:", { 
       message: err.message, 
       code: err.code,
       sqlMessage: err.sqlMessage,
@@ -65,120 +53,76 @@ export const getAll = async () => {
   }
 };
 
-/**
- * Obtener todos los materiales activos - versión completa
- */
-export const getAllComplete = async () => {
-  try {
-    const [rows] = await db.query(
-      `SELECT id, name, description, createdDate, modifiedBy, modifiedDate, state
-       FROM material
-       WHERE state = 1
-       ORDER BY name ASC`
-    );
-    return rows;
-  } catch (err) {
-    console.error("[ERROR] MaterialModel.getAllComplete:", { message: err.message, stack: err.stack });
-    throw err;
-  }
-};
+// No se requiere getAllComplete para request, ya que getAll ya devuelve todos los campos relevantes
 
 /**
- * Obtener material por ID
+ * Obtener solicitud por ID
  */
 export const getById = async (id) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, name, description, createdDate, modifiedBy, modifiedDate, state
-       FROM material
-       WHERE id = ? AND state = 1`,
+      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
+       FROM request
+       WHERE id = ?`,
       [id]
     );
     return rows[0] || null;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.getById:", { id, message: err.message, stack: err.stack });
+    console.error("[ERROR] RequestModel.getById:", { id, message: err.message, stack: err.stack });
     throw err;
   }
 };
 
 /**
- * Actualizar material
+ * Actualizar estado de solicitud
  */
-export const update = async (conn, id, name, description, modifiedBy = null) => {
+export const updateState = async (conn, id, state) => {
   try {
     const [res] = await conn.query(
-      `UPDATE material
-       SET name = ?, description = ?, modifiedBy = ?, modifiedDate = NOW()
+      `UPDATE request
+       SET state = ?, modificationDate = NOW()
        WHERE id = ?`,
-      [name, description, modifiedBy, id]
+      [state, id]
     );
     return res.affectedRows > 0;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.update:", { id, message: err.message, stack: err.stack });
+    console.error("[ERROR] RequestModel.updateState:", { id, state, message: err.message, stack: err.stack });
     throw err;
   }
 };
 
 /**
- * Soft delete material
+ * Soft delete solicitud (cambia el estado a 'deleted')
  */
 export const softDelete = async (conn, id) => {
   try {
     const [res] = await conn.query(
-      `UPDATE material SET state = 0 WHERE id = ?`,
+      `UPDATE request SET state = 'deleted', modificationDate = NOW() WHERE id = ?`,
       [id]
     );
     return res.affectedRows > 0;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.softDelete:", { id, message: err.message, stack: err.stack });
+    console.error("[ERROR] RequestModel.softDelete:", { id, message: err.message, stack: err.stack });
     throw err;
   }
 };
 
+// No se requiere inicialización básica para requests
 /**
- * Inicializar materiales básicos si la tabla está vacía
+ * Obtener solicitudes por usuario
  */
-export const initializeMaterials = async () => {
+export const getByUserId = async (userId) => {
   try {
-    // Verificar si ya hay materiales
-    const [existingMaterials] = await db.query(
-      `SELECT COUNT(*) as count FROM material WHERE state = 1`
+    const [rows] = await db.query(
+      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
+       FROM request
+       WHERE idUser = ?
+       ORDER BY registerDate DESC`,
+      [userId]
     );
-    
-    if (existingMaterials[0].count === 0) {
-      console.log("[INFO] No materials found, initializing basic materials");
-      
-      const basicMaterials = [
-        { name: 'Plástico PET', description: 'Botellas de plástico transparente' },
-        { name: 'Cartón', description: 'Cajas de cartón corrugado' },
-        { name: 'Papel', description: 'Papel de oficina, periódicos' },
-        { name: 'Vidrio', description: 'Botellas y frascos de vidrio' },
-        { name: 'Metal', description: 'Latas de aluminio y hierro' },
-        { name: 'Plástico HDPE', description: 'Botellas de leche, detergente' },
-        { name: 'Plástico PP', description: 'Tapas, envases yogurt' },
-        { name: 'Tetrapack', description: 'Envases de leche, jugos' },
-        { name: 'Electrónicos', description: 'Computadoras, celulares' },
-        { name: 'Baterías', description: 'Pilas y baterías usadas' }
-      ];
-      
-      for (const material of basicMaterials) {
-        await db.query(
-          `INSERT INTO material (name, description, state, createdDate) 
-           VALUES (?, ?, 1, NOW())`,
-          [material.name, material.description]
-        );
-      }
-      
-      console.log("[INFO] Basic materials initialized successfully");
-      return basicMaterials.length;
-    }
-    
-    return existingMaterials[0].count;
+    return rows;
   } catch (err) {
-    console.error("[ERROR] MaterialModel.initializeMaterials:", { 
-      message: err.message, 
-      stack: err.stack 
-    });
+    console.error("[ERROR] RequestModel.getByUserId:", { userId, message: err.message, stack: err.stack });
     throw err;
   }
 };
