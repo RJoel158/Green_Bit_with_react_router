@@ -7,6 +7,7 @@ import ResgisterCollector from "./Auth/registerCollector";
 import RegisterInstitution from "./Auth/registerInstitution";
 import UserInfo from "./components/UserInfoComp/UserInfoInterface";
 import RecolectorIndex from "./components/RecollectorComp/RecollectingInterface";
+import FormComp from "./components/FormComps/FormComp";
 
 //CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
@@ -22,6 +23,7 @@ function App() {
         <Route path="/registerCollector" element={<ResgisterCollector/>} />
         <Route path="/registerInstitution" element={<RegisterInstitution/>} />
         <Route path="/userInfo" element={<UserInfo />} />
+        <Route path="/recycle-form" element={<FormComp />} />
       </Routes>
     </Router>
   );
