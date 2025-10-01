@@ -1,20 +1,20 @@
 import Sidebar from './Sidebar';
 import Header from './Header';
-import RecyclingChart from './RecyclingChart';
+import RecyclingChart from './RecyclingCharts';
 import MostRecycled from './MostRecycled';
 import PendingApprovals from './PendingApprovals';
 import TopRecyclers from './TopRecyclers';
 import TopCollectors from './TopCollectors';
-import './AdminDashboard1.css';
+import './AdminDashboard.css';
 
-export default function Home() {
+export default function AdminDashboard() {
   return (
     <div className="dashboard">
       {/* Sidebar - Siempre visible */}
       <Sidebar />
       
       {/* Main Content */}
-      <div className="main-content">
+      <div className="dashboard-main">
         {/* Header */}
         <Header />
         

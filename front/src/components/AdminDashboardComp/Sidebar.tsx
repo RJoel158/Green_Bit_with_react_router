@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import './AdminDashboard1.css';
-import logo from '../../assets/logo.svg'
+import './AdminDashboard.css';
+import logo from '../../assets/logo.png'
 
 export default function Sidebar() {
   const [activeItem, setActiveItem] = useState('control');

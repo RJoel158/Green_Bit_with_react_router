@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './AdminDashboard1.css';
+import './AdminDashboard.css';
 
 export default function MostRecycled() {
   const [material, setMaterial] = useState('papeles');

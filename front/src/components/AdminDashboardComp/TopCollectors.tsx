@@ -1,4 +1,4 @@
-import './AdminDashboard1.css';
+import './AdminDashboard.css';
 
 export default function TopCollectors() {
   const collectors = [

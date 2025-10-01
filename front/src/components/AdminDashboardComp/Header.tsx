@@ -1,20 +1,17 @@
-import './AdminDashboard1.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import './AdminDashboard.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-
 
 export default function Header() {
   return (
-    <div className="header d-flex justify-content-between align-items-center px-3 py-2">
+    <div className="dashboard-header d-flex justify-content-between align-items-center px-3 py-2">
       <div>
-        <h1 className="header-title m-0">Panel de control</h1>
+        <h1 className="dashboard-header-title m-0">Panel de control</h1>
       </div>
 
-      <div className="header-actions d-flex align-items-center gap-3">
+      <div className="dashboard-header-actions d-flex align-items-center gap-3">
         {/* Buscador */}
-        <div className="header-search d-flex align-items-center">
-         
+        <div className="dashboard-header-search d-flex align-items-center">
           <input
             type="text"
             placeholder="Buscar..."
@@ -31,7 +28,7 @@ export default function Header() {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <div className="header-user-avatar me-2">JS</div>
+            <div className="dashboard-header-user-avatar me-2">JS</div>
             Joel Saavedra
           </button>
           <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
