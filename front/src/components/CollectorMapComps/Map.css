@@ -146,6 +146,48 @@
   font-size: 10px !important;
 }
 
+/* Estilos para el error fallback del mapa */
+.map-error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: #ffffff;
+  text-align: center;
+  padding: 40px;
+}
+
+.map-error-fallback h3 {
+  color: #ffffff;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.map-error-fallback p {
+  color: #e8f5e8;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.map-error-fallback button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.map-error-fallback button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 /* Estilos para el loading */
 .loading-container {
   display: flex;
@@ -278,17 +320,36 @@
   transform: scale(1.1);
 }
 
+/* Estilos para marcadores cluster */
+.cluster-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.cluster-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-family: Arial, sans-serif;
+}
+
+.cluster-marker:hover {
+  transform: scale(1.1);
+}
+
 /* Estilos para popups personalizados */
 .custom-popup .leaflet-popup-content-wrapper {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
   border: 2px solid #4a7d25;
+  max-width: 300px;
 }
 
 .custom-popup .leaflet-popup-content {
   margin: 0;
   padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .custom-popup .leaflet-popup-tip {
@@ -318,6 +379,53 @@
   background: rgba(74, 125, 37, 0.1);
   padding: 2px 8px;
   border-radius: 4px;
+}
+
+/* Estilos para cluster de requests */
+.cluster-requests-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 10px 0;
+}
+
+.cluster-request-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cluster-request-item:last-child {
+  border-bottom: none;
+}
+
+.cluster-request-item p {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.cluster-request-item small {
+  color: #666;
+  font-size: 11px;
+}
+
+.more-items {
+  color: #4a7d25;
+  font-weight: 600;
+  text-align: center;
+  margin: 5px 0 !important;
+  font-style: italic;
+}
+
+.cluster-actions {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.cluster-actions small {
+  color: #666;
+  font-size: 11px;
+  font-style: italic;
 }
 
 /* Responsivo */
