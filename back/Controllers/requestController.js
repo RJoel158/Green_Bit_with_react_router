@@ -278,6 +278,129 @@ export const getAllRequests = async (req, res) => {
       stack: error.stack,
     });
     
+    // Si hay problemas de conectividad con la base de datos, devolver datos mock
+    if (error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      console.log("[FALLBACK] Devolviendo datos mock debido a problemas de conectividad DB");
+      
+      const mockRequests = [
+        {
+          id: 1,
+          idUser: 71,
+          description: "vxfv fx",
+          state: 1,
+          registerDate: "2025-09-27T22:26:43Z",
+          materialId: 19,
+          latitude: -17.393577,
+          longitude: -66.138159,
+          modificationDate: null,
+          images: [
+            { id: 1, requestId: 1, imagePath: "/uploads/images/cardboard-sample.jpg" }
+          ],
+          schedule: {
+            id: 1,
+            requestId: 1,
+            monday: 1,
+            tuesday: 1,
+            wednesday: 1,
+            thursday: 0,
+            friday: 1,
+            saturday: 0,
+            sunday: 0,
+            timeFrom: "08:00",
+            timeTo: "17:00"
+          }
+        },
+        {
+          id: 2,
+          idUser: 71,
+          description: "hola joel",
+          state: 1,
+          registerDate: "2025-09-27T22:43:51Z",
+          materialId: 6,
+          latitude: -17.388354,
+          longitude: -66.155707,
+          modificationDate: null,
+          images: [
+            { id: 2, requestId: 2, imagePath: "/uploads/images/plastic-bottles.jpg" }
+          ],
+          schedule: {
+            id: 2,
+            requestId: 2,
+            monday: 0,
+            tuesday: 1,
+            wednesday: 1,
+            thursday: 1,
+            friday: 1,
+            saturday: 1,
+            sunday: 0,
+            timeFrom: "09:00",
+            timeTo: "18:00"
+          }
+        },
+        {
+          id: 4,
+          idUser: 71,
+          description: "hola joel x2",
+          state: 0,
+          registerDate: "2025-09-27T23:23:26Z",
+          materialId: 18,
+          latitude: -17.389161,
+          longitude: -66.145226,
+          modificationDate: null,
+          images: [
+            { id: 3, requestId: 3, imagePath: "/uploads/images/aluminum-cans.jpg" }
+          ],
+          schedule: {
+            id: 3,
+            requestId: 3,
+            monday: 1,
+            tuesday: 1,
+            wednesday: 0,
+            thursday: 1,
+            friday: 1,
+            saturday: 0,
+            sunday: 1,
+            timeFrom: "07:00",
+            timeTo: "16:00"
+          }
+        },
+        {
+          id: 5,
+          idUser: 71,
+          description: "cdscdsc",
+          state: 1,
+          registerDate: "2025-09-30T22:19:15Z",
+          materialId: 20,
+          latitude: -17.392322,
+          longitude: -66.154987,
+          modificationDate: null,
+          images: [
+            { id: 4, requestId: 4, imagePath: "/uploads/images/glass-bottles.jpg" }
+          ],
+          schedule: {
+            id: 4,
+            requestId: 4,
+            monday: 1,
+            tuesday: 0,
+            wednesday: 1,
+            thursday: 1,
+            friday: 1,
+            saturday: 1,
+            sunday: 0,
+            timeFrom: "10:00",
+            timeTo: "19:00"
+          }
+        }
+      ];
+      
+      return res.json({
+        success: true,
+        data: mockRequests,
+        fallback: true,
+        message: "Datos de demostración - problemas de conectividad con BD"
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: "Error al obtener solicitudes",

@@ -10,6 +10,7 @@ import RecolectorIndex from "./components/RecollectorComp/RecollectingInterface"
 import FormComp from "./components/FormComps/FormComp";
 import AdminDashboard from "./components/AdminDashboardComp/Home";
 
+import RecyclingPointsMap from "./components/CollectorMapComps/Map";
 
 //CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
@@ -27,6 +28,7 @@ function App() {
         <Route path="/userInfo" element={<UserInfo />} />
         <Route path="/recycle-form" element={<FormComp />} />
         <Route path="/adminDashboard" element={<AdminDashboard />} />
+        <Route path="/recycling-points" element={<RecyclingPointsMap />} />
       </Routes>
     </Router>
   );

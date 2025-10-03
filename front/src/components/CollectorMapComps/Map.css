@@ -1,0 +1,540 @@
+/* Contenedor principal con fondo verde como en Figma */
+.recycling-points-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2d5016 0%, #3e6b1f 50%, #4a7d25 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+}
+
+/* Botón de retorno */
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateX(-3px);
+}
+
+/* Header con título y subtítulo */
+.recycling-points-header {
+  text-align: center;
+  margin-bottom: 30px;
+  max-width: 800px;
+  width: 100%;
+}
+
+.recycling-points-title {
+  color: #ffffff;
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: -0.5px;
+}
+
+.recycling-points-subtitle {
+  color: #e8f5e8;
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 0;
+  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Wrapper del mapa con estilo similar a Figma */
+.recycling-map-wrapper {
+  width: 100%;
+  max-width: 1000px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 25px;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tarjeta de información flotante */
+.map-info-card {
+  position: absolute;
+  top: 35px;
+  right: 35px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(15px);
+  border-radius: 15px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  border: 2px solid #4a7d25;
+  transition: all 0.3s ease;
+}
+
+.map-info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+}
+
+.map-info-icon {
+  color: #4a7d25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-info-text {
+  color: #2d5016;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+/* Contenedor del mapa con bordes redondeados */
+.map-container {
+  height: 550px;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  position: relative;
+}
+
+/* Personalización de controles de Leaflet */
+.map-container .leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.map-container .leaflet-control-zoom a {
+  background: #ffffff !important;
+  color: #4a7d25 !important;
+  border: 1px solid #4a7d25 !important;
+  font-weight: bold !important;
+}
+
+.map-container .leaflet-control-zoom a:hover {
+  background: #4a7d25 !important;
+  color: #ffffff !important;
+}
+
+/* Personalización de la atribución */
+.map-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.8) !important;
+  font-size: 10px !important;
+}
+
+/* Estilos para el error fallback del mapa */
+.map-error-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: #ffffff;
+  text-align: center;
+  padding: 40px;
+}
+
+.map-error-fallback h3 {
+  color: #ffffff;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.map-error-fallback p {
+  color: #e8f5e8;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.map-error-fallback button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.map-error-fallback button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Estilos para el loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #ffffff;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mensajes de error */
+.error-message {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+.error-message p {
+  color: #ffcccc;
+  margin: 0 0 10px 0;
+}
+
+/* Mensaje informativo (para fallback) */
+.error-message p:first-child:has-text("ℹ️"), 
+.error-message p[title*="demostración"] {
+  color: #e8f5e8 !important;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 4px solid #90EE90;
+}
+
+/* Estilo para mensajes que empiecen con ℹ️ */
+.error-message p {
+  color: #ffcccc;
+  margin: 0 0 10px 0;
+}
+
+.error-message p:first-child {
+  font-weight: 500;
+}
+
+.retry-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Contador de requests */
+.requests-counter {
+  text-align: center;
+  margin-top: 15px;
+  color: #ffffff;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Indicador de estado de la base de datos */
+.db-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background: #4CAF50;
+  box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+}
+
+.status-dot.offline {
+  background: #FF9800;
+  box-shadow: 0 0 6px rgba(255, 152, 0, 0.6);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Estilos para los marcadores */
+.recycling-marker-icon {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.recycling-marker-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Estilos para marcadores cluster */
+.cluster-marker-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.cluster-marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-family: Arial, sans-serif;
+}
+
+.cluster-marker:hover {
+  transform: scale(1.1);
+}
+
+/* Estilos para popups personalizados */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  border: 2px solid #4a7d25;
+  max-width: 300px;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: #4a7d25;
+}
+
+.popup-content {
+  padding: 15px;
+}
+
+.popup-content h4 {
+  color: #4a7d25;
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.popup-content p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.status-open {
+  color: #4a7d25;
+  font-weight: 600;
+  background: rgba(74, 125, 37, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Estilos para cluster de requests */
+.cluster-requests-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 10px 0;
+}
+
+.cluster-request-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.cluster-request-item:last-child {
+  border-bottom: none;
+}
+
+.cluster-request-item p {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+.cluster-request-item small {
+  color: #666;
+  font-size: 11px;
+}
+
+.more-items {
+  color: #4a7d25;
+  font-weight: 600;
+  text-align: center;
+  margin: 5px 0 !important;
+  font-style: italic;
+}
+
+.cluster-actions {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.cluster-actions small {
+  color: #666;
+  font-size: 11px;
+  font-style: italic;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .recycling-points-container {
+    padding: 15px 10px;
+  }
+  
+  .back-button {
+    top: 15px;
+    left: 15px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .recycling-points-title {
+    font-size: 2.2rem;
+  }
+  
+  .recycling-points-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .recycling-map-wrapper {
+    max-width: 100%;
+    padding: 20px;
+  }
+  
+  .map-container {
+    height: 450px;
+    border-radius: 18px;
+  }
+  
+  .map-info-card {
+    top: 30px;
+    right: 30px;
+    padding: 12px 15px;
+    border-radius: 12px;
+  }
+  
+  .map-info-text {
+    font-size: 0.85rem;
+  }
+  
+  .requests-counter {
+    margin-top: 12px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .recycling-points-container {
+    padding: 10px;
+  }
+  
+  .back-button {
+    top: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .recycling-points-header {
+    margin-bottom: 25px;
+  }
+  
+  .recycling-points-title {
+    font-size: 1.9rem;
+    margin-bottom: 6px;
+  }
+  
+  .recycling-points-subtitle {
+    font-size: 1rem;
+  }
+  
+  .recycling-map-wrapper {
+    padding: 15px;
+  }
+  
+  .map-container {
+    height: 400px;
+    border-radius: 15px;
+  }
+  
+  .map-info-card {
+    position: static;
+    margin-bottom: 15px;
+    justify-content: center;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  
+  .map-info-text {
+    font-size: 0.8rem;
+  }
+  
+  .requests-counter {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+  
+  .loading-container {
+    min-height: 300px;
+  }
+  
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 15px;
+  }
+}

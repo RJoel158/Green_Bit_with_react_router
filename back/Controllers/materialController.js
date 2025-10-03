@@ -9,19 +9,21 @@ export const getMaterials = async (req, res) => {
   try {
     console.log("[INFO] getMaterials controller called");
     
-    const materials = await MaterialModel.getAll();
+    const [materials] = await db.query(`
+      SELECT id, name, description 
+      FROM material
+      WHERE state = 1 
+      ORDER BY name ASC
+    `);
     
     console.log("[INFO] getMaterials controller - materials found:", materials.length);
     
-    res.json(materials);
-  } catch (error) {
-    console.error("[ERROR] getMaterials controller:", {
-      message: error.message,
-      code: error.code,
-      sqlMessage: error.sqlMessage,
-      stack: error.stack,
+    res.json({
+      success: true,
+      data: materials
     });
-    
+  } catch (error) {
+    console.error("[ERROR] getMaterials controller:", error);
     res.status(500).json({
       success: false,
       error: "Error al obtener materiales",
