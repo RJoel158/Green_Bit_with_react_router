@@ -58,7 +58,7 @@ export const getByRequestId = async (request_id) => {
       `SELECT id, startHour, endHour, monday, tuesday, wednesday, 
               thursday, friday, saturday, sunday, requestId
        FROM schedule
-       WHERE request_id = ?`,
+       WHERE id = 1`,
       [request_id]
     );
     return rows[0] || null;

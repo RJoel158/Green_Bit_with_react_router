@@ -5,6 +5,7 @@ import userRoutes from './Routes/userRoutes.js';
 import materialRoutes from './Routes/materialRoutes.js';
 import requestRoutes from './Routes/requestRoutes.js';
 import { verifyEmailConnection } from './Services/emailService.js';
+import { checkConnection } from './Config/DBConnect.js';
 
 const app = express();
 
@@ -19,6 +20,19 @@ app.use("/api/request", requestRoutes);
 // Ruta de health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
+});
+
+// Ruta para verificar el estado de la base de datos
+app.get('/api/db-status', async (req, res) => {
+  const isConnected = await checkConnection();
+  res.json({
+    database: {
+      connected: isConnected,
+      host: 'mysql-reciclaje.alwaysdata.net',
+      status: isConnected ? 'online' : 'offline'
+    },
+    timestamp: new Date()
+  });
 });
 
 const PORT = process.env.PORT || 3000;
