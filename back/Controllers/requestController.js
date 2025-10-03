@@ -597,14 +597,23 @@ export const getRequestWithSchedule = async (req, res) => {
       });
     }
 
+    console.log(`[INFO] getRequestWithSchedule: Fetching request ${id}`);
     const request = await RequestModel.getByIdWithAdditionalInfo(parseInt(id));
 
     if (!request) {
+      console.log(`[WARN] getRequestWithSchedule: Request ${id} not found`);
       return res.status(404).json({
         success: false,
         error: "Solicitud no encontrada"
       });
     }
+
+    console.log(`[INFO] getRequestWithSchedule: Returning request data:`, {
+      id: request.id,
+      name: request.name,
+      imagesCount: request.images ? request.images.length : 0,
+      images: request.images
+    });
 
     res.json({
       success: true,

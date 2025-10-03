@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './SchedulePickup.css';
-import cardboardImage from "../../assets/SideBarImg.png";
 import SuccessModal from '../CommonComp/SuccesModal';
+import ImageCarousel from './ImageCarousel';
 
 interface SchedulePickupModalProps {
   show: boolean;
@@ -15,12 +15,19 @@ interface DayAvailability {
   available: boolean;
 }
 
+interface Image {
+  id: number;
+  image: string;
+  uploadedDate: string;
+}
+
 interface RequestData {
   id: number;
   name: string;
   description: string;
   startHour: string;
   endHour: string;
+  images: Image[];
   daysAvailability: {
     Monday: number;
     Tuesday: number;
@@ -102,6 +109,9 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       const result = await response.json();
 
       if (result.success && result.data) {
+        console.log('[INFO] SchedulePickupModal: Received request data:', result.data);
+        console.log('[INFO] SchedulePickupModal: Images received:', result.data.images);
+        
         // Formatear las horas antes de guardar (remover segundos/milisegundos)
         const formattedData = {
           ...result.data,
@@ -109,6 +119,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
           endHour: formatTime(result.data.endHour)
         };
         
+        console.log('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
         setRequestData(formattedData);
         
         // Parsear daysAvailability
@@ -257,9 +268,21 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                     </h4>
                   </div>
                   
-                  <div className="image-placeholder mb-2">
-                    <img src={cardboardImage} alt={`${requestData.name} reciclable`} />
+                  {/* Debug info temporal */}
+                  <div style={{ fontSize: '11px', color: '#666', marginBottom: '10px', padding: '8px', background: '#f8f9fa', borderRadius: '4px', border: '1px solid #dee2e6' }}>
+                    <div><strong>Debug Info:</strong></div>
+                    <div>• Request ID: {requestData.id}</div>
+                    <div>• Material: {requestData.name}</div>
+                    <div>• Images count: {requestData.images ? requestData.images.length : 0}</div>
+                    {requestData.images && requestData.images.length > 0 && (
+                      <div>• First image: {requestData.images[0].image}</div>
+                    )}
                   </div>
+                  
+                  <ImageCarousel 
+                    images={requestData.images || []} 
+                    altText={`${requestData.name} reciclable`} 
+                  />
                   
                   <div className="description mb-2">
                     <p className="text-muted small">

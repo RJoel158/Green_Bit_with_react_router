@@ -126,11 +126,14 @@ export const getByUserId = async (userId) => {
     throw err;
   }
 };
-// Obtener solicitud por id, junto a los datos de fechas
+// Obtener solicitud por id, junto a los datos de fechas e imágenes
 export const getByIdWithAdditionalInfo = async (id) => {
   try {
-    const [rows] = await db.query(
-      `SELECT r.id, m.name ,r.description,s.startHour, s.endHour,
+    console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Fetching request ${id}`);
+    
+    // Primera consulta: datos básicos de la solicitud
+    const [requestRows] = await db.query(
+      `SELECT r.id, m.name, r.description, s.startHour, s.endHour,
            JSON_OBJECT(
         'Monday', s.monday,
         'Tuesday', s.tuesday,
@@ -142,11 +145,38 @@ export const getByIdWithAdditionalInfo = async (id) => {
     ) AS daysAvailability
      FROM request r
      JOIN material m ON m.id = r.materialId
-     LEFT JOIN schedule s ON s.requestId=r.id
+     LEFT JOIN schedule s ON s.requestId = r.id
      WHERE r.id = ?`,
       [id]
     );
-    return rows[0] || null;
+
+    if (!requestRows[0]) {
+      console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Request ${id} not found`);
+      return null;
+    }
+
+    const requestData = requestRows[0];
+    console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Found request data:`, requestData);
+
+    // Segunda consulta: imágenes asociadas
+    const [imageRows] = await db.query(
+      `SELECT id, image, uploadedDate 
+       FROM image 
+       WHERE idRequest = ? 
+       ORDER BY uploadedDate ASC`,
+      [id]
+    );
+
+    // Agregar las imágenes al resultado
+    requestData.images = imageRows || [];
+    console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Found ${imageRows.length} images for request ${id}:`, imageRows);
+    
+    // Debug adicional: verificar la estructura de las imágenes
+    if (imageRows.length > 0) {
+      console.log(`[DEBUG] First image structure:`, imageRows[0]);
+    }
+
+    return requestData;
   }
   catch (err) {
     console.error("[ERROR] RequestModel.getByIdWithAdditionalInfo:", { id, message: err.message, stack: err.stack });

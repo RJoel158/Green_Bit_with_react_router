@@ -12,6 +12,9 @@ const app = express();
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use(express.json());
 
+// Servir archivos estáticos (imágenes)
+app.use('/uploads', express.static('uploads'));
+
 // Usar rutas de usuarios
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
