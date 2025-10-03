@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
+import SchedulePickupModal from '../SchedulePickupComp/SchedulePickupModal';
+
 
 // Error Boundary Component
-class MapErrorBoundary extends React.Component<{children: React.ReactNode}> {
-  constructor(props: {children: React.ReactNode}) {
+class MapErrorBoundary extends React.Component<{ children: React.ReactNode }> {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -71,7 +73,7 @@ const createClusterIcon = (count: number) => {
       ${count}
     </div>
   `;
-  
+
   return new L.DivIcon({
     html: svgIcon,
     className: 'cluster-marker-container',
@@ -107,6 +109,9 @@ const RecyclingPointsMap: React.FC = () => {
   const [markerClusters, setMarkerClusters] = useState<MarkerCluster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  //Para controlar el modal de Schedule Pickup
+  const [showPickupModal, setShowPickupModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<{id:number} | null>(null);
 
   // Función para calcular la distancia entre dos puntos en metros
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -116,10 +121,10 @@ const RecyclingPointsMap: React.FC = () => {
     const Δφ = (lat2 - lat1) * Math.PI / 180;
     const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // Distancia en metros
   };
@@ -170,7 +175,7 @@ const RecyclingPointsMap: React.FC = () => {
           cluster.requests.push(otherRequest);
           cluster.count++;
           processed.add(otherIndex);
-          
+
           // Calcular centroide del cluster
           const totalLat = cluster.requests.reduce((sum, req) => sum + req.latitude, 0);
           const totalLng = cluster.requests.reduce((sum, req) => sum + req.longitude, 0);
@@ -194,38 +199,38 @@ const RecyclingPointsMap: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await fetch('http://localhost:3000/api/request');
-      
+
       if (!response.ok) {
         throw new Error('Error al obtener las solicitudes');
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Usar los datos del API (reales o fallback)
         const requestsData = result.data || [];
-        
+
         console.log('Received requests data:', requestsData);
         console.log('Total requests received:', requestsData.length);
-        
+
         // Filtrar solo las requests que tengan coordenadas válidas
         // Según la imagen, el estado parece ser numérico (0, 1) en lugar de string
         const activeRequests = requestsData.filter((request: any) => {
           // Parsear coordenadas a números y validar que sean válidos
           const lat = parseFloat(request.latitude);
           const lng = parseFloat(request.longitude);
-          
-          const hasValidCoordinates = !isNaN(lat) && !isNaN(lng) && 
-                                    lat !== null && lng !== null &&
-                                    lat >= -90 && lat <= 90 &&
-                                    lng >= -180 && lng <= 180;
-          
+
+          const hasValidCoordinates = !isNaN(lat) && !isNaN(lng) &&
+            lat !== null && lng !== null &&
+            lat >= -90 && lat <= 90 &&
+            lng >= -180 && lng <= 180;
+
           // Aceptar tanto estados numéricos como string para flexibilidad
           // Incluyendo state = 0 y state = 1 para ver todas las requests con coordenadas
-          const isActive = request.state === 'open' || 
-                          request.state === 1 || request.state === '1' ||
-                          request.state === 0 || request.state === '0';
-          
+          const isActive = request.state === 'open' ||
+            request.state === 1 || request.state === '1' ||
+            request.state === 0 || request.state === '0';
+
           console.log('Request filter check:', {
             id: request.id,
             latitude: request.latitude,
@@ -237,13 +242,13 @@ const RecyclingPointsMap: React.FC = () => {
             isActive,
             willInclude: hasValidCoordinates && isActive
           });
-          
+
           return hasValidCoordinates && isActive;
         });
-        
+
         console.log('Filtered active requests:', activeRequests);
         console.log('Total active requests:', activeRequests.length);
-        
+
         // Normalizar las coordenadas de las requests para asegurar que sean números
         const normalizedRequests = activeRequests.map((request: any) => {
           const normalizedRequest = {
@@ -251,7 +256,7 @@ const RecyclingPointsMap: React.FC = () => {
             latitude: parseFloat(request.latitude),
             longitude: parseFloat(request.longitude)
           };
-          
+
           console.log('Normalized request:', {
             id: request.id,
             originalLat: request.latitude,
@@ -261,18 +266,18 @@ const RecyclingPointsMap: React.FC = () => {
             isLatValid: !isNaN(normalizedRequest.latitude),
             isLngValid: !isNaN(normalizedRequest.longitude)
           });
-          
+
           return normalizedRequest;
         });
-        
+
         console.log('All normalized requests:', normalizedRequests);
         setRecyclingRequests(normalizedRequests);
-        
+
         // Generar clusters de marcadores
         const clusters = clusterRequests(normalizedRequests, 100); // 100 metros de distancia máxima
         console.log('Generated clusters:', clusters);
         setMarkerClusters(clusters);
-        
+
         // Mostrar notificación si está usando datos de fallback
         if (result.fallback) {
           setError(`ℹ️ ${result.message || 'Mostrando datos de demostración'}`);
@@ -283,7 +288,7 @@ const RecyclingPointsMap: React.FC = () => {
     } catch (err) {
       console.error('Error fetching requests:', err);
       setError('No se pudieron cargar los puntos de reciclaje');
-      
+
       // Datos estáticos como fallback con algunos puntos cercanos para probar clustering
       const fallbackRequests = [
         {
@@ -341,9 +346,9 @@ const RecyclingPointsMap: React.FC = () => {
           state: "open"
         }
       ];
-      
+
       setRecyclingRequests(fallbackRequests);
-      
+
       // Generar clusters para los datos de fallback
       const fallbackClusters = clusterRequests(fallbackRequests, 100);
       setMarkerClusters(fallbackClusters);
@@ -369,8 +374,8 @@ const RecyclingPointsMap: React.FC = () => {
   return (
     <div className="recycling-points-container">
       {/* Botón de retorno */}
-      <button 
-        onClick={() => navigate(-1)} 
+      <button
+        onClick={() => navigate(-1)}
         className="back-button"
         title="Volver atrás"
       >
@@ -389,17 +394,17 @@ const RecyclingPointsMap: React.FC = () => {
           </div>
         )}
       </div>
-      
+
       <div className="recycling-map-wrapper">
         <div className="map-info-card">
           <div className="map-info-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+              <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor" />
             </svg>
           </div>
           <span className="map-info-text">Aquí puedes recoger los objetos</span>
         </div>
-        
+
         <div className="map-container">
           <MapErrorBoundary>
             <MapContainer
@@ -412,55 +417,68 @@ const RecyclingPointsMap: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              
+
               {markerClusters
                 .filter(cluster => !isNaN(cluster.latitude) && !isNaN(cluster.longitude))
                 .map((cluster) => (
-                <Marker
-                  key={cluster.id}
-                  position={[cluster.latitude, cluster.longitude]}
-                  icon={cluster.count > 1 ? createClusterIcon(cluster.count) : recyclingIcon}
-                >
-                  <Popup className="custom-popup">
-                    <div className="popup-content">
-                      {cluster.count > 1 ? (
-                        // Popup para cluster con múltiples requests
-                        <>
-                          <h4>{cluster.count} Puntos de Reciclaje</h4>
-                          <div className="cluster-requests-list">
-                            {cluster.requests.slice(0, 3).map((request, index) => (
-                              <div key={request.id} className="cluster-request-item">
-                                <p><strong>#{index + 1}:</strong> {request.description}</p>
-                                <small>{new Date(request.registerDate).toLocaleDateString()}</small>
-                              </div>
-                            ))}
-                            {cluster.requests.length > 3 && (
-                              <p className="more-items">
-                                ... y {cluster.requests.length - 3} más
-                              </p>
-                            )}
-                          </div>
-                          <div className="cluster-actions">
-                            <small>Haz zoom para ver marcadores individuales</small>
-                          </div>
-                        </>
-                      ) : (
-                        // Popup para marcador individual
-                        <>
-                          <h4>Material para reciclar</h4>
-                          <p><strong>Descripción:</strong> {cluster.requests[0].description}</p>
-                          <p><strong>Fecha:</strong> {new Date(cluster.requests[0].registerDate).toLocaleDateString()}</p>
-                          <p><strong>Estado:</strong> <span className="status-open">Disponible</span></p>
-                        </>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
+                  <Marker
+                    key={cluster.id}
+                    position={[cluster.latitude, cluster.longitude]}
+                    icon={cluster.count > 1 ? createClusterIcon(cluster.count) : recyclingIcon}
+
+                    eventHandlers={{
+                      click: () => {
+                        if (cluster.count === 1) {
+                          // abrir modal en marcador individual, se envia al modal el id
+                          setSelectedRequest({id:cluster.requests[0].id});
+                          setShowPickupModal(true);
+                        }
+                      }
+                    }}
+                  >
+
+                    {cluster.count > 1 && (
+                      <Popup className="custom-popup">
+                        <div className="popup-content">
+                          {/* Popup para cluster con múltiples requests */}
+                          <>
+                            <h4>{cluster.count} Puntos de Reciclaje</h4>
+                            <div className="cluster-requests-list">
+                              {cluster.requests.slice(0, 3).map((request, index) => (
+                                <div key={request.id} className="cluster-request-item">
+                                  <p><strong>#{index + 1}:</strong> {request.description}</p>
+                                  <small>{new Date(request.registerDate).toLocaleDateString()}</small>
+                                </div>
+                              ))}
+                              {cluster.requests.length > 3 && (
+                                <p className="more-items">
+                                  ... y {cluster.requests.length - 3} más
+                                </p>
+                              )}
+                            </div>
+                            <div className="cluster-actions">
+                              <small>Haz zoom para ver marcadores individuales</small>
+                            </div>
+                          </>
+
+
+                        </div>
+                      </Popup>
+                    )}
+                  </Marker>
+                ))}
             </MapContainer>
           </MapErrorBoundary>
+          {showPickupModal && selectedRequest && (
+            <SchedulePickupModal
+              show={showPickupModal}
+              onClose={() => setShowPickupModal(false)}
+              selectedRequest={selectedRequest}
+          
+            />
+          )}
         </div>
-        
+
         <div className="requests-counter">
           <span>{recyclingRequests.length} puntos de reciclaje disponibles</span>
           {error && error.includes('ℹ️') && (

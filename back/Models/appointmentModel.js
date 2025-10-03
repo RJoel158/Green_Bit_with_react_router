@@ -26,3 +26,5 @@ export const updateStatus = async (id, status) => {
   await db.query(`UPDATE appointments SET status = ? WHERE id = ?`, [status, id]);
   return true;
 };
+
+

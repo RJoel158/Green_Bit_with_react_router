@@ -585,3 +585,43 @@ export const updateRequestState = async (req, res) => {
     });
   }
 };
+// Obtener con informacion del material y el horario
+export const getRequestWithSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({
+        success: false,
+        error: "ID de solicitud inválido"
+      });
+    }
+
+    const request = await RequestModel.getByIdWithAdditionalInfo(parseInt(id));
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        error: "Solicitud no encontrada"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: request
+    });
+
+  } catch (error) {
+    console.error("[ERROR] getRequestWithSchedule controller:", {
+      id: req.params.id,
+      message: error.message,
+      stack: error.stack
+    });
+
+    res.status(500).json({
+      success: false,
+      error: "Error al obtener solicitud",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

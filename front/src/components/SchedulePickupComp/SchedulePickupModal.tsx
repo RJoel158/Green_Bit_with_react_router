@@ -6,6 +6,7 @@ import SuccessModal from '../CommonComp/SuccesModal';
 interface SchedulePickupModalProps {
   show: boolean;
   onClose: () => void;
+  selectedRequest: { id: number };
 }
 // Representa la disponibilidad de un día
 interface DayAvailability {

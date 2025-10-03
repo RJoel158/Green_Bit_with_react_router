@@ -43,11 +43,11 @@ export const getAll = async () => {
     );
     return rows;
   } catch (err) {
-    console.error("[ERROR] RequestModel.getAll:", { 
-      message: err.message, 
+    console.error("[ERROR] RequestModel.getAll:", {
+      message: err.message,
       code: err.code,
       sqlMessage: err.sqlMessage,
-      stack: err.stack 
+      stack: err.stack
     });
     throw err;
   }
@@ -126,3 +126,31 @@ export const getByUserId = async (userId) => {
     throw err;
   }
 };
+// Obtener solicitud por id, junto a los datos de fechas
+export const getByIdWithAdditionalInfo = async (id) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT r.id, m.name ,r.description,s.startHour, s.endHour,
+           JSON_OBJECT(
+        'Monday', s.monday,
+        'Tuesday', s.tuesday,
+        'Wednesday', s.wednesday,
+        'Thursday', s.thursday,
+        'Friday', s.friday,
+        'Saturday', s.saturday,
+        'Sunday', s.sunday
+    ) AS daysAvailability
+     FROM request r
+     JOIN material m ON m.id = r.materialId
+     LEFT JOIN schedule s ON s.requestId=r.id
+     WHERE r.id = ?`,
+      [id]
+    );
+    return rows[0] || null;
+  }
+  catch (err) {
+    console.error("[ERROR] RequestModel.getByIdWithAdditionalInfo:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
