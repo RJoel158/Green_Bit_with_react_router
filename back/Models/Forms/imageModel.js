@@ -83,7 +83,7 @@ export const getByRequestId = async (idRequest) => {
     const [rows] = await db.query(
       `SELECT id, idRequest, image, uploadedDate
        FROM image
-       WHERE idRequest = 1
+       WHERE idRequest = ?
        ORDER BY uploadedDate ASC`,
       [idRequest]
     );

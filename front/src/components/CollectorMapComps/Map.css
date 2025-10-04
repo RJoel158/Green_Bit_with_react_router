@@ -383,28 +383,58 @@
 
 /* Estilos para cluster de requests */
 .cluster-requests-list {
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
   margin: 10px 0;
 }
 
 .cluster-request-item {
-  padding: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 8px;
   border-bottom: 1px solid #eee;
+  background: rgba(74, 125, 37, 0.05);
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 
 .cluster-request-item:last-child {
   border-bottom: none;
 }
 
-.cluster-request-item p {
-  margin: 2px 0;
-  font-size: 13px;
+.request-info {
+  flex: 1;
 }
 
-.cluster-request-item small {
+.request-info p {
+  margin: 2px 0;
+  font-size: 14px;
+  color: #4a7d25;
+  font-weight: 600;
+}
+
+.request-info small {
   color: #666;
   font-size: 11px;
+}
+
+.view-request-btn {
+  background: #4a7d25;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+}
+
+.view-request-btn:hover {
+  background: #3e6b1f;
+  transform: translateY(-1px);
 }
 
 .more-items {

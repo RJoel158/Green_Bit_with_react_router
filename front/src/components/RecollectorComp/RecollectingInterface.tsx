@@ -14,6 +14,7 @@ interface Recycler {
 
 interface User {
   id: number;
+  email: string;
   username: string;
   role: string;
   state: number;
@@ -40,16 +41,20 @@ const RecollectingInterface: React.FC = () => {
       return;
     }
 
-
     const u = JSON.parse(userStr);
     u.state = Number(u.state); // asegurarse de que sea número
+
+    // Ensure email property exists (fallback to username if needed)
+    if (!u.email && u.username) {
+      u.email = u.username;
+    }
+
     setUser(u);
 
     if (u.state === 1) {
       console.log("✅ El modal de cambio de contraseña debería aparecer"); // <-- Aquí
       setShowModal(true);
     }
-
     setUser(JSON.parse(userStr));
   }, [navigate]);
    if (!user) return null;

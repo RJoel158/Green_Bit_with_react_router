@@ -1,44 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import SchedulePickupModal from '../SchedulePickupComp/SchedulePickupModal';
-
-
-// Error Boundary Component
-class MapErrorBoundary extends React.Component<{ children: React.ReactNode }> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    console.error('Map Error:', error);
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Map Error Details:', error, errorInfo);
-  }
-
-  render() {
-    if ((this.state as any).hasError) {
-      return (
-        <div className="map-error-fallback">
-          <h3>Error al cargar el mapa</h3>
-          <p>Ha ocurrido un problema con las coordenadas del mapa.</p>
-          <button onClick={() => window.location.reload()}>
-            Recargar página
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // Importar el icono existente de location.png
 import locationIcon from "../../assets/icons/location.png";
@@ -90,6 +56,7 @@ interface RecyclingRequest {
   latitude: number;
   longitude: number;
   materialId: number;
+  materialName?: string;
   registerDate: string;
   state: string;
 }
@@ -103,15 +70,23 @@ interface MarkerCluster {
   count: number;
 }
 
+// Interfaz para materiales
+interface Material {
+  id: number;
+  name: string;
+  description?: string;
+}
+
 const RecyclingPointsMap: React.FC = () => {
   const navigate = useNavigate();
   const [recyclingRequests, setRecyclingRequests] = useState<RecyclingRequest[]>([]);
   const [markerClusters, setMarkerClusters] = useState<MarkerCluster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<RecyclingRequest | null>(null);
+  const [materials, setMaterials] = useState<Material[]>([]);
   //Para controlar el modal de Schedule Pickup
   const [showPickupModal, setShowPickupModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<{id:number} | null>(null);
 
   // Función para calcular la distancia entre dos puntos en metros
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -193,11 +168,157 @@ const RecyclingPointsMap: React.FC = () => {
     return clusters;
   };
 
+  // Función para calcular si un punto está dentro del área visible del mapa
+  const isPointInBounds = (lat: number, lng: number, bounds: L.LatLngBounds): boolean => {
+    return bounds.contains([lat, lng]);
+  };
+
+  // Función para cargar marcadores basado en zoom y área visible
+  const getVisibleRequests = (allRequests: RecyclingRequest[], zoom: number, bounds?: L.LatLngBounds): RecyclingRequest[] => {
+    // Primero filtrar por área visible si hay bounds
+    let filteredRequests = bounds 
+      ? allRequests.filter(request => isPointInBounds(request.latitude, request.longitude, bounds))
+      : allRequests;
+
+    // Aplicar limitación basada en zoom SIEMPRE, independientemente de si hay bounds
+    if (zoom < 10) {
+      // Zoom muy bajo: solo mostrar algunos puntos representativos
+      console.log(`Applying zoom filter for zoom ${zoom}: showing max 20 points`);
+      filteredRequests = filteredRequests.slice(0, 20);
+    } else if (zoom < 12) {
+      // Zoom medio: mostrar más puntos
+      console.log(`Applying zoom filter for zoom ${zoom}: showing max 50 points`);
+      filteredRequests = filteredRequests.slice(0, 50);
+    } else {
+      // Zoom alto (>= 12): mostrar todos los puntos visibles
+      console.log(`Applying zoom filter for zoom ${zoom}: showing all ${filteredRequests.length} points`);
+    }
+
+    return filteredRequests;
+  };
+
+  // Componente para manejar eventos del mapa
+  const MapEventHandler: React.FC = () => {
+    useMapEvents({
+      zoomend: (e) => {
+        const map = e.target;
+        const zoom = map.getZoom();
+        const bounds = map.getBounds();
+        
+        // Filtrar requests basado en zoom y área visible
+        const visibleRequests = getVisibleRequests(recyclingRequests, zoom, bounds);
+        const newClusters = clusterRequests(visibleRequests, zoom >= 14 ? 50 : 100);
+        setMarkerClusters(newClusters);
+        
+        console.log(`Zoom changed to ${zoom}, showing ${newClusters.length} clusters`);
+      },
+      moveend: (e) => {
+        const map = e.target;
+        const zoom = map.getZoom();
+        const bounds = map.getBounds();
+        
+        // Actualizar marcadores basado en nueva área visible
+        const visibleRequests = getVisibleRequests(recyclingRequests, zoom, bounds);
+        const newClusters = clusterRequests(visibleRequests, zoom >= 14 ? 50 : 100);
+        setMarkerClusters(newClusters);
+        
+        console.log(`Map moved, showing ${newClusters.length} clusters in current view`);
+      }
+    });
+
+    return null;
+  };
+
+  // Función para obtener materiales del backend
+  const fetchMaterials = async (): Promise<Material[]> => {
+    try {
+      console.log('Fetching materials from API...');
+      const response = await fetch('http://localhost:3000/api/material');
+      if (response.ok) {
+        const materials = await response.json();
+        console.log('Materials received from API:', materials);
+        
+        // Validar que sea un array
+        if (Array.isArray(materials)) {
+          return materials;
+        } else {
+          console.warn('Materials API returned non-array:', materials);
+        }
+      } else {
+        console.warn('Materials API failed with status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching materials:', error);
+    }
+    
+    // Materiales de fallback
+    console.log('Using fallback materials');
+    const fallbackMaterials: Material[] = [
+      { id: 1, name: 'Plástico PET', description: 'Botellas de plástico' },
+      { id: 2, name: 'Cartón', description: 'Cajas de cartón' },
+      { id: 3, name: 'Papel', description: 'Papel de oficina' },
+      { id: 4, name: 'Vidrio', description: 'Botellas de vidrio' },
+      { id: 5, name: 'Metal', description: 'Latas de aluminio' },
+      { id: 18, name: 'Plástico', description: 'Envases plásticos' },
+      { id: 19, name: 'Textil', description: 'Ropa y telas' },
+      { id: 20, name: 'Electrónicos', description: 'Dispositivos electrónicos' }
+    ];
+    return fallbackMaterials;
+  };
+
+  // Función para obtener el nombre del material por ID
+  const getMaterialName = (materialId: number, materialsArray: Material[]): string => {
+    // Validar que materialsArray sea un array
+    if (!Array.isArray(materialsArray)) {
+      console.error('getMaterialName: materialsArray is not an array:', materialsArray);
+      return `Material ID: ${materialId}`;
+    }
+    
+    const material = materialsArray.find(m => m.id === materialId);
+    if (material && material.name) {
+      return material.name;
+    }
+    
+    // Nombres por defecto basados en IDs comunes
+    const defaultNames: { [key: number]: string } = {
+      1: 'Plástico PET',
+      2: 'Cartón',
+      3: 'Papel',
+      4: 'Vidrio',
+      5: 'Metal/Aluminio',
+      6: 'Orgánico',
+      7: 'Baterías',
+      8: 'Aceite de cocina',
+      9: 'Textiles',
+      10: 'Madera',
+      11: 'Caucho',
+      12: 'Pilas',
+      13: 'Aceite usado',
+      14: 'Chatarra',
+      15: 'Computadoras',
+      16: 'Teléfonos',
+      17: 'Televisores',
+      18: 'Plástico',
+      19: 'Textil',
+      20: 'Electrónicos'
+    };
+    
+    return defaultNames[materialId] || `Material ID: ${materialId}`;
+  };
+
   // Función para obtener las requests activas desde el backend
   const fetchActiveRequests = async () => {
+    setLoading(true);
+    setError(null);
+    
+    // Obtener materiales primero
+    const materialsArray = await fetchMaterials();
+    console.log('Materials array for processing:', materialsArray, 'isArray:', Array.isArray(materialsArray));
+    
+    // Guardar materiales en el estado para usar en popups
+    setMaterials(materialsArray);
+    
     try {
-      setLoading(true);
-      setError(null);
       const response = await fetch('http://localhost:3000/api/request');
 
       if (!response.ok) {
@@ -213,9 +334,15 @@ const RecyclingPointsMap: React.FC = () => {
         console.log('Received requests data:', requestsData);
         console.log('Total requests received:', requestsData.length);
 
+        // Agregar nombres de materiales a las requests
+        const requestsWithMaterials = requestsData.map((request: any) => ({
+          ...request,
+          materialName: getMaterialName(request.materialId, materialsArray)
+        }));
+
         // Filtrar solo las requests que tengan coordenadas válidas
         // Según la imagen, el estado parece ser numérico (0, 1) en lugar de string
-        const activeRequests = requestsData.filter((request: any) => {
+        const activeRequests = requestsWithMaterials.filter((request: any) => {
           // Parsear coordenadas a números y validar que sean válidos
           const lat = parseFloat(request.latitude);
           const lng = parseFloat(request.longitude);
@@ -273,10 +400,37 @@ const RecyclingPointsMap: React.FC = () => {
         console.log('All normalized requests:', normalizedRequests);
         setRecyclingRequests(normalizedRequests);
 
-        // Generar clusters de marcadores
-        const clusters = clusterRequests(normalizedRequests, 100); // 100 metros de distancia máxima
-        console.log('Generated clusters:', clusters);
+        // Generar clusters de marcadores considerando el zoom inicial (14)
+        // Aplicar filtro de zoom desde el inicio - zoom 14 es considerado alto
+        const initialZoom = 14;
+        const visibleRequests = getVisibleRequests(normalizedRequests, initialZoom, undefined);
+        const clusters = clusterRequests(visibleRequests, 100); // 100 metros de distancia máxima
+        console.log(`Generated initial clusters with zoom ${initialZoom}:`, clusters);
         setMarkerClusters(clusters);
+
+        // FORZAR DATOS PARA TESTING - TEMPORAL
+        if (clusters.length === 0) {
+          console.log('No clusters generated, forcing test data...');
+          const testClusters = [
+            {
+              id: 'test-1',
+              latitude: -17.393,
+              longitude: -66.157,
+              count: 1,
+              requests: [{
+                id: 999,
+                description: 'Botellas de plástico PET de prueba',
+                latitude: -17.393,
+                longitude: -66.157,
+                materialId: 1,
+                materialName: getMaterialName(1, materialsArray),
+                registerDate: '2025-01-01',
+                state: 'open'
+              }]
+            }
+          ];
+          setMarkerClusters(testClusters);
+        }
 
         // Mostrar notificación si está usando datos de fallback
         if (result.fallback) {
@@ -289,6 +443,20 @@ const RecyclingPointsMap: React.FC = () => {
       console.error('Error fetching requests:', err);
       setError('No se pudieron cargar los puntos de reciclaje');
 
+      // Asegurar que tenemos materiales para el fallback
+      let fallbackMaterialsArray = materialsArray;
+      if (!Array.isArray(fallbackMaterialsArray)) {
+        fallbackMaterialsArray = [
+          { id: 1, name: 'Plástico PET', description: 'Botellas de plástico' },
+          { id: 2, name: 'Cartón', description: 'Cajas de cartón' },
+          { id: 4, name: 'Vidrio', description: 'Botellas de vidrio' },
+          { id: 5, name: 'Metal', description: 'Latas de aluminio' }
+        ];
+      }
+      
+      // Actualizar el estado de materiales también en fallback
+      setMaterials(fallbackMaterialsArray);
+
       // Datos estáticos como fallback con algunos puntos cercanos para probar clustering
       const fallbackRequests = [
         {
@@ -297,6 +465,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.393,
           longitude: -66.157,
           materialId: 2,
+          materialName: getMaterialName(2, fallbackMaterialsArray),
           registerDate: "2025-01-01",
           state: "open"
         },
@@ -306,6 +475,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.3931, // Muy cerca del punto 1
           longitude: -66.1571,
           materialId: 1,
+          materialName: getMaterialName(1, fallbackMaterialsArray),
           registerDate: "2025-01-01",
           state: "open"
         },
@@ -315,6 +485,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.3929, // También cerca del punto 1
           longitude: -66.1569,
           materialId: 2,
+          materialName: getMaterialName(2, fallbackMaterialsArray),
           registerDate: "2025-01-02",
           state: "open"
         },
@@ -324,6 +495,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.400,
           longitude: -66.150,
           materialId: 5,
+          materialName: getMaterialName(5, fallbackMaterialsArray),
           registerDate: "2025-01-01",
           state: "open"
         },
@@ -333,6 +505,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.390,
           longitude: -66.145,
           materialId: 4,
+          materialName: getMaterialName(4, fallbackMaterialsArray),
           registerDate: "2025-01-01",
           state: "open"
         },
@@ -342,6 +515,7 @@ const RecyclingPointsMap: React.FC = () => {
           latitude: -17.3901, // Cerca del punto 5
           longitude: -66.1451,
           materialId: 1,
+          materialName: getMaterialName(1, fallbackMaterialsArray),
           registerDate: "2025-01-03",
           state: "open"
         }
@@ -349,17 +523,48 @@ const RecyclingPointsMap: React.FC = () => {
 
       setRecyclingRequests(fallbackRequests);
 
-      // Generar clusters para los datos de fallback
-      const fallbackClusters = clusterRequests(fallbackRequests, 100);
+      // Generar clusters para los datos de fallback considerando zoom inicial
+      const initialZoom = 14;
+      const visibleFallbackRequests = getVisibleRequests(fallbackRequests, initialZoom, undefined);
+      const fallbackClusters = clusterRequests(visibleFallbackRequests, 100);
+      console.log(`Generated fallback clusters with zoom ${initialZoom}:`, fallbackClusters);
       setMarkerClusters(fallbackClusters);
+
+      // FORZAR DATOS PARA TESTING - TEMPORAL (fallback)
+      if (fallbackClusters.length === 0) {
+        console.log('No fallback clusters generated, forcing test data...');
+        // Usar los materiales de fallback que se obtuvieron antes
+        const testClusters = [
+          {
+            id: 'test-fallback-1',
+            latitude: -17.393,
+            longitude: -66.157,
+            count: 1,
+            requests: [{
+              id: 998,
+              description: 'Cajas de cartón de prueba',
+              latitude: -17.393,
+              longitude: -66.157,
+              materialId: 2,
+              materialName: getMaterialName(2, fallbackMaterialsArray),
+              registerDate: '2025-01-01',
+              state: 'open'
+            }]
+          }
+        ];
+        setMarkerClusters(testClusters);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('RecyclingPointsMap component mounted');
     fetchActiveRequests();
   }, []);
+
+
   if (loading) {
     return (
       <div className="recycling-points-container">
@@ -370,6 +575,8 @@ const RecyclingPointsMap: React.FC = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="recycling-points-container">
@@ -382,9 +589,10 @@ const RecyclingPointsMap: React.FC = () => {
         ← Volver
       </button>
 
-      <div className="recycling-points-header">
+        <div className="recycling-points-header">
         <h1 className="recycling-points-title">Puntos de Reciclaje</h1>
         <p className="recycling-points-subtitle">Personas que ofrecen material para reciclar</p>
+
         {error && (
           <div className="error-message">
             <p>{error}</p>
@@ -393,9 +601,7 @@ const RecyclingPointsMap: React.FC = () => {
             </button>
           </div>
         )}
-      </div>
-
-      <div className="recycling-map-wrapper">
+      </div>      <div className="recycling-map-wrapper">
         <div className="map-info-card">
           <div className="map-info-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -406,7 +612,6 @@ const RecyclingPointsMap: React.FC = () => {
         </div>
 
         <div className="map-container">
-          <MapErrorBoundary>
             <MapContainer
               center={[-17.393, -66.157]}
               zoom={14}
@@ -416,7 +621,11 @@ const RecyclingPointsMap: React.FC = () => {
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+                tileSize={256}
               />
+              
+              <MapEventHandler />
 
               {markerClusters
                 .filter(cluster => !isNaN(cluster.latitude) && !isNaN(cluster.longitude))
@@ -429,8 +638,8 @@ const RecyclingPointsMap: React.FC = () => {
                     eventHandlers={{
                       click: () => {
                         if (cluster.count === 1) {
-                          // abrir modal en marcador individual, se envia al modal el id
-                          setSelectedRequest({id:cluster.requests[0].id});
+                          // abrir modal en marcador individual, se envia al modal el request completo
+                          setSelectedRequest(cluster.requests[0]);
                           setShowPickupModal(true);
                         }
                       }
@@ -442,22 +651,37 @@ const RecyclingPointsMap: React.FC = () => {
                         <div className="popup-content">
                           {/* Popup para cluster con múltiples requests */}
                           <>
-                            <h4>{cluster.count} Puntos de Reciclaje</h4>
+                            <h4>{cluster.count} Materiales Disponibles</h4>
                             <div className="cluster-requests-list">
-                              {cluster.requests.slice(0, 3).map((request, index) => (
+                              {cluster.requests.map((request) => {
+                                // Asegurar que siempre tengamos un nombre de material válido
+                                // Si no hay materialName o está vacío, usar getMaterialName
+                                const displayName = request.materialName && request.materialName.trim() !== '' 
+                                  ? request.materialName 
+                                  : getMaterialName(request.materialId, materials);
+                                
+                                return (
                                 <div key={request.id} className="cluster-request-item">
-                                  <p><strong>#{index + 1}:</strong> {request.description}</p>
-                                  <small>{new Date(request.registerDate).toLocaleDateString()}</small>
+                                  <div className="request-info">
+                                    <p><strong>{displayName}</strong></p>
+                                    <small>{new Date(request.registerDate).toLocaleDateString()}</small>
+                                  </div>
+                                  <button 
+                                    className="view-request-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedRequest(request);
+                                      setShowPickupModal(true);
+                                    }}
+                                  >
+                                    Ver Detalles
+                                  </button>
                                 </div>
-                              ))}
-                              {cluster.requests.length > 3 && (
-                                <p className="more-items">
-                                  ... y {cluster.requests.length - 3} más
-                                </p>
-                              )}
+                                );
+                              })}
                             </div>
                             <div className="cluster-actions">
-                              <small>Haz zoom para ver marcadores individuales</small>
+                              <small>Selecciona un material para ver más detalles</small>
                             </div>
                           </>
 
@@ -468,7 +692,6 @@ const RecyclingPointsMap: React.FC = () => {
                   </Marker>
                 ))}
             </MapContainer>
-          </MapErrorBoundary>
           {showPickupModal && selectedRequest && (
             <SchedulePickupModal
               show={showPickupModal}
