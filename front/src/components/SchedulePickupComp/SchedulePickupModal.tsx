@@ -201,7 +201,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     // Validar que se haya ingresado una hora
     if (!selectedTime) {
       setTimeError('Por favor selecciona una hora');
@@ -214,9 +214,66 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       return;
     }
     
-    // Si todo es válido, limpiar error y mostrar modal de éxito
+    try {
+    // Obtener el ID del recolector desde localStorage (key: 'user')
+    const userStr = localStorage.getItem('user');
+    if (!userStr) {
+      setTimeError('No se encontró información del usuario. Por favor inicia sesión nuevamente.');
+      return;
+    }
+
+    const parsedUser = JSON.parse(userStr);
+    const collectorId = parsedUser.id;
+
+    if (!collectorId) {
+      setTimeError('No se pudo obtener el ID del recolector');
+      return;
+    }
+
+    // Obtener la próxima fecha para el día seleccionado (formato: "DD/MM/YY")
+    const dateString = getNextDateForDay(selectedDay);
+    const [day, month, year] = dateString.split('/');
+    const fullYear = `20${year}`; // Convertir "25" a "2025"
+    
+    // Formato DATE para MySQL: "YYYY-MM-DD" (sin hora), cambiar en la bd a datetime
+    // Ejemplo: "2025-10-15"
+    const acceptedDate = `${fullYear}-${month}-${day}`;
+
+    // Preparar payload para enviar al backend
+    const appointmentData = {
+      idRequest: selectedRequest.id,      // ID de la solicitud
+      acceptedDate: acceptedDate,         // Fecha en formato YYYY-MM-DD
+      collectorId: collectorId            // ID del recolector
+    };
+
+    console.log('[INFO] Enviando cita:', appointmentData);
+
+    // Realizar petición POST al endpoint de creación de citas
+    const response = await fetch('http://localhost:3000/api/appointments/schedule', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(appointmentData)
+    });
+
+    const result = await response.json();
+
+    // Verificar si la respuesta fue exitosa
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'Error al crear la cita');
+    }
+
+    console.log('[SUCCESS] Cita creada:', result);
+    
+    // Limpiar errores y mostrar modal de confirmación
     setTimeError('');
     setShowSuccess(true);
+
+  } catch (err) {
+    console.error('[ERROR] Error al confirmar cita:', err);
+    setTimeError(err instanceof Error ? err.message : 'Error al agendar el recojo. Intenta nuevamente.');
+  }
   };
 
   // No renderizar si el modal no está visible

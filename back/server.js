@@ -4,6 +4,7 @@ import cors from "cors";
 import userRoutes from './Routes/userRoutes.js';
 import materialRoutes from './Routes/materialRoutes.js';
 import requestRoutes from './Routes/requestRoutes.js';
+import requestAppointmentRoutes from './Routes/requestAppointmentRoutes.js'
 import { verifyEmailConnection } from './Services/emailService.js';
 import { checkConnection } from './Config/DBConnect.js';
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
+app.use("/api/appointments",requestAppointmentRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {

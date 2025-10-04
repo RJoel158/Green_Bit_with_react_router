@@ -1,5 +1,5 @@
 // Models/appointmentModel.js
-import db from "../Config/db.js";
+import db from "../Config/DBConnect.js";
 
 export const create = async (conn, userId, institutionId, date, description) => {
   const [result] = await conn.execute(
@@ -27,4 +27,28 @@ export const updateStatus = async (id, status) => {
   return true;
 };
 
+//Creación de appointment en la tabla appointmentconfirmation
+export const createAppointment = async (conn, idRequest, acceptedDate, collectorId) => {
+  try{
+  const [result] = await conn.execute(
+    `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId)
+     VALUES (?, ?, ?)`,
+    [idRequest, acceptedDate, collectorId]
+  );
+  return result.insertId;
+  }catch(err){
+    console.error("[ERROR] RequestModel.create:", {
+      idRequest,
+      acceptedDate,
+      collectorId,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    throw err;
+  }
+  
+};
 
