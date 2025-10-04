@@ -443,7 +443,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         <SuccessModal
           title="¡Recojo agendado!"
           message={`Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`}
-          redirectUrl="/recicladorIndex" 
+          redirectUrl="/recolectorIndex" 
         />
       )}
     </>
