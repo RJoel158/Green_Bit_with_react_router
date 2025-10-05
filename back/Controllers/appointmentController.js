@@ -74,13 +74,15 @@ export const createNewAppointment = async (req, res) => {
     const { 
       idRequest, 
       acceptedDate, 
-      collectorId 
+      collectorId,
+      acceptedHour
     } = req.body;
     
     console.log("[INFO] createNewAppointment controller called:", { 
       idRequest, 
       acceptedDate, 
-      collectorId 
+      collectorId,
+      acceptedHour 
     });
 
     // Validaciones básicas
@@ -123,6 +125,13 @@ export const createNewAppointment = async (req, res) => {
         error: "La fecha aceptada debe ser futura o actual"
       });
     }
+        // Validar acceptedHour
+     if (!acceptedHour || typeof acceptedHour !== 'string' || acceptedHour.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "La hora aceptada es requerida"
+      });
+    }
 
     await conn.beginTransaction();
 
@@ -132,7 +141,8 @@ export const createNewAppointment = async (req, res) => {
         conn,
         parseInt(idRequest),
         acceptedDate.trim(),
-        parseInt(collectorId)
+        parseInt(collectorId),
+        acceptedHour.trim()
       );
 
       console.log("[INFO] createAppointment - appointment created with ID:", appointmentId);
@@ -147,7 +157,8 @@ export const createNewAppointment = async (req, res) => {
           appointmentId,
           idRequest: parseInt(idRequest),
           acceptedDate: acceptedDate.trim(),
-          collectorId: parseInt(collectorId)
+          collectorId: parseInt(collectorId),
+          acceptedHour:acceptedHour.trim()
         }
       });
 
@@ -169,9 +180,6 @@ export const createNewAppointment = async (req, res) => {
 
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
       errorMessage = "Solicitud o recolector no válido";
-      statusCode = 400;
-    } else if (error.code === 'ER_DUP_ENTRY') {
-      errorMessage = "Ya existe una cita confirmada para esta solicitud";
       statusCode = 400;
     }
 

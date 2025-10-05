@@ -28,12 +28,12 @@ export const updateStatus = async (id, status) => {
 };
 
 //Creación de appointment en la tabla appointmentconfirmation
-export const createAppointment = async (conn, idRequest, acceptedDate, collectorId) => {
+export const createAppointment = async (conn, idRequest, acceptedDate, collectorId, acceptedHour) => {
   try{
   const [result] = await conn.execute(
-    `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId)
-     VALUES (?, ?, ?)`,
-    [idRequest, acceptedDate, collectorId]
+    `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour)
+     VALUES (?, ?, ?,?)`,
+    [idRequest, acceptedDate, collectorId,acceptedHour]
   );
   return result.insertId;
   }catch(err){
@@ -41,6 +41,7 @@ export const createAppointment = async (conn, idRequest, acceptedDate, collector
       idRequest,
       acceptedDate,
       collectorId,
+      acceptedHour,
       message: err.message,
       code: err.code || null,
       sqlMessage: err.sqlMessage || null,
