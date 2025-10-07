@@ -83,11 +83,7 @@ ENABLE_REQUEST_LOGGING=true
 CREATE DATABASE greenbit_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-#### Ejecutar Migrations (si existen)
 
-```bash
-npm run migrate
-```
 
 #### Iniciar Servidor Backend
 
