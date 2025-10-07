@@ -1,12 +1,17 @@
 // config/DBConnect.js
 // Conexión a la base de datos usando mysql2/promise
 import mysql from "mysql2/promise";
+import dotenv from "dotenv";
+
+// Cargar variables de entorno
+dotenv.config();
 
 const pool = mysql.createPool({
-  host: "mysql-reciclaje.alwaysdata.net",
-  user: "reciclaje_admin",
-  password: "Univalle.",
-  database: "reciclaje_proyecto2db",
+  host: process.env.DB_HOST || "mysql-reciclaje.alwaysdata.net",
+  port: parseInt(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || "reciclaje",
+  password: process.env.DB_PASSWORD || "reciclaje2024*",
+  database: process.env.DB_NAME || "reciclaje_365377",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -17,6 +22,8 @@ const pool = mysql.createPool({
   // Configuración SSL si es necesaria
   ssl: false
 });
+
+console.log(`🔗 Pool de MySQL inicializado para ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);
 
 console.log("Pool de MySQL (mysql2) inicializado.");
 
@@ -32,7 +39,9 @@ export const checkConnection = async () => {
     console.error("❌ Error de conexión a la base de datos:", {
       code: error.code,
       message: error.message,
-      host: "mysql-reciclaje.alwaysdata.net"
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      database: process.env.DB_NAME
     });
     return false;
   }

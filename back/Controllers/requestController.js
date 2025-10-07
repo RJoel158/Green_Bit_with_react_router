@@ -6,14 +6,22 @@ import db from "../Config/DBConnect.js";
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+// Cargar variables de entorno
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Configuración de multer para subida de archivos
+// Configuración de multer para subida de archivos usando variables de entorno
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || (5 * 1024 * 1024); // 5MB por defecto
+const allowedImageTypes = (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/jpg,image/png,image/gif,image/webp').split(',');
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads/images/'));
+    cb(null, path.join(__dirname, `../${uploadDir}/images/`));
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -22,17 +30,17 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
+  if (allowedImageTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Solo se permiten archivos de imagen'), false);
+    cb(new Error(`Solo se permiten archivos de imagen: ${allowedImageTypes.join(', ')}`), false);
   }
 };
 
 export const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB máximo por archivo
+    fileSize: maxFileSize,
     files: 10 // máximo 10 archivos
   },
   fileFilter: fileFilter

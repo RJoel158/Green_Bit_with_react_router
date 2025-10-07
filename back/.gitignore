@@ -6,36 +6,35 @@
 .env.development
 .env.test
 .env.production
-.env.*.local
+config.json
+config.js
 
 # ==============================
-# DEPENDENCIAS
+# NODE.JS
 # ==============================
 node_modules/
-.pnp
-.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
 
 # ==============================
-# BUILDS Y DISTRIBUCIÓN
+# ARCHIVOS DE RUNTIME
 # ==============================
-dist/
-dist-ssr/
-build/
-out/
-.next/
-.nuxt/
-.output/
+*.pid
+*.seed
+*.pid.lock
+.npm
+.node_repl_history
 
 # ==============================
-# CACHE
+# ARCHIVOS TEMPORALES
 # ==============================
-.cache/
-.parcel-cache/
-.eslintcache
-.stylelintcache
-.vite/
-.rollup.cache/
-.webpack/
+*.tmp
+*.temp
+.tmp/
+temp/
 
 # ==============================
 # LOGS
@@ -45,36 +44,49 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 lerna-debug.log*
+.pnpm-debug.log*
 
 # ==============================
-# TESTING
+# COVERAGE/TESTING
 # ==============================
 coverage/
 *.lcov
-.nyc_output/
-.jest/
-cypress/videos/
-cypress/screenshots/
+.nyc_output
+.coverage
+.jest
 
 # ==============================
-# ARCHIVOS TEMPORALES
+# ARCHIVOS DE USUARIO SUBIDOS
 # ==============================
-*.tmp
-*.temp
-.tmp/
-temp/
-*.local
+uploads/images/*
+!uploads/images/.gitkeep
+uploads/documents/*
+!uploads/documents/.gitkeep
+uploads/temp/*
+!uploads/temp/.gitkeep
+
+# ==============================
+# BASE DE DATOS
+# ==============================
+*.db
+*.sqlite
+*.sqlite3
+database.json
+dumps/
+backups/
+
+# ==============================
+# CACHE
+# ==============================
+.cache/
+.parcel-cache/
+.eslintcache
 
 # ==============================
 # EDITOR/IDE
 # ==============================
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
+.vscode/
 .idea/
 *.swp
 *.swo
@@ -111,6 +123,11 @@ Icon
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
 # Linux
 *~
@@ -120,39 +137,43 @@ Icon
 .nfs*
 
 # ==============================
-# STORYBOOK
+# HERRAMIENTAS DE DESARROLLO
 # ==============================
-storybook-static/
-
-# ==============================
-# MOBILE
-# ==============================
-.expo/
-.expo-shared/
+.webpack/
+.rollup.cache/
+.terser-cache/
+.eslintrc.local.js
+.prettierrc.local.js
 
 # ==============================
 # DOCUMENTACIÓN GENERADA
 # ==============================
 docs/
-styleguide/
+documentation/
+*.md.bak
 
 # ==============================
-# ANÁLISIS DE BUNDLE
+# BACKUPS
 # ==============================
-bundle-analyzer-report.html
-stats.json
+*.bak
+*.backup
+*.old
+*.orig
 
 # ==============================
-# PWA
+# CERTIFICADOS SSL
 # ==============================
-sw.js
-workbox-*.js
+*.pem
+*.key
+*.crt
+*.cert
+ssl/
+certificates/
 
 # ==============================
-# MISC
+# SCRIPTS DE DEPLOY
 # ==============================
-*.tgz
-*.tar.gz
-.vercel
-.netlify
-.firebase/
+deploy.sh
+deploy.bat
+.deployment
+.deploy/
