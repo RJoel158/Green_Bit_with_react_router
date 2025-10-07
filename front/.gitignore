@@ -156,3 +156,4 @@ workbox-*.js
 .vercel
 .netlify
 .firebase/
+.env
