@@ -19,7 +19,8 @@ export default function RequestAndAppoint() {
               <p className="appointment-desc">
                 2 cajas medianas de cartón en buen estado
               </p>
-              <a href="#" className="details-button">Ver Detalles</a>
+              {/* Cambiado para ver el pickupDetails */}
+              <a href="/pickupDetails" className="details-button">Ir a Detalles</a>
             </div>
           </div>
         </div>

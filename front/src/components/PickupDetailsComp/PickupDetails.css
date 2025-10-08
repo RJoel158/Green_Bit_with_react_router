@@ -1,0 +1,412 @@
+/* PickupDetails.css - Estilos para la página de detalles del recojo */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+.pickupdetail-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #FAF8F1;
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+.pickupdetail-content {
+  flex: 1;
+  display: flex;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  overflow: hidden;
+}
+
+/* Header */
+.pickupdetail-header {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-image: url("../../assets/Cardboard.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0 1rem;
+  color: white;
+}
+
+.pickupdetail-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pickupdetail-logo-img {
+  max-width: 150px !important;
+  height: auto;
+}
+
+.pickupdetail-header-title {
+  font-weight: 700;
+  font-size: 1.9rem;
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+ 
+}
+
+/* Seccion del mapa, solo el contenedor div */
+.pickupdetail-map-section {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  
+}
+
+
+.pickupdetail-map-wrapper {
+  position: relative;
+  flex: 1;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+  background: linear-gradient(135deg, #2d5016 0%, #3e6b1f 50%, #4a7d25 100%);
+  padding: 6px;
+}
+
+/* capa interior del mapa */
+.pickupdetail-map-wrapper > * {
+  border-radius: 1rem;
+  background: #FAF8F1;
+  width: 100%;
+  height: 100%;
+}
+.pickupdetail-back-button {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: #4A7C59;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.2s;
+}
+
+.pickupdetail-back-button:hover {
+  text-decoration: underline;
+  transform: translateX(-4px);
+}
+
+
+/* Panel de informacion */
+.pickupdetail-info-section {
+  flex: 1;
+  width: 50%;
+  flex-shrink: 0;
+}
+
+.pickupdetail-pickup-container {
+  height: 100%;
+  background-color: #FAF8F1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.5rem;
+  min-width: 400px;
+ 
+}
+
+.pickupdetail-pickup-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: #4C7C5B;
+  margin-bottom: 2rem;
+   display: flex;
+    justify-content: center;
+}
+
+.pickupdetail-pickup-image {
+  width: 100%;
+  height: 200px;
+  background-color: #E5E5E5;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.pickupdetail-pickup-description {
+  color: #4B5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.pickupdetail-pickup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.pickupdetail-info-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.pickupdetail-info-label {
+  font-weight: bold;
+  color: #4C7C5B;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.pickupdetail-info-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #9CC33C;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pickupdetail-cancel-button {
+  margin-top: auto;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #FF5F57;
+  color: white;
+  font-weight: bold;
+  font-size: 1.125rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pickupdetail-cancel-button:hover {
+  background-color: #fd473d;
+}
+
+/* --- Ajuste para el mapa importado --- */
+.pickupdetail-map-wrapper .recycling-points-container {
+  height: 100%;
+  width: 100%;
+  min-height: unset !important;
+  padding: 0 !important;
+  background: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.pickupdetail-map-wrapper .recycling-map-wrapper {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border-radius: 1rem !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.pickupdetail-map-wrapper .map-container {
+  height: 100% !important;
+  width: 100% !important;
+  border-radius: 1rem !important;
+  border: none !important;
+}
+
+/* Evita que el mapa desaparezca en resoluciones medianas */
+
+.pickupdetail-map-wrapper .map-container {
+  min-height: 100% !important;
+  height: 100% !important;
+}
+
+.pickupdetail-map-section {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 400px;
+}
+
+
+/* Resposive*/
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .pickupdetail-content {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .pickupdetail-info-section {
+    width: 350px;
+  }
+
+  .pickupdetail-map-wrapper {
+    border-width: 8px;
+    border-radius: 1rem;
+  }
+}
+
+/* Tablets pequeñas */
+@media (max-width: 768px) {
+  /* Header responsive*/
+  .pickupdetail-header {
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+    padding: 0.5rem 1rem;
+  }
+
+  .pickupdetail-header-title {
+    font-size: 1.25rem;
+  }
+
+  .pickupdetail-logo-img {
+    max-width: 120px;
+  }
+
+  /* Layout responsive */
+  .pickupdetail-content {
+    flex-direction: column;
+    padding: 0.75rem;
+  }
+
+  .pickupdetail-map-section {
+    height: 50vh;
+    min-height: 350px;
+  }
+
+  .pickupdetail-info-section {
+    width: 100%;
+    height: auto;
+  }
+
+  .pickupdetail-map-wrapper {
+    border-width: 6px;
+  }
+
+  .pickupdetail-back-button {
+    font-size: 1rem;
+  }
+
+  /* Panel info responsive */
+  .pickupdetail-pickup-container {
+    padding: 1.5rem;
+  }
+
+  .pickupdetail-pickup-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pickupdetail-pickup-image {
+    height: 180px;
+    margin-bottom: 1.25rem;
+  }
+
+  .pickupdetail-pickup-description {
+    margin-bottom: 1.5rem;
+  }
+
+  .pickupdetail-pickup-grid {
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pickupdetail-info-value {
+    font-size: 1rem;
+  }
+
+  .pickupdetail-cancel-button {
+    font-size: 1rem;
+  }
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+  /* Header móvil - mantiene los estilos de tablet */
+  .pickupdetail-header {
+    flex-direction: column;
+    height: auto;
+    gap: 10px;
+    padding: 0.5rem 1rem;
+  }
+
+  .pickupdetail-header-title {
+    font-size: 1.25rem;
+  }
+
+  .pickupdetail-logo-img {
+    max-width: 120px;
+  }
+
+  /* Layout móvil */
+  .pickupdetail-content {
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .pickupdetail-map-section {
+    height: 45vh;
+    min-height: 300px;
+  }
+
+  .pickupdetail-map-wrapper {
+    border-width: 4px;
+    border-radius: 0.75rem;
+  }
+
+  .pickupdetail-back-button {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Panel info móvil */
+  .pickupdetail-pickup-container {
+    padding: 1rem;
+  }
+
+  .pickupdetail-pickup-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .pickupdetail-pickup-image {
+    height: 150px;
+    margin-bottom: 1rem;
+  }
+
+  .pickupdetail-pickup-description {
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .pickupdetail-pickup-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .pickupdetail-info-label {
+    font-size: 0.875rem;
+  }
+
+  .pickupdetail-info-value {
+    font-size: 0.938rem;
+  }
+
+  .pickupdetail-cancel-button {
+    padding: 0.625rem;
+    font-size: 0.938rem;
+  }
+}

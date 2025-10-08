@@ -9,8 +9,7 @@ const SimpleMap: React.FC = () => {
   return (
     <div className="recycling-points-container">
       <div className="recycling-points-header">
-        <h1 className="recycling-points-title">Mapa Simple</h1>
-        <p className="recycling-points-subtitle">Test para verificar duplicación</p>
+        
       </div>
 
       <div className="recycling-map-wrapper">
