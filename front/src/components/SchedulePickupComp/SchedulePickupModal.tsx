@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './SchedulePickup.css';
 import SuccessModal from '../CommonComp/SuccesModal';
 import ImageCarousel from './ImageCarousel';
+import { config, apiUrl, debugLog } from '../../config/environment';
 
 interface SchedulePickupModalProps {
   show: boolean;
@@ -119,7 +120,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       setError(null);
 
       const response = await fetch(
-        `http://localhost:3000/api/request/${selectedRequest.id}/schedule`
+        `${config.api.baseUrl}/api/request/${selectedRequest.id}/schedule`
       );
 
       if (!response.ok) {
@@ -129,17 +130,17 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       const result = await response.json();
 
       if (result.success && result.data) {
-        console.log('[INFO] SchedulePickupModal: Received request data:', result.data);
-        console.log('[INFO] SchedulePickupModal: Images received:', result.data.images);
-
+        debugLog('[INFO] SchedulePickupModal: Received request data:', result.data);
+        debugLog('[INFO] SchedulePickupModal: Images received:', result.data.images);
+        
         // Formatear las horas antes de guardar (remover segundos/milisegundos)
         const formattedData = {
           ...result.data,
           startHour: formatTime(result.data.startHour),
           endHour: formatTime(result.data.endHour)
         };
-
-        console.log('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
+        
+        debugLog('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
         setRequestData(formattedData);
 
         // Parsear daysAvailability

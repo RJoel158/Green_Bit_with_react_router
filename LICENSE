@@ -1,0 +1,62 @@
+MIT License
+
+Copyright (c) 2025 GreenBit Recycling Platform
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Additional Terms for GreenBit Recycling Platform
+
+### About This Project
+
+GreenBit is a web-based platform designed to facilitate recycling and waste management
+by connecting recyclers with collection points and managing recycling requests.
+
+### Environmental Commitment
+
+This software is created with the intention of promoting environmental sustainability
+and responsible waste management practices. Users are encouraged to use this platform
+to support recycling initiatives and environmental conservation efforts.
+
+### Educational Use
+
+This project may be used for educational purposes, research, and non-commercial
+environmental initiatives without restriction, in accordance with the MIT License terms above.
+
+### Commercial Use
+
+Commercial use is permitted under the MIT License. However, we encourage commercial
+users to contribute back to environmental causes and open-source development.
+
+### Contribution Guidelines
+
+- Contributions that improve environmental impact tracking are especially welcome
+- Please ensure any modifications maintain the platform's focus on sustainability
+- Follow existing code standards and documentation practices
+
+### Disclaimer
+
+While this software is designed to support recycling efforts, users are responsible
+for ensuring compliance with local environmental regulations and waste management laws.
+
+---
+
+For questions about licensing or contributions, please contact the project maintainers
+through the GitHub repository: https://github.com/RJoel158/Green_Bit_with_react_router

@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import SchedulePickupModal from '../SchedulePickupComp/SchedulePickupModal';
+import { config, apiUrl, debugLog } from '../../config/environment';
 
 // Importar el icono existente de location.png
 import locationIcon from "../../assets/icons/location.png";
@@ -105,27 +106,27 @@ const RecyclingPointsMap: React.FC = () => {
   };
 
   // Función para agrupar marcadores cercanos
-  const clusterRequests = (requests: RecyclingRequest[], maxDistance: number = 100): MarkerCluster[] => {
-    console.log('Starting clustering with requests:', requests);
+  const clusterRequests = (requests: RecyclingRequest[], maxDistance: number = config.clustering.maxDistance): MarkerCluster[] => {
+    debugLog('Starting clustering with requests:', requests);
     const clusters: MarkerCluster[] = [];
     const processed = new Set<number>();
 
     requests.forEach((request, index) => {
-      console.log(`Processing request ${index}:`, request);
-      if (processed.has(index)) {
-        console.log(`Request ${index} already processed, skipping`);
-        return;
-      }
-
-      // Validar que las coordenadas sean números válidos antes de crear el cluster
+        debugLog(`Processing request ${index}:`, request);
+        if (processed.has(index)) {
+          debugLog(`Request ${index} already processed, skipping`);
+          return;
+        }      // Validar que las coordenadas sean números válidos antes de crear el cluster
       if (isNaN(request.latitude) || isNaN(request.longitude)) {
-        console.warn('Skipping request with invalid coordinates:', {
-          id: request.id,
-          latitude: request.latitude,
-          longitude: request.longitude,
-          latType: typeof request.latitude,
-          lngType: typeof request.longitude
-        });
+        if (config.dev.enableDebugLogs) {
+          console.warn('Skipping request with invalid coordinates:', {
+            id: request.id,
+            latitude: request.latitude,
+            longitude: request.longitude,
+            latType: typeof request.latitude,
+            lngType: typeof request.longitude
+          });
+        }
         return;
       }
 
@@ -161,10 +162,10 @@ const RecyclingPointsMap: React.FC = () => {
 
       processed.add(index);
       clusters.push(cluster);
-      console.log(`Created cluster:`, cluster);
+      debugLog(`Created cluster:`, cluster);
     });
 
-    console.log('Clustering completed. Total clusters:', clusters.length);
+    debugLog('Clustering completed. Total clusters:', clusters.length);
     return clusters;
   };
 
@@ -183,15 +184,15 @@ const RecyclingPointsMap: React.FC = () => {
     // Aplicar limitación basada en zoom SIEMPRE, independientemente de si hay bounds
     if (zoom < 10) {
       // Zoom muy bajo: solo mostrar algunos puntos representativos
-      console.log(`Applying zoom filter for zoom ${zoom}: showing max 20 points`);
+      debugLog(`Applying zoom filter for zoom ${zoom}: showing max 20 points`);
       filteredRequests = filteredRequests.slice(0, 20);
     } else if (zoom < 12) {
       // Zoom medio: mostrar más puntos
-      console.log(`Applying zoom filter for zoom ${zoom}: showing max 50 points`);
+      debugLog(`Applying zoom filter for zoom ${zoom}: showing max 50 points`);
       filteredRequests = filteredRequests.slice(0, 50);
     } else {
       // Zoom alto (>= 12): mostrar todos los puntos visibles
-      console.log(`Applying zoom filter for zoom ${zoom}: showing all ${filteredRequests.length} points`);
+      debugLog(`Applying zoom filter for zoom ${zoom}: showing all ${filteredRequests.length} points`);
     }
 
     return filteredRequests;
@@ -207,10 +208,10 @@ const RecyclingPointsMap: React.FC = () => {
         
         // Filtrar requests basado en zoom y área visible
         const visibleRequests = getVisibleRequests(recyclingRequests, zoom, bounds);
-        const newClusters = clusterRequests(visibleRequests, zoom >= 14 ? 50 : 100);
+        const newClusters = clusterRequests(visibleRequests, zoom >= config.clustering.minZoom ? 50 : config.clustering.maxDistance);
         setMarkerClusters(newClusters);
         
-        console.log(`Zoom changed to ${zoom}, showing ${newClusters.length} clusters`);
+        debugLog(`Zoom changed to ${zoom}, showing ${newClusters.length} clusters`);
       },
       moveend: (e) => {
         const map = e.target;
@@ -219,10 +220,10 @@ const RecyclingPointsMap: React.FC = () => {
         
         // Actualizar marcadores basado en nueva área visible
         const visibleRequests = getVisibleRequests(recyclingRequests, zoom, bounds);
-        const newClusters = clusterRequests(visibleRequests, zoom >= 14 ? 50 : 100);
+        const newClusters = clusterRequests(visibleRequests, zoom >= config.clustering.minZoom ? 50 : config.clustering.maxDistance);
         setMarkerClusters(newClusters);
         
-        console.log(`Map moved, showing ${newClusters.length} clusters in current view`);
+        debugLog(`Map moved, showing ${newClusters.length} clusters in current view`);
       }
     });
 
@@ -232,11 +233,11 @@ const RecyclingPointsMap: React.FC = () => {
   // Función para obtener materiales del backend
   const fetchMaterials = async (): Promise<Material[]> => {
     try {
-      console.log('Fetching materials from API...');
-      const response = await fetch('http://localhost:3000/api/material');
+      debugLog('Fetching materials from API...');
+      const response = await fetch(apiUrl(config.api.endpoints.materials));
       if (response.ok) {
         const materials = await response.json();
-        console.log('Materials received from API:', materials);
+        debugLog('Materials received from API:', materials);
         
         // Validar que sea un array
         if (Array.isArray(materials)) {
@@ -252,7 +253,7 @@ const RecyclingPointsMap: React.FC = () => {
     }
     
     // Materiales de fallback
-    console.log('Using fallback materials');
+    debugLog('Using fallback materials');
     const fallbackMaterials: Material[] = [
       { id: 1, name: 'Plástico PET', description: 'Botellas de plástico' },
       { id: 2, name: 'Cartón', description: 'Cajas de cartón' },
@@ -313,13 +314,13 @@ const RecyclingPointsMap: React.FC = () => {
     
     // Obtener materiales primero
     const materialsArray = await fetchMaterials();
-    console.log('Materials array for processing:', materialsArray, 'isArray:', Array.isArray(materialsArray));
+    debugLog('Materials array for processing:', { materialsArray, isArray: Array.isArray(materialsArray) });
     
     // Guardar materiales en el estado para usar en popups
     setMaterials(materialsArray);
     
     try {
-      const response = await fetch('http://localhost:3000/api/request');
+      const response = await fetch(apiUrl(config.api.endpoints.requests));
 
       if (!response.ok) {
         throw new Error('Error al obtener las solicitudes');
@@ -331,8 +332,8 @@ const RecyclingPointsMap: React.FC = () => {
         // Usar los datos del API (reales o fallback)
         const requestsData = result.data || [];
 
-        console.log('Received requests data:', requestsData);
-        console.log('Total requests received:', requestsData.length);
+        debugLog('Received requests data:', requestsData);
+        debugLog('Total requests received:', requestsData.length);
 
         // Agregar nombres de materiales a las requests
         const requestsWithMaterials = requestsData.map((request: any) => ({
@@ -373,8 +374,8 @@ const RecyclingPointsMap: React.FC = () => {
           return hasValidCoordinates && isActive;
         });
 
-        console.log('Filtered active requests:', activeRequests);
-        console.log('Total active requests:', activeRequests.length);
+        debugLog('Filtered active requests:', activeRequests);
+        debugLog('Total active requests:', activeRequests.length);
 
         // Normalizar las coordenadas de las requests para asegurar que sean números
         const normalizedRequests = activeRequests.map((request: any) => {
@@ -397,15 +398,15 @@ const RecyclingPointsMap: React.FC = () => {
           return normalizedRequest;
         });
 
-        console.log('All normalized requests:', normalizedRequests);
+        debugLog('All normalized requests:', normalizedRequests);
         setRecyclingRequests(normalizedRequests);
 
         // Generar clusters de marcadores considerando el zoom inicial (14)
         // Aplicar filtro de zoom desde el inicio - zoom 14 es considerado alto
-        const initialZoom = 14;
+        const initialZoom = config.map.defaultZoom;
         const visibleRequests = getVisibleRequests(normalizedRequests, initialZoom, undefined);
         const clusters = clusterRequests(visibleRequests, 100); // 100 metros de distancia máxima
-        console.log(`Generated initial clusters with zoom ${initialZoom}:`, clusters);
+        debugLog(`Generated initial clusters with zoom ${initialZoom}:`, clusters);
         setMarkerClusters(clusters);
 
         // FORZAR DATOS PARA TESTING - TEMPORAL
@@ -524,10 +525,10 @@ const RecyclingPointsMap: React.FC = () => {
       setRecyclingRequests(fallbackRequests);
 
       // Generar clusters para los datos de fallback considerando zoom inicial
-      const initialZoom = 14;
+      const initialZoom = config.map.defaultZoom;
       const visibleFallbackRequests = getVisibleRequests(fallbackRequests, initialZoom, undefined);
       const fallbackClusters = clusterRequests(visibleFallbackRequests, 100);
-      console.log(`Generated fallback clusters with zoom ${initialZoom}:`, fallbackClusters);
+      debugLog(`Generated fallback clusters with zoom ${initialZoom}:`, fallbackClusters);
       setMarkerClusters(fallbackClusters);
 
       // FORZAR DATOS PARA TESTING - TEMPORAL (fallback)
@@ -560,7 +561,7 @@ const RecyclingPointsMap: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('RecyclingPointsMap component mounted');
+    debugLog('RecyclingPointsMap component mounted');
     fetchActiveRequests();
   }, []);
 
@@ -613,15 +614,15 @@ const RecyclingPointsMap: React.FC = () => {
 
         <div className="map-container">
             <MapContainer
-              center={[-17.393, -66.157]}
-              zoom={14}
+              center={[config.map.defaultCenter.lat, config.map.defaultCenter.lng]}
+              zoom={config.map.defaultZoom}
               style={{ height: '100%', width: '100%' }}
               zoomControl={true}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                maxZoom={19}
+                attribution={config.map.attribution}
+                url={config.map.tileUrl}
+                maxZoom={config.clustering.maxZoom}
                 tileSize={256}
               />
               

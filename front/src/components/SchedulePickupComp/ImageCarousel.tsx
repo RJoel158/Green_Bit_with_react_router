@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ImageCarousel.css';
+import { config } from '../../config/environment';
 
 interface Image {
   id: number;
@@ -41,8 +42,8 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, altText = "Imagen
       <div className="image-placeholder single-image">
         <img 
           src={images[0].image.startsWith('/uploads') 
-            ? `http://localhost:3000${images[0].image}` 
-            : `http://localhost:3000/uploads/images/${images[0].image}`}
+            ? `${config.api.baseUrl}${images[0].image}` 
+            : `${config.api.baseUrl}/uploads/images/${images[0].image}`}
           alt={altText}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
@@ -74,8 +75,8 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, altText = "Imagen
       <div className="carousel-container">
         <img 
           src={images[currentIndex].image.startsWith('/uploads') 
-            ? `http://localhost:3000${images[currentIndex].image}` 
-            : `http://localhost:3000/uploads/images/${images[currentIndex].image}`}
+            ? `${config.api.baseUrl}${images[currentIndex].image}` 
+            : `${config.api.baseUrl}/uploads/images/${images[currentIndex].image}`}
           alt={`${altText} ${currentIndex + 1}`}
           className="carousel-image"
           onError={(e) => {
