@@ -65,7 +65,8 @@ export const updateAppointmentStatus = async (req, res) => {
   }
 };
 
-//Crear una confirmacion en estado 1(pendiente) usando el metodo createAppointment del modelo Appointment
+//Crear una confirmacion en estado 1(pendiente) usando el metodo createAppointment del modelo Appointment,
+//  se cambia el estado de request a 2
 
 export const createNewAppointment = async (req, res) => {
   try {

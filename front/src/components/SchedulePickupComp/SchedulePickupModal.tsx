@@ -482,17 +482,19 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       </div>
 
       {/* Modal de confirmación exitosa o de error si se escoge un punto que no esta disponible  */}
-   {showSuccess && requestData && (
-  <SuccessModal
-    title={error ? "Error al agendar" : "¡Recojo agendado!"}
-    message={
-      error 
-        ? error 
-        : `Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`
-    }
-    redirectUrl={error ? "/recycling-points" : "/recolectorIndex"}
-  />
-)}
+      {showSuccess && requestData && (
+        <SuccessModal
+          // Si hay un error, el título del modal será "Error al agendar"
+          // Si no hay error, mostrará "¡Recojo agendado!"
+          title={error ? "Error al agendar" : "¡Recojo agendado!"}
+          message={
+            error
+              ? error
+              : `Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`
+          }
+          redirectUrl={error ? "/recycling-points" : "/recolectorIndex"}
+        />
+      )}
     </>
   );
 };
