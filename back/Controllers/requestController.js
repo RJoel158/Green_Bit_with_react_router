@@ -642,3 +642,26 @@ export const getRequestWithSchedule = async (req, res) => {
     });
   }
 };
+
+// Obtener requests por usuario y estado
+export const getRequestsByUserAndState = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { state, limit } = req.query;
+    
+    const requests = await RequestModel.getRequestsByUserAndState(
+      parseInt(userId), 
+      state ? parseInt(state) : null, 
+      limit ? parseInt(limit) : null
+    );
+    
+    res.json({ 
+      success: true, 
+      data: requests,
+      count: requests.length 
+    });
+  } catch (err) {
+    console.error("[ERROR] getRequestsByUserAndState:", err.message);
+    res.status(500).json({ success: false, error: "Error al obtener requests del usuario" });
+  }
+};

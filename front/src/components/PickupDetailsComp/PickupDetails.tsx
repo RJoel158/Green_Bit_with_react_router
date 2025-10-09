@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import Header from './Header';
 import PickupInfo from './PickupInfo';
 import SimpleMap from '../CollectorMapComps/SimpleMap'; 
 import './PickupDetails.css'; 
 
+interface MapLocation {
+  lat: number;
+  lng: number;
+}
+
 const PickupDetails: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const appointmentId = searchParams.get('appointmentId');
+  const [mapLocation, setMapLocation] = React.useState<MapLocation | null>(null);
+  
   const handleCancel = () => {
     alert('Recojo cancelado');
   };
@@ -12,6 +23,10 @@ const PickupDetails: React.FC = () => {
   const handleBack = () => {
     window.history.back();
   };
+
+  const handleLocationUpdate = useCallback((lat: number, lng: number) => {
+    setMapLocation({ lat, lng });
+  }, []);
 
   return (
     <div className="pickupdetail-page">
@@ -31,7 +46,11 @@ const PickupDetails: React.FC = () => {
           </button>
           <div className="pickupdetail-map-wrapper">
             {/* Componente SimpleMap */}
-            <SimpleMap />
+            <SimpleMap 
+              markerPosition={mapLocation ? [mapLocation.lat, mapLocation.lng] : undefined}
+              center={mapLocation ? [mapLocation.lat, mapLocation.lng] : undefined}
+              markerText="Punto de recojo"
+            />
           </div>
           
           
@@ -39,7 +58,12 @@ const PickupDetails: React.FC = () => {
 
         {/* Pickup Info Section */}
         <div className="pickupdetail-info-section">
-          <PickupInfo onCancel={handleCancel} />
+          <PickupInfo 
+            requestId={id} 
+            appointmentId={appointmentId} 
+            onCancel={handleCancel}
+            onLocationUpdate={handleLocationUpdate}
+          />
         </div>
       </div>
     </div>

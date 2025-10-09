@@ -184,3 +184,40 @@ export const getByIdWithAdditionalInfo = async (id) => {
   }
 };
 
+// Obtener requests por usuario y estado con limit
+export const getRequestsByUserAndState = async (userId, state = null, limit = null) => {
+  try {
+    let query = `
+      SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+             r.latitude, r.longitude, r.modificationDate,
+             m.name as materialName,
+             CONCAT(p.firstname, ' ', p.lastname) as userName
+      FROM request r
+      LEFT JOIN material m ON r.materialId = m.id
+      LEFT JOIN users u ON r.idUser = u.id
+      LEFT JOIN person p ON p.userId = u.id
+      WHERE r.idUser = ?
+    `;
+    
+    const params = [userId];
+    
+    if (state !== null) {
+      query += ` AND r.state = ?`;
+      params.push(state);
+    }
+    
+    query += ` ORDER BY r.registerDate DESC`;
+    
+    if (limit) {
+      query += ` LIMIT ?`;
+      params.push(limit);
+    }
+    
+    const [rows] = await db.query(query, params);
+    return rows;
+  } catch (err) {
+    console.error("[ERROR] RequestModel.getRequestsByUserAndState:", err);
+    throw err;
+  }
+};
+

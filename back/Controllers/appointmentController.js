@@ -192,3 +192,73 @@ export const createNewAppointment = async (req, res) => {
     conn.release();
   }
 };
+
+// Obtener appointments por collector y estado
+export const getAppointmentsByCollector = async (req, res) => {
+  try {
+    const { collectorId } = req.params;
+    const { state, limit } = req.query;
+    
+    const appointments = await AppointmentModel.getAppointmentsByCollectorAndState(
+      parseInt(collectorId), 
+      state ? parseInt(state) : null, 
+      limit ? parseInt(limit) : null
+    );
+    
+    res.json({ 
+      success: true, 
+      data: appointments,
+      count: appointments.length 
+    });
+  } catch (err) {
+    console.error("[ERROR] getAppointmentsByCollector:", err.message);
+    res.status(500).json({ success: false, error: "Error al obtener citas del collector" });
+  }
+};
+
+// Obtener appointments por recycler y estado
+export const getAppointmentsByRecycler = async (req, res) => {
+  try {
+    const { recyclerId } = req.params;
+    const { state, limit } = req.query;
+    
+    const appointments = await AppointmentModel.getAppointmentsByRecyclerAndState(
+      parseInt(recyclerId), 
+      state ? parseInt(state) : null, 
+      limit ? parseInt(limit) : null
+    );
+    
+    res.json({ 
+      success: true, 
+      data: appointments,
+      count: appointments.length 
+    });
+  } catch (err) {
+    console.error("[ERROR] getAppointmentsByRecycler:", err.message);
+    res.status(500).json({ success: false, error: "Error al obtener citas del recycler" });
+  }
+};
+
+// Obtener appointment por ID
+export const getAppointmentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const appointment = await AppointmentModel.getAppointmentById(parseInt(id));
+    
+    if (!appointment) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Cita no encontrada" 
+      });
+    }
+    
+    res.json({ 
+      success: true, 
+      data: appointment 
+    });
+  } catch (err) {
+    console.error("[ERROR] getAppointmentById:", err.message);
+    res.status(500).json({ success: false, error: "Error al obtener la cita" });
+  }
+};

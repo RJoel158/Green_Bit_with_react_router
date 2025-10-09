@@ -30,7 +30,7 @@ function App() {
         <Route path="/recycle-form" element={<FormComp />} />
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/recycling-points" element={<RecyclingPointsMap />} />
-        <Route path="/pickupDetails" element={<PickupDetails />} />
+        <Route path="/pickupDetails/:id" element={<PickupDetails />} />
       </Routes>
     </Router>
   );

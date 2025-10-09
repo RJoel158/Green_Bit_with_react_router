@@ -108,7 +108,7 @@ const RecollectingInterface: React.FC = () => {
         {/* Banner Derecho */}
         <div className="banner-right"></div>
       </div>
-       <RequestAndAppoint />
+       <RequestAndAppoint user={user} />
     </div>
     
   );
