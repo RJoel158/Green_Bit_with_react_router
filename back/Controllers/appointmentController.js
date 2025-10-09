@@ -68,8 +68,6 @@ export const updateAppointmentStatus = async (req, res) => {
 //Crear una confirmacion en estado 1(pendiente) usando el metodo createAppointment del modelo Appointment
 
 export const createNewAppointment = async (req, res) => {
-  const conn = await db.getConnection();
-  
   try {
     const { 
       idRequest, 
@@ -125,47 +123,37 @@ export const createNewAppointment = async (req, res) => {
         error: "La fecha aceptada debe ser futura o actual"
       });
     }
-        // Validar acceptedHour
-     if (!acceptedHour || typeof acceptedHour !== 'string' || acceptedHour.trim().length === 0) {
+
+    // Validar acceptedHour
+    if (!acceptedHour || typeof acceptedHour !== 'string' || acceptedHour.trim().length === 0) {
       return res.status(400).json({
         success: false,
         error: "La hora aceptada es requerida"
       });
     }
 
-    await conn.beginTransaction();
+    // El modelo maneja su propia transacción - NO pasamos conn
+    const appointmentId = await AppointmentModel.createAppointment(
+      parseInt(idRequest),
+      acceptedDate.trim(),
+      parseInt(collectorId),
+      acceptedHour.trim()
+    );
 
-    try {
-      // Crear la cita usando el modelo
-      const appointmentId = await AppointmentModel.createAppointment(
-        conn,
-        parseInt(idRequest),
-        acceptedDate.trim(),
-        parseInt(collectorId),
-        acceptedHour.trim()
-      );
+    console.log("[INFO] createAppointment - appointment created with ID:", appointmentId);
 
-      console.log("[INFO] createAppointment - appointment created with ID:", appointmentId);
-
-      await conn.commit();
-
-      res.status(201).json({
-        success: true,
-        id: appointmentId,
-        message: "Cita confirmada exitosamente",
-        data: {
-          appointmentId,
-          idRequest: parseInt(idRequest),
-          acceptedDate: acceptedDate.trim(),
-          collectorId: parseInt(collectorId),
-          acceptedHour:acceptedHour.trim()
-        }
-      });
-
-    } catch (err) {
-      await conn.rollback();
-      throw err;
-    }
+    res.status(201).json({
+      success: true,
+      id: appointmentId,
+      message: "Cita confirmada exitosamente",
+      data: {
+        appointmentId,
+        idRequest: parseInt(idRequest),
+        acceptedDate: acceptedDate.trim(),
+        collectorId: parseInt(collectorId),
+        acceptedHour: acceptedHour.trim()
+      }
+    });
 
   } catch (error) {
     console.error("[ERROR] createAppointment controller:", {
@@ -181,6 +169,12 @@ export const createNewAppointment = async (req, res) => {
     if (error.code === 'ER_NO_REFERENCED_ROW_2') {
       errorMessage = "Solicitud o recolector no válido";
       statusCode = 400;
+    } else if (error.message.includes('not in state 0')) {
+      errorMessage = "La solicitud ya tiene una cita asignada o no está disponible";
+      statusCode = 400;
+    } else if (error.message.includes('not found')) {
+      errorMessage = "Solicitud no encontrada";
+      statusCode = 404;
     }
 
     res.status(statusCode).json({
@@ -188,11 +182,8 @@ export const createNewAppointment = async (req, res) => {
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
-  } finally {
-    conn.release();
   }
 };
-
 // Obtener appointments por collector y estado
 export const getAppointmentsByCollector = async (req, res) => {
   try {
