@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../config/environment';
 import './PickupDetails.css';
-import ImageCarousel from './ImageCarousel';
+import LargeImageCarousel from './LargeImageCarousel';
 
 interface PickupInfoProps {
   requestId?: string;
@@ -160,17 +160,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         {displayData?.materialName ? `Reciclaje de ${displayData.materialName}` : 'Reciclaje de Material'}
       </h2>
 
-      {/* Imágenes del material */}
-      {requestData?.images && requestData.images.length > 0 ? (
-        <ImageCarousel 
-          images={requestData.images} 
-          apiUrl={apiUrl('')}
-        />
-      ) : (
-        <div className="pickupdetail-no-images">
-          <p>No hay imágenes disponibles para esta solicitud</p>
-        </div>
-      )}
+      {/* Imágenes del material - GRANDES */}
+      <LargeImageCarousel 
+        images={requestData?.images || []} 
+        apiUrl={apiUrl('')}
+      />
 
       {/* Descripción */}
       <p className="pickupdetail-pickup-description">
