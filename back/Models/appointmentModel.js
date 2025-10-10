@@ -1,5 +1,6 @@
 // Models/appointmentModel.js
 import db from "../Config/DBConnect.js";
+import * as RequestModel from "./Forms/requestModel.js"
 
 export const create = async (conn, userId, institutionId, date, description) => {
   const [result] = await conn.execute(
@@ -27,17 +28,57 @@ export const updateStatus = async (id, status) => {
   return true;
 };
 
-//Creación de appointment en la tabla appointmentconfirmation
-export const createAppointment = async (conn, idRequest, acceptedDate, collectorId, acceptedHour) => {
-  try{
-  const [result] = await conn.execute(
-    `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour)
-     VALUES (?, ?, ?,?)`,
-    [idRequest, acceptedDate, collectorId,acceptedHour]
-  );
-  return result.insertId;
-  }catch(err){
-    console.error("[ERROR] RequestModel.create:", {
+//Verificacion del estado del request, creación de appointment 
+// en la tabla appointmentconfirmation y cambio de estado de request a 2
+export const createAppointment = async (idRequest, acceptedDate, collectorId, acceptedHour) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] createAppointment - start", { idRequest, acceptedDate, collectorId, acceptedHour });
+
+    await conn.beginTransaction();
+
+    // Verificar que el estado de request sea 0
+    const [requestRows] = await conn.query(
+      `SELECT id, state FROM request WHERE id = ?`,
+      [idRequest]
+    );
+
+    if (!requestRows[0]) {
+      throw new Error(`Request with id ${idRequest} not found`);
+    }
+
+    if (requestRows[0].state !== 0) {
+      throw new Error(`Request ${idRequest} is not in state 0. Current state: ${requestRows[0].state}`);
+    }
+
+    console.log("[INFO] createAppointment - request verified as state 0", { idRequest });
+
+    // Crear el appointment
+    const [result] = await conn.execute(
+      `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour)
+       VALUES (?, ?, ?, ?)`,
+      [idRequest, acceptedDate, collectorId, acceptedHour]
+    );
+
+    const appointmentId = result.insertId;
+    console.log("[INFO] createAppointment - appointment created", { appointmentId });
+
+    //Actualizar el estado del request a 2
+    const updated = await RequestModel.updateState(conn, idRequest, 2);
+    
+    if (!updated) {
+      throw new Error(`Failed to update state for request ${idRequest}`);
+    }
+
+    console.log("[INFO] createAppointment - request state updated to 2", { idRequest });
+
+    await conn.commit();
+    console.log("[INFO] createAppointment - transaction committed", { appointmentId, idRequest });
+
+    return appointmentId;
+
+  } catch (err) {
+    console.error("[ERROR] createAppointment - transaction error:", {
       idRequest,
       acceptedDate,
       collectorId,
@@ -48,9 +89,22 @@ export const createAppointment = async (conn, idRequest, acceptedDate, collector
       sql: err.sql || null,
       stack: err.stack,
     });
+    
+    try {
+      await conn.rollback();
+      console.log("[INFO] createAppointment - rollback executed");
+    } catch (rbErr) {
+      console.error("[ERROR] createAppointment - rollback error:", { message: rbErr.message });
+    }
+    
     throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (releaseErr) {
+      console.error("[ERROR] createAppointment - connection release error:", { message: releaseErr.message });
+    }
   }
-  
 };
 
 // Obtener appointmentconfirmation por estado y usuario (collector)
