@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../config/environment';
 import './PickupDetails.css';
+import ImageCarousel from './ImageCarousel';
 
 interface PickupInfoProps {
   requestId?: string;
@@ -152,6 +153,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       day: 'numeric'
     });
   };
+  
   return (
     <div className="pickupdetail-pickup-container">
       <h2 className="pickupdetail-pickup-title">
@@ -160,44 +162,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
       {/* Imágenes del material */}
       {requestData?.images && requestData.images.length > 0 ? (
-        <div className="pickupdetail-pickup-images">
-          <h3 className="pickupdetail-info-label">Imágenes del Material</h3>
-          {requestData.images.length === 1 ? (
-            <div className="pickupdetail-single-image">
-              <img 
-                src={`${apiUrl('')}${requestData.images[0].image}`}
-                alt="Material para reciclar"
-                className="pickupdetail-image"
-                onLoad={() => console.log('Image loaded successfully')}
-                onError={(e: any) => {
-                  console.error('Error loading image:', `${apiUrl('')}${requestData?.images?.[0]?.image}`);
-                  console.error('Error event:', e);
-                  // Mostrar imagen placeholder cuando falle
-                  e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlbiBubyBkaXNwb25ibGU8L3RleHQ+Cjwvc3ZnPg==';
-                }}
-              />
-            </div>
-          ) : (
-            <div className="pickupdetail-image-carousel">
-              {requestData.images.map((image: any, index: number) => (
-                <div key={image.id || index} className="pickupdetail-carousel-item">
-                  <img 
-                    src={`${apiUrl('')}${image.image}`}
-                    alt={`Material para reciclar ${index + 1}`}
-                    className="pickupdetail-image"
-                    onLoad={() => console.log(`Image ${index + 1} loaded successfully`)}
-                    onError={(e: any) => {
-                      console.error(`Error loading image ${index + 1}:`, `${apiUrl('')}${image.image}`);
-                      console.error('Error event:', e);
-                      // Mostrar imagen placeholder cuando falle
-                      e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+CiAgPHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlbiBubyBkaXNwb25ibGU8L3RleHQ+Cjwvc3ZnPg==';
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <ImageCarousel 
+          images={requestData.images} 
+          apiUrl={apiUrl('')}
+        />
       ) : (
         <div className="pickupdetail-no-images">
           <p>No hay imágenes disponibles para esta solicitud</p>
