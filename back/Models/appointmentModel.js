@@ -210,3 +210,94 @@ export const getAppointmentById = async (id) => {
   }
 };
 
+
+// Cancelar una cita y revertir el estado de la request a 0
+// SIN VALIDACIÓN DE PERMISOS DE USUARIO
+export const cancelAppointment = async (appointmentId, userId, userRole) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] cancelAppointment - start", { appointmentId, userId, userRole });
+
+    await conn.beginTransaction();
+
+    // Obtener el appointment con todos sus datos
+    const [appointmentRows] = await conn.query(
+      `SELECT ac.id, ac.idRequest, ac.state, ac.collectorId,
+              r.idUser as recyclerId
+       FROM appointmentconfirmation ac
+       JOIN request r ON ac.idRequest = r.id
+       WHERE ac.id = ?`,
+      [appointmentId]
+    );
+
+    if (!appointmentRows[0]) {
+      throw new Error(`Appointment with id ${appointmentId} not found`);
+    }
+
+    const appointment = appointmentRows[0];
+
+    // *** VALIDACIÓN DE PERMISOS REMOVIDA ***
+    // Ahora cualquiera puede cancelar sin importar el userId
+
+    // Verificar que el appointment esté en un estado cancelable (0=pendiente, 1=confirmada)
+    if (appointment.state !== 0 && appointment.state !== 1) {
+      throw new Error(`Appointment ${appointmentId} cannot be cancelled. Current state: ${appointment.state}`);
+    }
+
+    console.log("[INFO] cancelAppointment - appointment verified", { appointment });
+
+    // Actualizar el estado del appointment a 3 (cancelado)
+    await conn.execute(
+      `UPDATE appointmentconfirmation SET state = 3 WHERE id = ?`,
+      [appointmentId]
+    );
+
+    console.log("[INFO] cancelAppointment - appointment state updated to 3 (cancelled)");
+
+    // Revertir el estado del request a 0 (disponible)
+    const updated = await RequestModel.updateState(conn, appointment.idRequest, 0);
+    
+    if (!updated) {
+      throw new Error(`Failed to update state for request ${appointment.idRequest}`);
+    }
+
+    console.log("[INFO] cancelAppointment - request state reverted to 0", { idRequest: appointment.idRequest });
+
+    await conn.commit();
+    console.log("[INFO] cancelAppointment - transaction committed", { appointmentId, idRequest: appointment.idRequest });
+
+    return {
+      appointmentId,
+      requestId: appointment.idRequest,
+      previousState: appointment.state,
+      newState: 3
+    };
+
+  } catch (err) {
+    console.error("[ERROR] cancelAppointment - transaction error:", {
+      appointmentId,
+      userId,
+      userRole,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    
+    try {
+      await conn.rollback();
+      console.log("[INFO] cancelAppointment - rollback executed");
+    } catch (rbErr) {
+      console.error("[ERROR] cancelAppointment - rollback error:", { message: rbErr.message });
+    }
+    
+    throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (releaseErr) {
+      console.error("[ERROR] cancelAppointment - connection release error:", { message: releaseErr.message });
+    }
+  }
+};

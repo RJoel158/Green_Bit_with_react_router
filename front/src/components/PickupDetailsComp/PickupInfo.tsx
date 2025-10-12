@@ -1,3 +1,4 @@
+//pickupInfo
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../config/environment';
 import './PickupDetails.css';
@@ -32,6 +33,8 @@ interface AppointmentData {
   materialName?: string;
   collectorName?: string;
   recyclerName?: string;
+  collectorId?: number;
+  recyclerId?: number;
 }
 
 const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCancel, onLocationUpdate }) => {
@@ -39,6 +42,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [appointmentData, setAppointmentData] = useState<AppointmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,6 +130,85 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     }
   }, [requestData, onLocationUpdate]);
 
+  const handleCancelAppointment = async () => {
+  if (!appointmentId) {
+    alert('No se puede cancelar: ID de cita no disponible');
+    return;
+  }
+  if (!appointmentData) {
+    alert('No se puede cancelar: Datos de la cita no disponibles');
+    return;
+  }
+  if (!window.confirm('¿Está seguro que desea cancelar este recojo?\n\nLa solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
+    return;
+  }
+
+  setCancelling(true);
+
+  try {
+    console.log('[INFO] Iniciando cancelación, appointmentId=', appointmentId, 'appointmentData=', appointmentData);
+
+    // Seleccionar userId de forma segura (null si no existe)
+    const userId = appointmentData.collectorId ?? appointmentData.recyclerId ?? null;
+    if (!userId) {
+      console.warn('[WARN] userId no encontrado en appointmentData. Verifica si el backend acepta peticiones sin userId.');
+    }
+
+    // Si usas token JWT en localStorage/sessionStorage:
+    const token = localStorage.getItem('token'); // o donde lo guardes
+
+    const url = apiUrl(`/api/appointments/${appointmentId}/cancel`);
+    console.log('[INFO] POST ->', url, 'payload=', { userId, userRole: 'collector' });
+
+    const response = await fetch(url, {
+      method: 'POST', // <- si tu backend espera otro método, cámbialo (DELETE, PUT, PATCH)
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        // Ajusta nombres de campo si el backend usa snake_case o distintos nombres
+        userId,
+        userRole: 'collector'
+      })
+    });
+
+    // Manejo seguro del body aunque no sea JSON
+    const text = await response.text();
+    let result: any = null;
+    try {
+      result = text ? JSON.parse(text) : null;
+    } catch (e) {
+      // respuesta no JSON
+      result = { success: response.ok, raw: text };
+    }
+
+    console.log('[INFO] Response status:', response.status, 'parsed:', result);
+
+    if (!response.ok) {
+      // Extrae mensaje de error si existe
+      const msg = result?.error || result?.message || result?.raw || `Error ${response.status}`;
+      throw new Error(msg);
+    }
+
+    // Aquí suponemos que result.success indica éxito
+    if (result && (result.success === true || response.status === 200 || response.status === 204)) {
+      alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
+      // Actualiza estado local para reflejar la cancelación sin recargar
+      setAppointmentData(prev => prev ? { ...prev, state: 3 } : prev);
+      onCancel();
+    } else {
+      const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
+      throw new Error(msg);
+    }
+  } catch (err) {
+    console.error('[ERROR] Error cancelling appointment:', err);
+    alert(`Error al cancelar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+  } finally {
+    setCancelling(false);
+  }
+};
+
   if (loading) {
     return (
       <div className="pickupdetail-pickup-container">
@@ -153,6 +236,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       day: 'numeric'
     });
   };
+
+  // Determinar si se puede cancelar (estados 0 y 1 son cancelables)
+  const canCancel = appointmentData && (appointmentData.state === 0 || appointmentData.state === 1);
   
   return (
     <div className="pickupdetail-pickup-container">
@@ -214,7 +300,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               <p className="pickupdetail-info-value">
                 {appointmentData.state === 0 ? 'Pendiente' : 
                  appointmentData.state === 1 ? 'Confirmada' : 
-                 appointmentData.state === 2 ? 'En Progreso' : 'Completada'}
+                 appointmentData.state === 2 ? 'En Progreso' : 
+                 appointmentData.state === 3 ? 'Cancelada' : 'Completada'}
               </p>
             </div>
           </>
@@ -250,13 +337,42 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         ) : null}
       </div>
 
-      {/* Botón cancelar */}
-      <button 
-        onClick={onCancel}
-        className="pickupdetail-cancel-button"
-      >
-        Cancelar Recojo
-      </button>
+      {/* Botón cancelar - condicional según el tipo de vista */}
+      {isAppointmentView && canCancel ? (
+        <button 
+          onClick={handleCancelAppointment}
+          className="pickupdetail-cancel-button"
+          disabled={cancelling}
+          style={{
+            opacity: cancelling ? 0.6 : 1,
+            cursor: cancelling ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {cancelling ? 'Cancelando...' : 'Cancelar Recojo'}
+        </button>
+      ) : !isAppointmentView ? (
+        <button 
+          onClick={onCancel}
+          className="pickupdetail-cancel-button"
+        >
+          Cerrar
+        </button>
+      ) : null}
+
+      {/* Mostrar mensaje si la cita ya está cancelada */}
+      {isAppointmentView && appointmentData?.state === 3 && (
+        <div style={{ 
+          marginTop: '1rem', 
+          padding: '0.75rem', 
+          backgroundColor: '#fee', 
+          borderRadius: '0.5rem',
+          color: '#c00',
+          textAlign: 'center',
+          fontWeight: 500
+        }}>
+          ⚠️ Esta cita ha sido cancelada
+        </div>
+      )}
     </div>
   );
 };
