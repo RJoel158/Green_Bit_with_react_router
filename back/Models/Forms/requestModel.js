@@ -4,7 +4,7 @@ import db from "../../Config/DBConnect.js";
 /**
  * Crear una solicitud (request)
  */
-export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = 'open') => {
+export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = 0) => {
   try {
     const [res] = await conn.query(
       `INSERT INTO request (idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate)

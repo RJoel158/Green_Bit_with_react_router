@@ -1,6 +1,7 @@
 import './AdminDashboard.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import NotificationBell from '../CommonComp/NotificationBell';
 
 export default function Header() {
   return (
@@ -45,10 +46,17 @@ export default function Header() {
         </div>
 
         {/* Notificaciones */}
-        <button className="btn btn-light position-relative">
-          🔔
-          <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-        </button>
+        <div>
+          {(() => {
+            // Obtener usuario desde localStorage para pasar el ID al componente
+            try {
+              const user = JSON.parse(localStorage.getItem('user') || 'null');
+              return user?.id ? <NotificationBell userId={user.id} /> : null;
+            } catch {
+              return null;
+            }
+          })()}
+        </div>
       </div>
     </div>
   );

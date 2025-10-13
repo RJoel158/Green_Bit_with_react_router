@@ -55,8 +55,8 @@ export const createAppointment = async (idRequest, acceptedDate, collectorId, ac
 
     // Crear el appointment
     const [result] = await conn.execute(
-      `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour, state)
+       VALUES (?, ?, ?, ?, 0)`,
       [idRequest, acceptedDate, collectorId, acceptedHour]
     );
 

@@ -1,5 +1,7 @@
 import * as AppointmentModel from "../Models/appointmentModel.js";
 import db from "../Config/DBConnect.js";
+import * as NotificationModel from "../Models/notificationModel.js";
+import { sendRealTimeNotification } from "../server.js";
 
 /** POST /appointments */
 export const createAppointment = async (req, res) => {
@@ -106,6 +108,46 @@ export const createNewAppointment = async (req, res) => {
     );
 
     console.log("[INFO] createAppointment - appointment created:", appointmentId);
+
+    // Intentar obtener información de la request para direccionar la notificación
+    try {
+      const [rows] = await db.query(
+        `SELECT r.idUser as recyclerId, u.email as recyclerEmail
+         FROM request r
+         JOIN users u ON u.id = r.idUser
+         WHERE r.id = ?`,
+        [parseInt(idRequest)]
+      );
+
+      if (rows && rows[0]) {
+        const recyclerId = rows[0].recyclerId; // dueño del material
+        // Insertar notificación por si los triggers no existen
+        try {
+          await db.query(
+            `INSERT INTO notifications (userId, actorId, type, title, body, requestId, appointmentId, expireAt)
+             VALUES (?, ?, 'request_received', 'Solicitud de recolección', ?, ?, ?, NOW() + INTERVAL 7 DAY)`,
+            [recyclerId, parseInt(collectorId), `El usuario ${collectorId} ha solicitado recoger tu material el ${acceptedDate}`, parseInt(idRequest), appointmentId]
+          );
+        } catch (e) {
+          console.warn('[WARN] No se pudo insertar notificación fallback:', e.message);
+        }
+
+        // Emitir en tiempo real al reciclador (dueño de la request)
+        sendRealTimeNotification(recyclerId, {
+          id: Date.now(),
+          type: 'request_received',
+          title: 'Solicitud de recolección',
+          body: `El usuario ${collectorId} ha solicitado recoger tu material el ${acceptedDate}`,
+          requestId: parseInt(idRequest),
+          appointmentId: appointmentId,
+          read: false,
+          createdAt: new Date().toISOString(),
+          actorEmail: undefined,
+        });
+      }
+    } catch (e) {
+      console.warn('[WARN] No se pudo enviar notificación en tiempo real:', e.message);
+    }
 
     res.status(201).json({
       success: true,
