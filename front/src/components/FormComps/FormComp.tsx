@@ -178,7 +178,11 @@ const FormComp: React.FC = () => {
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData({ ...formData, description: e.target.value });
+    const text = e.target.value;
+    // Limitar a 250 caracteres
+    if (text.length <= 250) {
+      setFormData(prev => ({ ...prev, description: text }));
+    }
   };
 
   // FUNCIÓN CORREGIDA: Ahora agrega fotos en lugar de reemplazar
@@ -272,6 +276,12 @@ const FormComp: React.FC = () => {
     if (formData.photos.length === 0) return setMensaje("Debes subir al menos una foto");
     if (formData.availableDays.length === 0) return setMensaje("Debes seleccionar al menos un día disponible");
     if (!formData.timeFrom || !formData.timeTo) return setMensaje("Debes especificar el horario disponible");
+    
+    // Validar que la hora inicial sea menor que la hora final
+    if (formData.timeFrom >= formData.timeTo) {
+      return setMensaje("La hora inicial debe ser menor que la hora final");
+    }
+    
     if (!selectedLocation) return setMensaje("Debes seleccionar la ubicación en el mapa");
 
     setSubmitting(true);
@@ -397,13 +407,19 @@ const FormComp: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="description">Descripción</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label htmlFor="description" style={{ margin: 0 }}>Descripción</label>
+                <span style={{ fontSize: '0.9em', color: formData.description.length >= 250 ? '#dc3545' : '#6c757d', fontWeight: '500' }}>
+                  {formData.description.length}/250
+                </span>
+              </div>
               <textarea 
                 id="description" 
                 value={formData.description} 
                 onChange={handleDescriptionChange} 
                 className="textarea-input" 
                 placeholder="Describe el material..." 
+                maxLength={250}
               />
             </div>
           </div>
