@@ -481,7 +481,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         </div>
       </div>
 
-      {/* Modal de confirmación exitosa o de error si se escoge un punto que no esta disponible  */}
+      {/* 
+  Componente que muestra un modal luego de intentar agendar un recojo. 
+  Puede mostrar un mensaje de éxito 
+  o de error según el resultado del proceso.
+  */}
+
       {showSuccess && requestData && (
         <SuccessModal
           // Si hay un error, el título del modal será "Error al agendar"
