@@ -1,13 +1,14 @@
 //pickupInfo
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../config/environment';
-import { 
-  APPOINTMENT_STATE, 
-  getRequestStateLabel, 
-  getAppointmentStateLabel 
+import {
+  APPOINTMENT_STATE,
+  getRequestStateLabel,
+  getAppointmentStateLabel
 } from '../../shared/constants';
 import './PickupDetails.css';
 import LargeImageCarousel from './LargeImageCarousel';
+import RatingModal from '../RatingModalComp/RatingModal';
 
 interface PickupInfoProps {
   requestId?: string;
@@ -51,6 +52,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [accepting, setAccepting] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,12 +64,12 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
       try {
         setLoading(true);
-        
+
         // Si hay appointmentId, cargar datos del appointment
         if (appointmentId) {
           // Cargar datos del appointment que incluyen info de la request
           const appointmentResponse = await fetch(apiUrl(`/api/appointments/${appointmentId}`));
-          
+
           if (!appointmentResponse.ok) {
             throw new Error(`Error ${appointmentResponse.status}: ${appointmentResponse.statusText}`);
           }
@@ -89,7 +91,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         } else {
           // Solo cargar datos de la request
           const response = await fetch(apiUrl(`/api/request/${requestId}`));
-          
+
           if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
           }
@@ -122,7 +124,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         console.log('Image field:', requestData.images[0].image);
         console.log('apiUrl(""):', apiUrl(''));
         console.log('Final image URL:', `${apiUrl('')}${requestData.images[0].image}`);
-        
+
         // Verificar si existe el archivo
         fetch(`${apiUrl('')}${requestData.images[0].image}`, { method: 'HEAD' })
           .then(response => {
@@ -139,85 +141,85 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   }, [requestData, onLocationUpdate]);
 
   const handleCancelAppointment = async () => {
-  if (!appointmentId) {
-    alert('No se puede cancelar: ID de cita no disponible');
-    return;
-  }
-  if (!appointmentData) {
-    alert('No se puede cancelar: Datos de la cita no disponibles');
-    return;
-  }
-  
-  // Confirmar cancelación de la cita
-  if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
-    return;
-  }
-
-  setCancelling(true);
-
-  try {
-    console.log('[INFO] Iniciando cancelación, appointmentId=', appointmentId, 'appointmentData=', appointmentData);
-
-    // Seleccionar userId de forma segura (null si no existe)
-    const userId = appointmentData.collectorId ?? appointmentData.recyclerId ?? null;
-    if (!userId) {
-      console.warn('[WARN] userId no encontrado en appointmentData. Verifica si el backend acepta peticiones sin userId.');
+    if (!appointmentId) {
+      alert('No se puede cancelar: ID de cita no disponible');
+      return;
+    }
+    if (!appointmentData) {
+      alert('No se puede cancelar: Datos de la cita no disponibles');
+      return;
     }
 
-    // Si usas token JWT en localStorage/sessionStorage:
-    const token = localStorage.getItem('token'); // o donde lo guardes
+    // Confirmar cancelación de la cita
+    if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
+      return;
+    }
 
-    const url = apiUrl(`/api/appointments/${appointmentId}/cancel`);
-    console.log('[INFO] POST ->', url, 'payload=', { userId, userRole: 'collector' });
+    setCancelling(true);
 
-    const response = await fetch(url, {
-      method: 'POST', // <- si tu backend espera otro método, cámbialo (DELETE, PUT, PATCH)
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        // Ajusta nombres de campo si el backend usa snake_case o distintos nombres
-        userId,
-        userRole: 'collector'
-      })
-    });
-
-    // Manejo seguro del body aunque no sea JSON
-    const text = await response.text();
-    let result: any = null;
     try {
-      result = text ? JSON.parse(text) : null;
-    } catch (e) {
-      // respuesta no JSON
-      result = { success: response.ok, raw: text };
-    }
+      console.log('[INFO] Iniciando cancelación, appointmentId=', appointmentId, 'appointmentData=', appointmentData);
 
-    console.log('[INFO] Response status:', response.status, 'parsed:', result);
+      // Seleccionar userId de forma segura (null si no existe)
+      const userId = appointmentData.collectorId ?? appointmentData.recyclerId ?? null;
+      if (!userId) {
+        console.warn('[WARN] userId no encontrado en appointmentData. Verifica si el backend acepta peticiones sin userId.');
+      }
 
-    if (!response.ok) {
-      // Extrae mensaje de error si existe
-      const msg = result?.error || result?.message || result?.raw || `Error ${response.status}`;
-      throw new Error(msg);
-    }
+      // Si usas token JWT en localStorage/sessionStorage:
+      const token = localStorage.getItem('token'); // o donde lo guardes
 
-    // Aquí suponemos que result.success indica éxito
-    if (result && (result.success === true || response.status === 200 || response.status === 204)) {
-      alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
-      // Actualiza estado local para reflejar la cancelación sin recargar
-      setAppointmentData(prev => prev ? { ...prev, state: 3 } : prev);
-      onCancel();
-    } else {
-      const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
-      throw new Error(msg);
+      const url = apiUrl(`/api/appointments/${appointmentId}/cancel`);
+      console.log('[INFO] POST ->', url, 'payload=', { userId, userRole: 'collector' });
+
+      const response = await fetch(url, {
+        method: 'POST', // <- si tu backend espera otro método, cámbialo (DELETE, PUT, PATCH)
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          // Ajusta nombres de campo si el backend usa snake_case o distintos nombres
+          userId,
+          userRole: 'collector'
+        })
+      });
+
+      // Manejo seguro del body aunque no sea JSON
+      const text = await response.text();
+      let result: any = null;
+      try {
+        result = text ? JSON.parse(text) : null;
+      } catch (e) {
+        // respuesta no JSON
+        result = { success: response.ok, raw: text };
+      }
+
+      console.log('[INFO] Response status:', response.status, 'parsed:', result);
+
+      if (!response.ok) {
+        // Extrae mensaje de error si existe
+        const msg = result?.error || result?.message || result?.raw || `Error ${response.status}`;
+        throw new Error(msg);
+      }
+
+      // Aquí suponemos que result.success indica éxito
+      if (result && (result.success === true || response.status === 200 || response.status === 204)) {
+        alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
+        // Actualiza estado local para reflejar la cancelación sin recargar
+        setAppointmentData(prev => prev ? { ...prev, state: 3 } : prev);
+        onCancel();
+      } else {
+        const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
+        throw new Error(msg);
+      }
+    } catch (err) {
+      console.error('[ERROR] Error cancelling appointment:', err);
+      alert(`Error al cancelar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+    } finally {
+      setCancelling(false);
     }
-  } catch (err) {
-    console.error('[ERROR] Error cancelling appointment:', err);
-    alert(`Error al cancelar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
-  } finally {
-    setCancelling(false);
-  }
-};
+  };
 
   // Función para aceptar un appointment
   const handleAcceptAppointment = async () => {
@@ -225,7 +227,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       alert('No se puede aceptar: ID de cita no disponible');
       return;
     }
-    
+
     // Confirmar ACEPTACIÓN (no cancelación)
     if (!window.confirm('✅ ¿Desea ACEPTAR esta solicitud de recolección?\n\n✓ La cita quedará confirmada y el recolector será notificado.')) {
       return;
@@ -278,7 +280,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       alert('No se puede rechazar: ID de cita no disponible');
       return;
     }
-    
+
     // Confirmar RECHAZO (no cancelación)
     if (!window.confirm('❌ ¿Desea RECHAZAR esta solicitud de recolección?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para que otros recolectores puedan tomarla.')) {
       return;
@@ -330,7 +332,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       alert('No se puede completar: ID de cita no disponible');
       return;
     }
-    
+
     // Confirmar COMPLETAR (no cancelación)
     if (!window.confirm('✅ ¿Confirma que la recolección se ha COMPLETADO exitosamente?\n\n⚠️ Esta acción marcará la solicitud como finalizada y no se puede deshacer.')) {
       return;
@@ -364,7 +366,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       if (result.success) {
         alert('✓ Recolección completada exitosamente.');
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
-        onCancel();
+        setShowRatingModal(true);
+
       } else {
         throw new Error(result.error || 'Error al completar la cita');
       }
@@ -374,6 +377,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     } finally {
       setCompleting(false);
     }
+  };
+  const handleRatingModalClose = () => {
+    setShowRatingModal(false);
+    onCancel();
   };
 
   if (loading) {
@@ -403,7 +410,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       day: 'numeric'
     });
   };
-  
+
   return (
     <div className="pickupdetail-pickup-container">
       <h2 className="pickupdetail-pickup-title">
@@ -411,8 +418,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       </h2>
 
       {/* Imágenes del material - GRANDES */}
-      <LargeImageCarousel 
-        images={requestData?.images || []} 
+      <LargeImageCarousel
+        images={requestData?.images || []}
         apiUrl={apiUrl('')}
       />
 
@@ -502,7 +509,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           {/* Botones para estado PENDING (0) - Reciclador puede aceptar o rechazar */}
           {appointmentData.state === APPOINTMENT_STATE.PENDING && (
             <>
-              <button 
+              <button
                 onClick={handleAcceptAppointment}
                 className="pickupdetail-accept-button"
                 disabled={accepting}
@@ -519,7 +526,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               >
                 {accepting ? 'Aceptando...' : '✓ Aceptar Solicitud'}
               </button>
-              <button 
+              <button
                 onClick={handleRejectAppointment}
                 className="pickupdetail-reject-button"
                 disabled={rejecting}
@@ -542,7 +549,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           {/* Botones para estado ACCEPTED (1) - Ambos pueden cancelar o completar */}
           {appointmentData.state === APPOINTMENT_STATE.ACCEPTED && (
             <>
-              <button 
+              <button
                 onClick={handleCompleteAppointment}
                 className="pickupdetail-complete-button"
                 disabled={completing}
@@ -559,7 +566,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               >
                 {completing ? 'Completando...' : '✓ Marcar como Completado'}
               </button>
-              <button 
+              <button
                 onClick={handleCancelAppointment}
                 className="pickupdetail-cancel-button"
                 disabled={cancelling}
@@ -575,9 +582,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
           {/* Mostrar mensaje para estados terminales */}
           {appointmentData.state === APPOINTMENT_STATE.REJECTED && (
-            <div style={{ 
-              padding: '0.75rem', 
-              backgroundColor: '#ffebee', 
+            <div style={{
+              padding: '0.75rem',
+              backgroundColor: '#ffebee',
               borderRadius: '0.5rem',
               color: '#c62828',
               textAlign: 'center',
@@ -588,9 +595,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           )}
 
           {appointmentData.state === APPOINTMENT_STATE.CANCELLED && (
-            <div style={{ 
-              padding: '0.75rem', 
-              backgroundColor: '#fff3e0', 
+            <div style={{
+              padding: '0.75rem',
+              backgroundColor: '#fff3e0',
               borderRadius: '0.5rem',
               color: '#e65100',
               textAlign: 'center',
@@ -601,9 +608,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           )}
 
           {appointmentData.state === APPOINTMENT_STATE.COMPLETED && (
-            <div style={{ 
-              padding: '0.75rem', 
-              backgroundColor: '#e8f5e9', 
+            <div style={{
+              padding: '0.75rem',
+              backgroundColor: '#e8f5e9',
               borderRadius: '0.5rem',
               color: '#2e7d32',
               textAlign: 'center',
@@ -614,7 +621,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           )}
 
           {/* Botón cerrar siempre disponible */}
-          <button 
+          <button
             onClick={onCancel}
             className="pickupdetail-close-button"
             style={{
@@ -633,12 +640,15 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
       {/* Botón para vista de request solamente (sin appointment) */}
       {!isAppointmentView && (
-        <button 
+        <button
           onClick={onCancel}
           className="pickupdetail-cancel-button"
         >
           Cerrar
         </button>
+      )}
+      {showRatingModal && (
+        <RatingModal onClose={handleRatingModalClose} />
       )}
     </div>
   );
