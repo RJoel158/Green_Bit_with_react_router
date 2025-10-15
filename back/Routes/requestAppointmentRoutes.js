@@ -8,7 +8,10 @@ import {
   getAppointmentsByCollector,
   getAppointmentsByRecycler,
   getAppointmentById,
-  cancelAppointment 
+  cancelAppointment,
+  acceptAppointmentEndpoint,
+  rejectAppointmentEndpoint,
+  completeAppointmentEndpoint
 } from "../Controllers/appointmentController.js";
 
 const router = express.Router();
@@ -18,10 +21,11 @@ router.post("/schedule", createNewAppointment);
 router.get("/appointments", getAppointments);
 router.patch("/appointments/:id/status", updateAppointmentStatus);
 
-// ✅ Ruta corregida para cancelar cita - cambiar a POST y ruta correcta
-// RUTA correcta según lo que el frontend está llamando
+// Rutas para acciones sobre appointments
 router.post("/:id/cancel", cancelAppointment);
-
+router.post("/:id/accept", acceptAppointmentEndpoint);
+router.post("/:id/reject", rejectAppointmentEndpoint);
+router.post("/:id/complete", completeAppointmentEndpoint);
 
 // Rutas para obtener appointments filtrados
 router.get("/collector/:collectorId", getAppointmentsByCollector);

@@ -2,6 +2,7 @@ import * as AppointmentModel from "../Models/appointmentModel.js";
 import db from "../Config/DBConnect.js";
 import * as NotificationModel from "../Models/notificationModel.js";
 import { sendRealTimeNotification } from "../server.js";
+import { APPOINTMENT_STATE, REQUEST_STATE } from "../shared/constants.js";
 
 /** POST /appointments */
 export const createAppointment = async (req, res) => {
@@ -112,37 +113,30 @@ export const createNewAppointment = async (req, res) => {
     // Intentar obtener información de la request para direccionar la notificación
     try {
       const [rows] = await db.query(
-        `SELECT r.idUser as recyclerId, u.email as recyclerEmail
+        `SELECT r.idUser as recyclerId, u.email as recyclerEmail,
+                uc.email as collectorEmail
          FROM request r
          JOIN users u ON u.id = r.idUser
+         JOIN users uc ON uc.id = ?
          WHERE r.id = ?`,
-        [parseInt(idRequest)]
+        [parseInt(collectorId), parseInt(idRequest)]
       );
 
       if (rows && rows[0]) {
-        const recyclerId = rows[0].recyclerId; // dueño del material
-        // Insertar notificación por si los triggers no existen
-        try {
-          await db.query(
-            `INSERT INTO notifications (userId, actorId, type, title, body, requestId, appointmentId, expireAt)
-             VALUES (?, ?, 'request_received', 'Solicitud de recolección', ?, ?, ?, NOW() + INTERVAL 7 DAY)`,
-            [recyclerId, parseInt(collectorId), `El usuario ${collectorId} ha solicitado recoger tu material el ${acceptedDate}`, parseInt(idRequest), appointmentId]
-          );
-        } catch (e) {
-          console.warn('[WARN] No se pudo insertar notificación fallback:', e.message);
-        }
-
-        // Emitir en tiempo real al reciclador (dueño de la request)
+        const recyclerId = rows[0].recyclerId;
+        const collectorEmail = rows[0].collectorEmail;
+        
+        // Solo emitir notificación en tiempo real (no insertar en BD, los triggers lo hacen)
         sendRealTimeNotification(recyclerId, {
           id: Date.now(),
           type: 'request_received',
           title: 'Solicitud de recolección',
-          body: `El usuario ${collectorId} ha solicitado recoger tu material el ${acceptedDate}`,
+          body: `El usuario ${collectorEmail} ha solicitado recoger tu material el ${acceptedDate}`,
           requestId: parseInt(idRequest),
           appointmentId: appointmentId,
           read: false,
           createdAt: new Date().toISOString(),
-          actorEmail: undefined,
+          actorEmail: collectorEmail,
         });
       }
     } catch (e) {
@@ -281,6 +275,197 @@ export const cancelAppointment = async (req, res) => {
       statusCode = 403;
     } else if (error.message.includes("cannot be cancelled")) {
       errorMessage = "Esta cita no puede ser cancelada en su estado actual";
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+};
+
+// Aceptar un appointment (recycler confirma la recolección)
+export const acceptAppointmentEndpoint = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    console.log("[INFO] acceptAppointment called:", { id, userId });
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: "ID de cita inválido" });
+    }
+
+    if (!userId || isNaN(parseInt(userId))) {
+      return res.status(400).json({ success: false, error: "ID de usuario requerido" });
+    }
+
+    const result = await AppointmentModel.acceptAppointment(
+      parseInt(id),
+      parseInt(userId)
+    );
+
+    console.log("[INFO] acceptAppointment success:", result);
+
+    return res.status(200).json({
+      success: true,
+      message: "Cita aceptada exitosamente.",
+      data: result || {}
+    });
+  } catch (error) {
+    console.error("[ERROR] acceptAppointment controller:", error);
+
+    let errorMessage = "Error al aceptar la cita";
+    let statusCode = 500;
+
+    if (error.message.includes("not found")) {
+      errorMessage = "Cita no encontrada";
+      statusCode = 404;
+    } else if (error.message.includes("not in PENDING state")) {
+      errorMessage = "Esta cita no está en estado pendiente";
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+};
+
+// Rechazar un appointment (recycler rechaza la recolección)
+export const rejectAppointmentEndpoint = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    console.log("[INFO] rejectAppointment called:", { id, userId });
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: "ID de cita inválido" });
+    }
+
+    if (!userId || isNaN(parseInt(userId))) {
+      return res.status(400).json({ success: false, error: "ID de usuario requerido" });
+    }
+
+    const result = await AppointmentModel.rejectAppointment(
+      parseInt(id),
+      parseInt(userId)
+    );
+
+    console.log("[INFO] rejectAppointment success:", result);
+
+    // Enviar notificación al collector informando que fue rechazado
+    try {
+      console.log("[INFO] Intentando enviar notificación de rechazo para appointmentId:", parseInt(id));
+      
+      const [rows] = await db.query(
+        `SELECT ac.idRequest, ac.collectorId, 
+                u.email as recyclerEmail
+         FROM appointmentconfirmation ac
+         JOIN request r ON r.id = ac.idRequest
+         JOIN users u ON u.id = r.idUser
+         WHERE ac.id = ?`,
+        [parseInt(id)]
+      );
+
+      console.log("[INFO] Query resultado para notificación:", rows);
+
+      if (rows && rows[0]) {
+        const collectorId = rows[0].collectorId;
+        const recyclerEmail = rows[0].recyclerEmail;
+        const requestId = rows[0].idRequest;
+        
+        console.log("[INFO] Datos para notificación:", { collectorId, recyclerEmail, requestId, appointmentId: parseInt(id) });
+        
+        // Enviar notificación en tiempo real al collector
+        const notificationSent = sendRealTimeNotification(collectorId, {
+          id: Date.now(),
+          type: 'request_rejected',
+          title: 'Solicitud rechazada',
+          body: `El usuario ${recyclerEmail} ha rechazado tu solicitud de recolección`,
+          requestId: requestId,
+          appointmentId: parseInt(id),
+          read: false,
+          createdAt: new Date().toISOString(),
+          actorEmail: recyclerEmail,
+        });
+        
+        console.log("[INFO] Notificación enviada:", notificationSent);
+      } else {
+        console.warn('[WARN] No se encontró información del appointment para notificación');
+      }
+    } catch (e) {
+      console.error('[ERROR] Error al enviar notificación de rechazo:', e.message, e.stack);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Cita rechazada. La solicitud estará disponible nuevamente en el mapa.",
+      data: result || {}
+    });
+  } catch (error) {
+    console.error("[ERROR] rejectAppointment controller:", error);
+
+    let errorMessage = "Error al rechazar la cita";
+    let statusCode = 500;
+
+    if (error.message.includes("not found")) {
+      errorMessage = "Cita no encontrada";
+      statusCode = 404;
+    } else if (error.message.includes("not in PENDING state")) {
+      errorMessage = "Esta cita no está en estado pendiente";
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+};
+
+// Completar un appointment (recolección exitosa)
+export const completeAppointmentEndpoint = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    console.log("[INFO] completeAppointment called:", { id, userId });
+
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: "ID de cita inválido" });
+    }
+
+    if (!userId || isNaN(parseInt(userId))) {
+      return res.status(400).json({ success: false, error: "ID de usuario requerido" });
+    }
+
+    const result = await AppointmentModel.completeAppointment(
+      parseInt(id),
+      parseInt(userId)
+    );
+
+    console.log("[INFO] completeAppointment success:", result);
+
+    return res.status(200).json({
+      success: true,
+      message: "Cita completada exitosamente. La recolección ha finalizado.",
+      data: result || {}
+    });
+  } catch (error) {
+    console.error("[ERROR] completeAppointment controller:", error);
+
+    let errorMessage = "Error al completar la cita";
+    let statusCode = 500;
+
+    if (error.message.includes("not found")) {
+      errorMessage = "Cita no encontrada";
+      statusCode = 404;
+    } else if (error.message.includes("not in ACCEPTED state")) {
+      errorMessage = "Esta cita no está en estado aceptado";
       statusCode = 400;
     }
 

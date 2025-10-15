@@ -1,10 +1,12 @@
 // Models/Forms/requestModel.js
 import db from "../../Config/DBConnect.js";
+import { REQUEST_STATE } from "../../shared/constants.js";
 
 /**
  * Crear una solicitud (request)
+ * Por defecto se crea en estado OPEN (1) para que aparezca en el mapa
  */
-export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = 0) => {
+export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = REQUEST_STATE.OPEN) => {
   try {
     const [res] = await conn.query(
       `INSERT INTO request (idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate)

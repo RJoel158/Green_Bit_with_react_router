@@ -19,59 +19,9 @@ const PickupDetails: React.FC = () => {
   const [mapLocation, setMapLocation] = React.useState<MapLocation | null>(null);
   const navigate = useNavigate();
 
-  // ✅ Manejo seguro del botón "Cancelar cita"
-  const handleCancel = async () => {
-    if (!appointmentId) {
-      alert('No se encontró el ID de la cita');
-      return;
-    }
-
-    // Confirmación antes de cancelar
-    if (!window.confirm('¿Estás seguro que deseas cancelar esta cita?')) {
-      return;
-    }
-
-    try {
-      console.log('🚀 Enviando solicitud de cancelación para appointment:', appointmentId);
-      
-      // La ruta correcta según tu server.js es /api/appointments/cancel/:id
-      const response = await fetch(`/api/appointments/cancel/${appointmentId}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json' 
-        },
-        body: JSON.stringify({
-          userId: 1, // Reemplaza con el ID real del usuario autenticado
-          userRole: 'recycler' // O 'collector' según corresponda
-        })
-      });
-
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', response.headers.get('content-type'));
-
-      // Verificar si la respuesta es JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        console.error('❌ La respuesta no es JSON. Contenido recibido:', text.substring(0, 200));
-        alert('Error: El servidor no respondió correctamente. Verifica que la ruta esté configurada.');
-        return;
-      }
-
-      const data = await response.json();
-      console.log('✅ Respuesta JSON:', data);
-
-      if (response.ok && data.success) {
-        alert('Cita cancelada con éxito. La solicitud estará disponible nuevamente en el mapa.');
-        navigate(-1); // Volver a la página anterior
-      } else {
-        alert(data.error || 'Error al cancelar la cita');
-      }
-
-    } catch (error) {
-      console.error('⚠️ Error en la solicitud:', error);
-      alert('Error al conectar con el servidor. Revisa la consola para más detalles.');
-    }
+  // Función para cerrar/volver (no es para cancelar la cita)
+  const handleClose = () => {
+    navigate(-1); // Volver a la página anterior
   };
 
   // Botón para volver
@@ -156,7 +106,7 @@ const PickupDetails: React.FC = () => {
               <PickupInfo
                 requestId={id}
                 appointmentId={appointmentId}
-                onCancel={handleCancel}
+                onCancel={handleClose}
                 onLocationUpdate={handleLocationUpdate}
               />
             </div>

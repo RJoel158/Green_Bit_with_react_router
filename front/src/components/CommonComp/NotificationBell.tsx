@@ -215,7 +215,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
                             <button
                               className="notification-btn notification-btn-secondary"
                               onClick={() => {
-                                window.location.href = `/pickupDetails/${notification.requestId}`;
+                                // Redirigir a la ventana de detalles con el appointmentId para aprobar/rechazar
+                                const url = notification.appointmentId 
+                                  ? `/pickupDetails/${notification.requestId}?appointmentId=${notification.appointmentId}`
+                                  : `/pickupDetails/${notification.requestId}`;
+                                window.location.href = url;
                               }}
                             >
                               Ver Detalles

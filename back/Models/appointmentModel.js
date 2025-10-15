@@ -1,6 +1,7 @@
 // Models/appointmentModel.js
 import db from "../Config/DBConnect.js";
-import * as RequestModel from "./Forms/requestModel.js"
+import * as RequestModel from "./Forms/requestModel.js";
+import { REQUEST_STATE, APPOINTMENT_STATE } from "../shared/constants.js";
 
 export const create = async (conn, userId, institutionId, date, description) => {
   const [result] = await conn.execute(
@@ -29,7 +30,7 @@ export const updateStatus = async (id, status) => {
 };
 
 //Verificacion del estado del request, creación de appointment 
-// en la tabla appointmentconfirmation y cambio de estado de request a 2
+// en la tabla appointmentconfirmation y cambio de estado de request a REQUESTED (0)
 export const createAppointment = async (idRequest, acceptedDate, collectorId, acceptedHour) => {
   const conn = await db.getConnection();
   try {
@@ -37,7 +38,7 @@ export const createAppointment = async (idRequest, acceptedDate, collectorId, ac
 
     await conn.beginTransaction();
 
-    // Verificar que el estado de request sea 0
+    // Verificar que el estado de request sea OPEN (1)
     const [requestRows] = await conn.query(
       `SELECT id, state FROM request WHERE id = ?`,
       [idRequest]
@@ -47,30 +48,30 @@ export const createAppointment = async (idRequest, acceptedDate, collectorId, ac
       throw new Error(`Request with id ${idRequest} not found`);
     }
 
-    if (requestRows[0].state !== 0) {
-      throw new Error(`Request ${idRequest} is not in state 0. Current state: ${requestRows[0].state}`);
+    if (requestRows[0].state !== REQUEST_STATE.OPEN) {
+      throw new Error(`Request ${idRequest} is not in OPEN state. Current state: ${requestRows[0].state}`);
     }
 
-    console.log("[INFO] createAppointment - request verified as state 0", { idRequest });
+    console.log("[INFO] createAppointment - request verified as OPEN state", { idRequest });
 
-    // Crear el appointment
+    // Crear el appointment en estado PENDING (0)
     const [result] = await conn.execute(
       `INSERT INTO appointmentconfirmation (idRequest, acceptedDate, collectorId, acceptedHour, state)
-       VALUES (?, ?, ?, ?, 0)`,
-      [idRequest, acceptedDate, collectorId, acceptedHour]
+       VALUES (?, ?, ?, ?, ?)`,
+      [idRequest, acceptedDate, collectorId, acceptedHour, APPOINTMENT_STATE.PENDING]
     );
 
     const appointmentId = result.insertId;
-    console.log("[INFO] createAppointment - appointment created", { appointmentId });
+    console.log("[INFO] createAppointment - appointment created with PENDING state", { appointmentId });
 
-    //Actualizar el estado del request a 2
-    const updated = await RequestModel.updateState(conn, idRequest, 2);
+    // Actualizar el estado del request a REQUESTED (0) - temporalmente bloqueado
+    const updated = await RequestModel.updateState(conn, idRequest, REQUEST_STATE.REQUESTED);
     
     if (!updated) {
       throw new Error(`Failed to update state for request ${idRequest}`);
     }
 
-    console.log("[INFO] createAppointment - request state updated to 2", { idRequest });
+    console.log("[INFO] createAppointment - request state updated to REQUESTED", { idRequest });
 
     await conn.commit();
     console.log("[INFO] createAppointment - transaction committed", { appointmentId, idRequest });
@@ -211,7 +212,7 @@ export const getAppointmentById = async (id) => {
 };
 
 
-// Cancelar una cita y revertir el estado de la request a 0
+// Cancelar una cita y revertir el estado de la request a OPEN (1)
 // SIN VALIDACIÓN DE PERMISOS DE USUARIO
 export const cancelAppointment = async (appointmentId, userId, userRole) => {
   const conn = await db.getConnection();
@@ -239,29 +240,29 @@ export const cancelAppointment = async (appointmentId, userId, userRole) => {
     // *** VALIDACIÓN DE PERMISOS REMOVIDA ***
     // Ahora cualquiera puede cancelar sin importar el userId
 
-    // Verificar que el appointment esté en un estado cancelable (0=pendiente, 1=confirmada)
-    if (appointment.state !== 0 && appointment.state !== 1) {
+    // Verificar que el appointment esté en un estado cancelable (PENDING=0, ACCEPTED=1)
+    if (appointment.state !== APPOINTMENT_STATE.PENDING && appointment.state !== APPOINTMENT_STATE.ACCEPTED) {
       throw new Error(`Appointment ${appointmentId} cannot be cancelled. Current state: ${appointment.state}`);
     }
 
     console.log("[INFO] cancelAppointment - appointment verified", { appointment });
 
-    // Actualizar el estado del appointment a 3 (cancelado)
+    // Actualizar el estado del appointment a CANCELLED (5)
     await conn.execute(
-      `UPDATE appointmentconfirmation SET state = 3 WHERE id = ?`,
-      [appointmentId]
+      `UPDATE appointmentconfirmation SET state = ? WHERE id = ?`,
+      [APPOINTMENT_STATE.CANCELLED, appointmentId]
     );
 
-    console.log("[INFO] cancelAppointment - appointment state updated to 3 (cancelled)");
+    console.log("[INFO] cancelAppointment - appointment state updated to CANCELLED");
 
-    // Revertir el estado del request a 0 (disponible)
-    const updated = await RequestModel.updateState(conn, appointment.idRequest, 0);
+    // Revertir el estado del request a OPEN (1) - disponible nuevamente en el mapa
+    const updated = await RequestModel.updateState(conn, appointment.idRequest, REQUEST_STATE.OPEN);
     
     if (!updated) {
       throw new Error(`Failed to update state for request ${appointment.idRequest}`);
     }
 
-    console.log("[INFO] cancelAppointment - request state reverted to 0", { idRequest: appointment.idRequest });
+    console.log("[INFO] cancelAppointment - request state reverted to OPEN", { idRequest: appointment.idRequest });
 
     await conn.commit();
     console.log("[INFO] cancelAppointment - transaction committed", { appointmentId, idRequest: appointment.idRequest });
@@ -270,7 +271,7 @@ export const cancelAppointment = async (appointmentId, userId, userRole) => {
       appointmentId,
       requestId: appointment.idRequest,
       previousState: appointment.state,
-      newState: 3
+      newState: APPOINTMENT_STATE.CANCELLED
     };
 
   } catch (err) {
@@ -298,6 +299,264 @@ export const cancelAppointment = async (appointmentId, userId, userRole) => {
       conn.release(); 
     } catch (releaseErr) {
       console.error("[ERROR] cancelAppointment - connection release error:", { message: releaseErr.message });
+    }
+  }
+};
+
+// Aceptar un appointment (el recycler confirma la recolección)
+export const acceptAppointment = async (appointmentId, userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] acceptAppointment - start", { appointmentId, userId });
+
+    await conn.beginTransaction();
+
+    // Obtener el appointment con todos sus datos
+    const [appointmentRows] = await conn.query(
+      `SELECT ac.id, ac.idRequest, ac.state, ac.collectorId,
+              r.idUser as recyclerId
+       FROM appointmentconfirmation ac
+       JOIN request r ON ac.idRequest = r.id
+       WHERE ac.id = ?`,
+      [appointmentId]
+    );
+
+    if (!appointmentRows[0]) {
+      throw new Error(`Appointment with id ${appointmentId} not found`);
+    }
+
+    const appointment = appointmentRows[0];
+
+    // Verificar que el appointment esté en estado PENDING (0)
+    if (appointment.state !== APPOINTMENT_STATE.PENDING) {
+      throw new Error(`Appointment ${appointmentId} is not in PENDING state. Current state: ${appointment.state}`);
+    }
+
+    console.log("[INFO] acceptAppointment - appointment verified", { appointment });
+
+    // Actualizar el estado del appointment a ACCEPTED (1)
+    await conn.execute(
+      `UPDATE appointmentconfirmation SET state = ? WHERE id = ?`,
+      [APPOINTMENT_STATE.ACCEPTED, appointmentId]
+    );
+
+    console.log("[INFO] acceptAppointment - appointment state updated to ACCEPTED");
+
+    // Actualizar el estado del request a ACCEPTED (2)
+    const updated = await RequestModel.updateState(conn, appointment.idRequest, REQUEST_STATE.ACCEPTED);
+    
+    if (!updated) {
+      throw new Error(`Failed to update state for request ${appointment.idRequest}`);
+    }
+
+    console.log("[INFO] acceptAppointment - request state updated to ACCEPTED", { idRequest: appointment.idRequest });
+
+    await conn.commit();
+    console.log("[INFO] acceptAppointment - transaction committed", { appointmentId, idRequest: appointment.idRequest });
+
+    return {
+      appointmentId,
+      requestId: appointment.idRequest,
+      previousState: appointment.state,
+      newState: APPOINTMENT_STATE.ACCEPTED
+    };
+
+  } catch (err) {
+    console.error("[ERROR] acceptAppointment - transaction error:", {
+      appointmentId,
+      userId,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    
+    try {
+      await conn.rollback();
+      console.log("[INFO] acceptAppointment - rollback executed");
+    } catch (rbErr) {
+      console.error("[ERROR] acceptAppointment - rollback error:", { message: rbErr.message });
+    }
+    
+    throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (releaseErr) {
+      console.error("[ERROR] acceptAppointment - connection release error:", { message: releaseErr.message });
+    }
+  }
+};
+
+// Rechazar un appointment (el recycler rechaza la recolección)
+export const rejectAppointment = async (appointmentId, userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] rejectAppointment - start", { appointmentId, userId });
+
+    await conn.beginTransaction();
+
+    // Obtener el appointment con todos sus datos
+    const [appointmentRows] = await conn.query(
+      `SELECT ac.id, ac.idRequest, ac.state, ac.collectorId,
+              r.idUser as recyclerId
+       FROM appointmentconfirmation ac
+       JOIN request r ON ac.idRequest = r.id
+       WHERE ac.id = ?`,
+      [appointmentId]
+    );
+
+    if (!appointmentRows[0]) {
+      throw new Error(`Appointment with id ${appointmentId} not found`);
+    }
+
+    const appointment = appointmentRows[0];
+
+    // Verificar que el appointment esté en estado PENDING (0)
+    if (appointment.state !== APPOINTMENT_STATE.PENDING) {
+      throw new Error(`Appointment ${appointmentId} is not in PENDING state. Current state: ${appointment.state}`);
+    }
+
+    console.log("[INFO] rejectAppointment - appointment verified", { appointment });
+
+    // Actualizar el estado del appointment a REJECTED (3)
+    await conn.execute(
+      `UPDATE appointmentconfirmation SET state = ? WHERE id = ?`,
+      [APPOINTMENT_STATE.REJECTED, appointmentId]
+    );
+
+    console.log("[INFO] rejectAppointment - appointment state updated to REJECTED");
+
+    // Revertir el estado del request a OPEN (1) - disponible nuevamente en el mapa
+    const updated = await RequestModel.updateState(conn, appointment.idRequest, REQUEST_STATE.OPEN);
+    
+    if (!updated) {
+      throw new Error(`Failed to update state for request ${appointment.idRequest}`);
+    }
+
+    console.log("[INFO] rejectAppointment - request state reverted to OPEN", { idRequest: appointment.idRequest });
+
+    await conn.commit();
+    console.log("[INFO] rejectAppointment - transaction committed", { appointmentId, idRequest: appointment.idRequest });
+
+    return {
+      appointmentId,
+      requestId: appointment.idRequest,
+      previousState: appointment.state,
+      newState: APPOINTMENT_STATE.REJECTED
+    };
+
+  } catch (err) {
+    console.error("[ERROR] rejectAppointment - transaction error:", {
+      appointmentId,
+      userId,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    
+    try {
+      await conn.rollback();
+      console.log("[INFO] rejectAppointment - rollback executed");
+    } catch (rbErr) {
+      console.error("[ERROR] rejectAppointment - rollback error:", { message: rbErr.message });
+    }
+    
+    throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (releaseErr) {
+      console.error("[ERROR] rejectAppointment - connection release error:", { message: releaseErr.message });
+    }
+  }
+};
+
+// Completar un appointment (la recolección fue exitosa)
+export const completeAppointment = async (appointmentId, userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] completeAppointment - start", { appointmentId, userId });
+
+    await conn.beginTransaction();
+
+    // Obtener el appointment con todos sus datos
+    const [appointmentRows] = await conn.query(
+      `SELECT ac.id, ac.idRequest, ac.state, ac.collectorId,
+              r.idUser as recyclerId
+       FROM appointmentconfirmation ac
+       JOIN request r ON ac.idRequest = r.id
+       WHERE ac.id = ?`,
+      [appointmentId]
+    );
+
+    if (!appointmentRows[0]) {
+      throw new Error(`Appointment with id ${appointmentId} not found`);
+    }
+
+    const appointment = appointmentRows[0];
+
+    // Verificar que el appointment esté en estado ACCEPTED (1)
+    if (appointment.state !== APPOINTMENT_STATE.ACCEPTED) {
+      throw new Error(`Appointment ${appointmentId} is not in ACCEPTED state. Current state: ${appointment.state}`);
+    }
+
+    console.log("[INFO] completeAppointment - appointment verified", { appointment });
+
+    // Actualizar el estado del appointment a COMPLETED (4)
+    await conn.execute(
+      `UPDATE appointmentconfirmation SET state = ? WHERE id = ?`,
+      [APPOINTMENT_STATE.COMPLETED, appointmentId]
+    );
+
+    console.log("[INFO] completeAppointment - appointment state updated to COMPLETED");
+
+    // Actualizar el estado del request a CLOSED (4)
+    const updated = await RequestModel.updateState(conn, appointment.idRequest, REQUEST_STATE.CLOSED);
+    
+    if (!updated) {
+      throw new Error(`Failed to update state for request ${appointment.idRequest}`);
+    }
+
+    console.log("[INFO] completeAppointment - request state updated to CLOSED", { idRequest: appointment.idRequest });
+
+    await conn.commit();
+    console.log("[INFO] completeAppointment - transaction committed", { appointmentId, idRequest: appointment.idRequest });
+
+    return {
+      appointmentId,
+      requestId: appointment.idRequest,
+      previousState: appointment.state,
+      newState: APPOINTMENT_STATE.COMPLETED
+    };
+
+  } catch (err) {
+    console.error("[ERROR] completeAppointment - transaction error:", {
+      appointmentId,
+      userId,
+      message: err.message,
+      code: err.code || null,
+      sqlMessage: err.sqlMessage || null,
+      sql: err.sql || null,
+      stack: err.stack,
+    });
+    
+    try {
+      await conn.rollback();
+      console.log("[INFO] completeAppointment - rollback executed");
+    } catch (rbErr) {
+      console.error("[ERROR] completeAppointment - rollback error:", { message: rbErr.message });
+    }
+    
+    throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (releaseErr) {
+      console.error("[ERROR] completeAppointment - connection release error:", { message: releaseErr.message });
     }
   }
 };

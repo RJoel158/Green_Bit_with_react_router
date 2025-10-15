@@ -1,6 +1,11 @@
 //pickupInfo
 import React, { useEffect, useState } from 'react';
 import { apiUrl } from '../../config/environment';
+import { 
+  APPOINTMENT_STATE, 
+  getRequestStateLabel, 
+  getAppointmentStateLabel 
+} from '../../shared/constants';
 import './PickupDetails.css';
 import LargeImageCarousel from './LargeImageCarousel';
 
@@ -43,6 +48,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -139,7 +147,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     alert('No se puede cancelar: Datos de la cita no disponibles');
     return;
   }
-  if (!window.confirm('¿Está seguro que desea cancelar este recojo?\n\nLa solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
+  
+  // Confirmar cancelación de la cita
+  if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
     return;
   }
 
@@ -209,6 +219,163 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   }
 };
 
+  // Función para aceptar un appointment
+  const handleAcceptAppointment = async () => {
+    if (!appointmentId || !appointmentData) {
+      alert('No se puede aceptar: ID de cita no disponible');
+      return;
+    }
+    
+    // Confirmar ACEPTACIÓN (no cancelación)
+    if (!window.confirm('✅ ¿Desea ACEPTAR esta solicitud de recolección?\n\n✓ La cita quedará confirmada y el recolector será notificado.')) {
+      return;
+    }
+
+    setAccepting(true);
+
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || appointmentData.recyclerId;
+
+      const url = apiUrl(`/api/appointments/${appointmentId}/accept`);
+      console.log('[INFO] POST ->', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+      console.log('[INFO] Accept response:', result);
+
+      if (!response.ok) {
+        throw new Error(result?.error || `Error ${response.status}`);
+      }
+
+      if (result.success) {
+        alert('✓ Cita aceptada exitosamente.');
+        setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.ACCEPTED } : prev);
+        // Recargar datos
+        window.location.reload();
+      } else {
+        throw new Error(result.error || 'Error al aceptar la cita');
+      }
+    } catch (err) {
+      console.error('[ERROR] Error accepting appointment:', err);
+      alert(`Error al aceptar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  // Función para rechazar un appointment
+  const handleRejectAppointment = async () => {
+    if (!appointmentId || !appointmentData) {
+      alert('No se puede rechazar: ID de cita no disponible');
+      return;
+    }
+    
+    // Confirmar RECHAZO (no cancelación)
+    if (!window.confirm('❌ ¿Desea RECHAZAR esta solicitud de recolección?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para que otros recolectores puedan tomarla.')) {
+      return;
+    }
+
+    setRejecting(true);
+
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || appointmentData.recyclerId;
+
+      const url = apiUrl(`/api/appointments/${appointmentId}/reject`);
+      console.log('[INFO] POST ->', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+      console.log('[INFO] Reject response:', result);
+
+      if (!response.ok) {
+        throw new Error(result?.error || `Error ${response.status}`);
+      }
+
+      if (result.success) {
+        alert('✓ Cita rechazada. La solicitud estará disponible nuevamente.');
+        setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.REJECTED } : prev);
+        onCancel();
+      } else {
+        throw new Error(result.error || 'Error al rechazar la cita');
+      }
+    } catch (err) {
+      console.error('[ERROR] Error rejecting appointment:', err);
+      alert(`Error al rechazar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+    } finally {
+      setRejecting(false);
+    }
+  };
+
+  // Función para completar un appointment
+  const handleCompleteAppointment = async () => {
+    if (!appointmentId || !appointmentData) {
+      alert('No se puede completar: ID de cita no disponible');
+      return;
+    }
+    
+    // Confirmar COMPLETAR (no cancelación)
+    if (!window.confirm('✅ ¿Confirma que la recolección se ha COMPLETADO exitosamente?\n\n⚠️ Esta acción marcará la solicitud como finalizada y no se puede deshacer.')) {
+      return;
+    }
+
+    setCompleting(true);
+
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userId = user?.id || appointmentData.collectorId || appointmentData.recyclerId;
+
+      const url = apiUrl(`/api/appointments/${appointmentId}/complete`);
+      console.log('[INFO] POST ->', url);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      const result = await response.json();
+      console.log('[INFO] Complete response:', result);
+
+      if (!response.ok) {
+        throw new Error(result?.error || `Error ${response.status}`);
+      }
+
+      if (result.success) {
+        alert('✓ Recolección completada exitosamente.');
+        setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
+        onCancel();
+      } else {
+        throw new Error(result.error || 'Error al completar la cita');
+      }
+    } catch (err) {
+      console.error('[ERROR] Error completing appointment:', err);
+      alert(`Error al completar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+    } finally {
+      setCompleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="pickupdetail-pickup-container">
@@ -236,9 +403,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       day: 'numeric'
     });
   };
-
-  // Determinar si se puede cancelar (estados 0 y 1 son cancelables)
-  const canCancel = appointmentData && (appointmentData.state === 0 || appointmentData.state === 1);
   
   return (
     <div className="pickupdetail-pickup-container">
@@ -298,10 +462,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                 Estado de Cita
               </h3>
               <p className="pickupdetail-info-value">
-                {appointmentData.state === 0 ? 'Pendiente' : 
-                 appointmentData.state === 1 ? 'Confirmada' : 
-                 appointmentData.state === 2 ? 'En Progreso' : 
-                 appointmentData.state === 3 ? 'Cancelada' : 'Completada'}
+                {getAppointmentStateLabel(appointmentData.state)}
               </p>
             </div>
           </>
@@ -328,50 +489,156 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                 Estado
               </h3>
               <p className="pickupdetail-info-value">
-                {requestData.state === 0 ? 'Pendiente' : 
-                 requestData.state === 1 ? 'En Proceso' : 
-                 requestData.state === 2 ? 'Activa' : 'Completada'}
+                {getRequestStateLabel(requestData.state)}
               </p>
             </div>
           </>
         ) : null}
       </div>
 
-      {/* Botón cancelar - condicional según el tipo de vista */}
-      {isAppointmentView && canCancel ? (
-        <button 
-          onClick={handleCancelAppointment}
-          className="pickupdetail-cancel-button"
-          disabled={cancelling}
-          style={{
-            opacity: cancelling ? 0.6 : 1,
-            cursor: cancelling ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {cancelling ? 'Cancelando...' : 'Cancelar Recojo'}
-        </button>
-      ) : !isAppointmentView ? (
+      {/* Botones según el estado de la cita */}
+      {isAppointmentView && appointmentData && (
+        <div className="pickupdetail-actions" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+          {/* Botones para estado PENDING (0) - Reciclador puede aceptar o rechazar */}
+          {appointmentData.state === APPOINTMENT_STATE.PENDING && (
+            <>
+              <button 
+                onClick={handleAcceptAppointment}
+                className="pickupdetail-accept-button"
+                disabled={accepting}
+                style={{
+                  opacity: accepting ? 0.6 : 1,
+                  cursor: accepting ? 'not-allowed' : 'pointer',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontWeight: 600
+                }}
+              >
+                {accepting ? 'Aceptando...' : '✓ Aceptar Solicitud'}
+              </button>
+              <button 
+                onClick={handleRejectAppointment}
+                className="pickupdetail-reject-button"
+                disabled={rejecting}
+                style={{
+                  opacity: rejecting ? 0.6 : 1,
+                  cursor: rejecting ? 'not-allowed' : 'pointer',
+                  backgroundColor: '#f44336',
+                  color: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontWeight: 600
+                }}
+              >
+                {rejecting ? 'Rechazando...' : '✕ Rechazar Solicitud'}
+              </button>
+            </>
+          )}
+
+          {/* Botones para estado ACCEPTED (1) - Ambos pueden cancelar o completar */}
+          {appointmentData.state === APPOINTMENT_STATE.ACCEPTED && (
+            <>
+              <button 
+                onClick={handleCompleteAppointment}
+                className="pickupdetail-complete-button"
+                disabled={completing}
+                style={{
+                  opacity: completing ? 0.6 : 1,
+                  cursor: completing ? 'not-allowed' : 'pointer',
+                  backgroundColor: '#2196F3',
+                  color: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontWeight: 600
+                }}
+              >
+                {completing ? 'Completando...' : '✓ Marcar como Completado'}
+              </button>
+              <button 
+                onClick={handleCancelAppointment}
+                className="pickupdetail-cancel-button"
+                disabled={cancelling}
+                style={{
+                  opacity: cancelling ? 0.6 : 1,
+                  cursor: cancelling ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {cancelling ? 'Cancelando...' : 'Cancelar Recojo'}
+              </button>
+            </>
+          )}
+
+          {/* Mostrar mensaje para estados terminales */}
+          {appointmentData.state === APPOINTMENT_STATE.REJECTED && (
+            <div style={{ 
+              padding: '0.75rem', 
+              backgroundColor: '#ffebee', 
+              borderRadius: '0.5rem',
+              color: '#c62828',
+              textAlign: 'center',
+              fontWeight: 500
+            }}>
+              ⚠️ Esta cita fue rechazada
+            </div>
+          )}
+
+          {appointmentData.state === APPOINTMENT_STATE.CANCELLED && (
+            <div style={{ 
+              padding: '0.75rem', 
+              backgroundColor: '#fff3e0', 
+              borderRadius: '0.5rem',
+              color: '#e65100',
+              textAlign: 'center',
+              fontWeight: 500
+            }}>
+              ⚠️ Esta cita ha sido cancelada
+            </div>
+          )}
+
+          {appointmentData.state === APPOINTMENT_STATE.COMPLETED && (
+            <div style={{ 
+              padding: '0.75rem', 
+              backgroundColor: '#e8f5e9', 
+              borderRadius: '0.5rem',
+              color: '#2e7d32',
+              textAlign: 'center',
+              fontWeight: 500
+            }}>
+              ✓ Esta recolección se ha completado exitosamente
+            </div>
+          )}
+
+          {/* Botón cerrar siempre disponible */}
+          <button 
+            onClick={onCancel}
+            className="pickupdetail-close-button"
+            style={{
+              backgroundColor: '#9e9e9e',
+              color: 'white',
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              fontWeight: 600
+            }}
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      {/* Botón para vista de request solamente (sin appointment) */}
+      {!isAppointmentView && (
         <button 
           onClick={onCancel}
           className="pickupdetail-cancel-button"
         >
           Cerrar
         </button>
-      ) : null}
-
-      {/* Mostrar mensaje si la cita ya está cancelada */}
-      {isAppointmentView && appointmentData?.state === 3 && (
-        <div style={{ 
-          marginTop: '1rem', 
-          padding: '0.75rem', 
-          backgroundColor: '#fee', 
-          borderRadius: '0.5rem',
-          color: '#c00',
-          textAlign: 'center',
-          fontWeight: 500
-        }}>
-          ⚠️ Esta cita ha sido cancelada
-        </div>
       )}
     </div>
   );

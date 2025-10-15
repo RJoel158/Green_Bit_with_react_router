@@ -5,6 +5,7 @@ import { getRequestsByUserAndState } from "../../services/requestService";
 import { getAppointmentsByRecycler, getAppointmentsByCollector } from "../../services/appointmentService";
 import type { Appointment } from "../../services/appointmentService";
 import type { Request } from "../../services/requestService";
+import { REQUEST_STATE, APPOINTMENT_STATE } from "../../shared/constants";
 
 interface User {
   id: number;
@@ -35,12 +36,12 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
 
         if (user.role === 'reciclador') {
           // Para recicladores
-          // Solicitudes activas: requests con state = 2
-          const requests = await getRequestsByUserAndState(user.id, 2);
+          // Solicitudes activas: requests con state = OPEN (1) - disponibles para recoger
+          const requests = await getRequestsByUserAndState(user.id, REQUEST_STATE.OPEN);
           setActiveRequests(requests);
 
-          // Citas activas: appointmentconfirmation con state = 1
-          const activeAppts = await getAppointmentsByRecycler(user.id, 1);
+          // Citas activas: appointmentconfirmation con state = ACCEPTED (1)
+          const activeAppts = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
           // Historial: todas las appointmentconfirmation (limitado a 3 más recientes)
@@ -49,12 +50,12 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
 
         } else if (user.role === 'recolector') {
           // Para recolectores
-          // Citas pendientes: appointmentconfirmation con state = 0
-          const pendingAppts = await getAppointmentsByCollector(user.id, 0);
+          // Citas pendientes: appointmentconfirmation con state = PENDING (0)
+          const pendingAppts = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.PENDING);
           setPendingAppointments(pendingAppts);
 
-          // Citas activas: appointmentconfirmation con state = 1
-          const activeAppts = await getAppointmentsByCollector(user.id, 1);
+          // Citas activas: appointmentconfirmation con state = ACCEPTED (1)
+          const activeAppts = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
           // Historial: todas las appointmentconfirmation (limitado a 3 más recientes)
