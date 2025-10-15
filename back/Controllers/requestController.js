@@ -2,6 +2,7 @@
 import * as RequestModel from "../Models/Forms/requestModel.js";
 import * as ImageModel from "../Models/Forms/imageModel.js";
 import * as ScheduleModel from "../Models/Forms/scheduleModel.js";
+import { REQUEST_STATE } from "../shared/constants.js";
 import db from "../Config/DBConnect.js";
 import multer from 'multer';
 import path from 'path';
@@ -17,7 +18,7 @@ const __dirname = path.dirname(__filename);
 // Configuración de multer para subida de archivos usando variables de entorno
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || (5 * 1024 * 1024); // 5MB por defecto
-const allowedImageTypes = (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/jpg,image/png,image/gif,image/webp').split(',');
+const allowedImageTypes = (process.env.ALLOWED_IMAGE_TYPES || 'image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg').split(',');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -75,7 +76,7 @@ export const createRequest = async (req, res) => {
       materialId, 
       latitude, 
       longitude, 
-      state = 'open',
+      state = REQUEST_STATE.OPEN, // Por defecto OPEN (1) para que aparezca en el mapa
       availableDays,
       timeFrom,
       timeTo

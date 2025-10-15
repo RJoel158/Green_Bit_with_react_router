@@ -1,28 +1,11 @@
-/* PickupDetails.css - Estilos para la página de detalles del recojo */
+/* PickupDetails.css - Estilos para la página de detalles del recojo con Bootstrap */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-
 .pickupdetail-page {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   background-color: #FAF8F1;
   font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-}
-
-.pickupdetail-content {
-  flex: 1;
-  display: flex;
-  padding: 1.5rem;
-  gap: 1.5rem;
-  overflow: hidden;
 }
 
 /* Header */
@@ -60,16 +43,12 @@
  
 }
 
-/* Seccion del mapa, solo el contenedor div */
+/* Seccion del mapa */
 .pickupdetail-map-section {
-  flex: 1;
-  width: 50%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  
 }
-
 
 .pickupdetail-map-wrapper {
   position: relative;
@@ -77,9 +56,15 @@
   border-radius: 1.5rem;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
+  min-height: 500px;
   background: linear-gradient(135deg, #2d5016 0%, #3e6b1f 50%, #4a7d25 100%);
   padding: 6px;
+}
+
+@media (max-width: 991.98px) {
+  .pickupdetail-map-wrapper {
+    min-height: 400px;
+  }
 }
 
 /* capa interior del mapa */
@@ -90,28 +75,23 @@
   height: 100%;
 }
 .pickupdetail-back-button {
-  margin-top: 1rem;
   font-size: 1.125rem;
-  font-weight: bold;
-  color: #4A7C59;
-  background: none;
-  border: none;
-  cursor: pointer;
-  align-self: flex-start;
+  font-weight: 600;
+  color: #4A7C59 !important;
+  text-decoration: none !important;
   transition: all 0.2s;
 }
 
 .pickupdetail-back-button:hover {
-  text-decoration: underline;
+  color: #2d5016 !important;
+  text-decoration: none !important;
   transform: translateX(-4px);
 }
 
 
 /* Panel de informacion */
 .pickupdetail-info-section {
-  flex: 1;
-  width: 50%;
-  flex-shrink: 0;
+  height: 100%;
 }
 
 .pickupdetail-pickup-container {
@@ -120,9 +100,9 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  border-radius: 0.5rem;
-  min-width: 400px;
- 
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(76, 124, 91, 0.1);
 }
 
 .pickupdetail-pickup-title {
@@ -194,38 +174,14 @@
   background-color: #fd473d;
 }
 
-/* --- Ajuste para el mapa importado --- */
-.pickupdetail-map-wrapper .recycling-points-container {
-  height: 100%;
-  width: 100%;
-  min-height: unset !important;
-  padding: 0 !important;
-  background: none !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.pickupdetail-map-wrapper .recycling-map-wrapper {
-  width: 100% !important;
-  max-width: none !important;
-  height: 100% !important;
-  padding: 0 !important;
-  border-radius: 1rem !important;
-  background: none !important;
-  box-shadow: none !important;
-}
-
-.pickupdetail-map-wrapper .map-container {
+/* --- Estilos simplificados para el mapa --- */
+.pickupdetail-map-wrapper .leaflet-container {
   height: 100% !important;
   width: 100% !important;
   border-radius: 1rem !important;
-  border: none !important;
 }
 
 /* Evita que el mapa desaparezca en resoluciones medianas */
-
 .pickupdetail-map-wrapper .map-container {
   min-height: 100% !important;
   height: 100% !important;
@@ -237,109 +193,140 @@
   min-height: 400px;
 }
 
-
-/* Resposive*/
-
-/* Tablets y pantallas medianas */
-@media (max-width: 1024px) {
-  .pickupdetail-content {
-    padding: 1rem;
-    gap: 1rem;
+/* Mejoras para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .pickupdetail-cancel-button {
+    min-height: 48px;
   }
-
-  .pickupdetail-info-section {
-    width: 350px;
+  
+  .pickupdetail-image {
+    border-width: 1px;
   }
+}
 
+/* Loading y error states */
+.loading, .error {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+  color: #4C7C5B;
+}
+
+.pickupdetail-no-images {
+  text-align: center;
+  padding: 2rem 1rem;
+  background-color: #f5f5f5;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pickupdetail-no-images p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Ajustes adicionales de Bootstrap */
+.min-vh-100 {
+  min-height: calc(100vh - 120px) !important;
+}
+
+@media (max-width: 991.98px) {
+  .min-vh-100 {
+    min-height: auto !important;
+  }
+}
+
+/* Forzar visibilidad del mapa y elementos */
+.pickupdetail-map-wrapper * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.leaflet-container {
+  background: #e6f3e6 !important;
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  display: block !important;
+}
+
+/* Asegurar que las imágenes se carguen correctamente */
+.carousel-thumbnail img,
+.pickupdetail-image {
+  max-width: 100%;
+  display: block !important;
+  object-fit: cover !important;
+}
+
+
+/* Responsive Adjustments for Bootstrap */
+
+/* Solo ajustes específicos que complementen Bootstrap */
+@media (max-width: 991.98px) {
+  .pickupdetail-pickup-container {
+    padding: 1.5rem;
+  }
+  
+  .pickupdetail-pickup-title {
+    font-size: 1.625rem;
+  }
+  
   .pickupdetail-map-wrapper {
-    border-width: 8px;
+    padding: 4px;
     border-radius: 1rem;
   }
 }
 
-/* Tablets pequeñas */
-@media (max-width: 768px) {
-  /* Header responsive*/
+@media (max-width: 767.98px) {
   .pickupdetail-header {
-    flex-direction: column;
-    height: auto;
-    gap: 10px;
-    padding: 0.5rem 1rem;
+    padding: 1rem;
+    text-align: center;
   }
 
   .pickupdetail-header-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
   }
 
   .pickupdetail-logo-img {
-    max-width: 120px;
-  }
-
-  /* Layout responsive */
-  .pickupdetail-content {
-    flex-direction: column;
-    padding: 0.75rem;
-  }
-
-  .pickupdetail-map-section {
-    height: 50vh;
-    min-height: 350px;
-  }
-
-  .pickupdetail-info-section {
-    width: 100%;
-    height: auto;
+    max-width: 140px;
   }
 
   .pickupdetail-map-wrapper {
-    border-width: 6px;
+    min-height: 350px;
   }
 
   .pickupdetail-back-button {
     font-size: 1rem;
   }
 
-  /* Panel info responsive */
   .pickupdetail-pickup-container {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 1rem;
   }
 
   .pickupdetail-pickup-title {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
-  }
-
-  .pickupdetail-pickup-image {
-    height: 180px;
-    margin-bottom: 1.25rem;
-  }
-
-  .pickupdetail-pickup-description {
-    margin-bottom: 1.5rem;
+    text-align: center;
   }
 
   .pickupdetail-pickup-grid {
-    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
     margin-bottom: 1.5rem;
-  }
-
-  .pickupdetail-info-value {
-    font-size: 1rem;
   }
 
   .pickupdetail-cancel-button {
     font-size: 1rem;
+    padding: 0.875rem;
   }
 }
 
-/* Móviles */
-@media (max-width: 480px) {
-  /* Header móvil - mantiene los estilos de tablet */
+@media (max-width: 575.98px) {
   .pickupdetail-header {
-    flex-direction: column;
-    height: auto;
-    gap: 10px;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem;
   }
 
   .pickupdetail-header-title {
@@ -350,51 +337,28 @@
     max-width: 120px;
   }
 
-  /* Layout móvil */
-  .pickupdetail-content {
-    padding: 0.5rem;
-    gap: 0.5rem;
-  }
-
-  .pickupdetail-map-section {
-    height: 45vh;
-    min-height: 300px;
-  }
-
   .pickupdetail-map-wrapper {
-    border-width: 4px;
+    min-height: 300px;
+    padding: 3px;
     border-radius: 0.75rem;
   }
 
-  .pickupdetail-back-button {
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
-  }
-
-  /* Panel info móvil */
   .pickupdetail-pickup-container {
     padding: 1rem;
   }
 
   .pickupdetail-pickup-title {
     font-size: 1.25rem;
-    margin-bottom: 1rem;
-  }
-
-  .pickupdetail-pickup-image {
-    height: 150px;
-    margin-bottom: 1rem;
   }
 
   .pickupdetail-pickup-description {
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 
   .pickupdetail-pickup-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-    margin-bottom: 1rem;
   }
 
   .pickupdetail-info-label {
@@ -402,18 +366,18 @@
   }
 
   .pickupdetail-info-value {
-    font-size: 0.938rem;
+    font-size: 0.95rem;
   }
 
   .pickupdetail-cancel-button {
-    padding: 0.625rem;
-    font-size: 0.938rem;
+    padding: 0.75rem;
+    font-size: 0.95rem;
   }
 }
 
-/* Estilos para las imágenes */
+/* Estilos para las imágenes - TAMAÑOS GRANDES */
 .pickupdetail-pickup-images {
-  margin: 1rem 0;
+  margin: 1.5rem 0;
 }
 
 .pickupdetail-single-image {
@@ -426,37 +390,147 @@
   display: flex;
   gap: 1rem;
   overflow-x: auto;
-  padding: 0.5rem;
+  padding: 0.5rem 0;
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #4C7C5B #f0f0f0;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar-thumb {
+  background: #4C7C5B;
+  border-radius: 4px;
 }
 
 .pickupdetail-carousel-item {
   flex: 0 0 auto;
-  width: 200px;
+  width: 250px; /* Más grande */
 }
 
 .pickupdetail-image {
   width: 100%;
-  height: 200px;
+  height: 250px; /* Más grande */
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 2px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .pickupdetail-image:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
   cursor: pointer;
+  border-color: #4C7C5B;
+  box-shadow: 0 8px 25px rgba(76, 124, 91, 0.3);
 }
 
-/* Responsive para imágenes */
-@media (max-width: 768px) {
+/* Override estilos del carousel component - TAMAÑOS GRANDES */
+.carousel-container {
+  margin: 1.5rem 0 !important;
+}
+
+.carousel-thumbnail {
+  flex: 0 0 250px !important; /* Más grande */
+  height: 250px !important; /* Más grande */
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.carousel-thumbnail:hover {
+  transform: scale(1.02) !important;
+  border-color: #4C7C5B !important;
+  box-shadow: 0 8px 25px rgba(76, 124, 91, 0.3) !important;
+}
+
+.carousel-thumbnail img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.carousel-thumbnails {
+  display: flex !important;
+  gap: 15px !important;
+  overflow-x: auto !important;
+  padding: 8px 0 !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #4C7C5B #f0f0f0 !important;
+}
+
+.carousel-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #4C7C5B !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Responsive para imágenes - MANTENIENDO TAMAÑOS GRANDES */
+@media (max-width: 991.98px) {
   .pickupdetail-carousel-item {
-    width: 150px;
+    width: 200px; /* Más grande en tablets */
   }
   
   .pickupdetail-image {
-    height: 150px;
+    height: 200px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 200px !important;
+    height: 200px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pickupdetail-carousel-item {
+    width: 180px; /* Más grande en móviles */
+  }
+  
+  .pickupdetail-image {
+    height: 180px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 180px !important;
+    height: 180px !important;
+  }
+  
+  .pickupdetail-image-carousel {
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+  
+  .carousel-thumbnails {
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pickupdetail-carousel-item {
+    width: 160px; /* Aún grande en móviles pequeños */
+  }
+  
+  .pickupdetail-image {
+    height: 160px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 160px !important;
+    height: 160px !important;
+  }
+  
+  .pickupdetail-image-carousel {
+    gap: 0.5rem;
+  }
+  
+  .carousel-thumbnails {
+    gap: 10px !important;
   }
 }

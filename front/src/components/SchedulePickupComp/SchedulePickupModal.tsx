@@ -132,14 +132,14 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       if (result.success && result.data) {
         debugLog('[INFO] SchedulePickupModal: Received request data:', result.data);
         debugLog('[INFO] SchedulePickupModal: Images received:', result.data.images);
-
+        
         // Formatear las horas antes de guardar (remover segundos/milisegundos)
         const formattedData = {
           ...result.data,
           startHour: formatTime(result.data.startHour),
           endHour: formatTime(result.data.endHour)
         };
-
+        
         debugLog('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
         setRequestData(formattedData);
 
@@ -234,24 +234,24 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   };
 
   const handleConfirm = async () => {
-    // Validar que se haya ingresado una hora
+   // Validar que se haya ingresado una hora
     if (!selectedTime) {
       setTimeError('Por favor selecciona una hora');
       return;
     }
-
+    
     // Validar formato de hora
     if (!validateTimeFormat(selectedTime)) {
       setTimeError('Formato de hora inválido. Use HH:MM');
       return;
     }
-
+    
     // Validar que la hora esté dentro del rango permitido
     if (!isTimeInRange(selectedTime)) {
       setTimeError(`La hora debe estar entre ${requestData?.startHour} y ${requestData?.endHour}`);
       return;
     }
-
+    
     try {
       // Obtener el ID del recolector desde localStorage
       const userStr = localStorage.getItem('user');
@@ -272,7 +272,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       const dateString = getNextDateForDay(selectedDay);
       const [day, month, year] = dateString.split('/');
       const fullYear = `20${year}`; // Convertir "25" a "2025"
-
+      
       // Formato DATE para MySQL: "YYYY-MM-DD"
       const acceptedDate = `${fullYear}-${month}-${day}`;
 
@@ -302,24 +302,11 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
 
       // Verificar si la respuesta fue exitosa
       if (!response.ok || !result.success) {
-        // Manejar errores específicos del servidor
-        const errorMessage = result.error || 'Error al crear la cita';
-
-        // Si es un error de solicitud no disponible, mostrar en modal
-        if (errorMessage.includes('ya tiene una cita asignada') ||
-          errorMessage.includes('no está disponible')) {
-          setError(errorMessage);
-          setShowSuccess(true);
-          return;
-        }
-
-        // Otros errores se muestran como timeError
-        setTimeError(errorMessage);
-        return;
+        throw new Error(result.error || 'Error al crear la cita');
       }
 
       console.log('[SUCCESS] Cita creada:', result);
-
+      
       // Limpiar errores y mostrar modal de confirmación
       setTimeError('');
       setShowSuccess(true);
@@ -481,23 +468,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         </div>
       </div>
 
-      {/* 
-  Componente que muestra un modal luego de intentar agendar un recojo. 
-  Puede mostrar un mensaje de éxito 
-  o de error según el resultado del proceso.
-  */}
-
+      {/* Modal de confirmación exitosa */}
       {showSuccess && requestData && (
         <SuccessModal
-          // Si hay un error, el título del modal será "Error al agendar"
-          // Si no hay error, mostrará "¡Recojo agendado!"
-          title={error ? "Error al agendar" : "¡Recojo agendado!"}
-          message={
-            error
-              ? error
-              : `Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`
-          }
-          redirectUrl={error ? "/recycling-points" : "/recolectorIndex"}
+          title="¡Recojo agendado!"
+          message={`Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`}
+          redirectUrl="/recolectorIndex"
         />
       )}
     </>

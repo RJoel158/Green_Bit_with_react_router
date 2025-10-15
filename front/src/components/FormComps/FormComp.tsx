@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './FormComp.css';
 import MapPopup from "./MapPopup"; // importar el componente del mapa
 import MiniMapPreview from "./MiniMapPreview"; // importar el mini mapa
+import { REQUEST_STATE } from '../../shared/constants';
 
 interface Material {
   id: number;
@@ -296,7 +297,7 @@ const FormComp: React.FC = () => {
       formDataToSend.append('materialId', formData.materialId.toString());
       formDataToSend.append('latitude', selectedLocation.lat.toString());
       formDataToSend.append('longitude', selectedLocation.lng.toString());
-      formDataToSend.append('state', 'open');
+      formDataToSend.append('state', REQUEST_STATE.OPEN.toString()); // Estado 1 = OPEN (disponible para recoger)
       
       // Agregar horarios
       formDataToSend.append('timeFrom', formData.timeFrom);
@@ -304,7 +305,7 @@ const FormComp: React.FC = () => {
       formDataToSend.append('availableDays', JSON.stringify(formData.availableDays));
       
       // Agregar archivos de imagen
-      formData.photos.forEach((photo, index) => {
+      formData.photos.forEach((photo) => {
         formDataToSend.append('photos', photo);
       });
 

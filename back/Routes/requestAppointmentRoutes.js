@@ -1,4 +1,4 @@
-// Routes/appointmentRoutes.js
+// Routes/requestAppointmentRoutes.js
 import express from "express";
 import {
   createAppointment,
@@ -7,18 +7,27 @@ import {
   updateAppointmentStatus,
   getAppointmentsByCollector,
   getAppointmentsByRecycler,
-  getAppointmentById
+  getAppointmentById,
+  cancelAppointment,
+  acceptAppointmentEndpoint,
+  rejectAppointmentEndpoint,
+  completeAppointmentEndpoint
 } from "../Controllers/appointmentController.js";
 
 const router = express.Router();
 
 router.post("/appointments", createAppointment);
-//Metodo que inserta idRequest,acceptedDate, idCollector
 router.post("/schedule", createNewAppointment);
 router.get("/appointments", getAppointments);
 router.patch("/appointments/:id/status", updateAppointmentStatus);
 
-// Nuevas rutas para obtener appointments filtrados
+// Rutas para acciones sobre appointments
+router.post("/:id/cancel", cancelAppointment);
+router.post("/:id/accept", acceptAppointmentEndpoint);
+router.post("/:id/reject", rejectAppointmentEndpoint);
+router.post("/:id/complete", completeAppointmentEndpoint);
+
+// Rutas para obtener appointments filtrados
 router.get("/collector/:collectorId", getAppointmentsByCollector);
 router.get("/recycler/:recyclerId", getAppointmentsByRecycler);
 

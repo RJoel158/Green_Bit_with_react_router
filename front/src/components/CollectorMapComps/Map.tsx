@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import SchedulePickupModal from '../SchedulePickupComp/SchedulePickupModal';
 import { config, apiUrl, debugLog } from '../../config/environment';
+import { REQUEST_STATE } from '../../shared/constants';
 
 // Importar el icono existente de location.png
 import locationIcon from "../../assets/icons/location.png";
@@ -342,7 +343,7 @@ const RecyclingPointsMap: React.FC = () => {
         }));
 
         // Filtrar solo las requests que tengan coordenadas válidas
-        // Según la imagen, el estado parece ser numérico (0, 1) en lugar de string
+        // Solo mostrar requests en estado OPEN (1) - disponibles para recoger
         const activeRequests = requestsWithMaterials.filter((request: any) => {
           // Parsear coordenadas a números y validar que sean válidos
           const lat = parseFloat(request.latitude);
@@ -353,11 +354,10 @@ const RecyclingPointsMap: React.FC = () => {
             lat >= -90 && lat <= 90 &&
             lng >= -180 && lng <= 180;
 
-          // Aceptar tanto estados numéricos como string para flexibilidad
-          // Incluyendo state = 0 y state = 1 para ver todas las requests con coordenadas
-          const isActive = request.state === 'open' ||
-            request.state === 1 || request.state === '1' ||
-            request.state === 0 || request.state === '0';
+          // Solo mostrar requests con estado OPEN (1)
+          const isOpen = request.state === REQUEST_STATE.OPEN || 
+                         request.state === 1 || 
+                         request.state === '1';
 
           console.log('Request filter check:', {
             id: request.id,
@@ -367,11 +367,11 @@ const RecyclingPointsMap: React.FC = () => {
             parsedLng: lng,
             state: request.state,
             hasValidCoordinates,
-            isActive,
-            willInclude: hasValidCoordinates && isActive
+            isOpen,
+            willInclude: hasValidCoordinates && isOpen
           });
 
-          return hasValidCoordinates && isActive;
+          return hasValidCoordinates && isOpen;
         });
 
         debugLog('Filtered active requests:', activeRequests);
