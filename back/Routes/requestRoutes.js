@@ -7,7 +7,8 @@ import {
   getRequestById,
   updateRequestState,
   upload,
-  getRequestWithSchedule
+  getRequestWithSchedule,
+  getRequestsByUserAndState
 } from '../Controllers/requestController.js';
 
 const router = express.Router();
@@ -20,6 +21,9 @@ router.get('/', getAllRequests);
 
 // Obtener solicitudes por usuario
 router.get('/user/:userId', getUserRequests);
+
+// Obtener requests por usuario y estado
+router.get('/user/:userId/state', getRequestsByUserAndState);
 
 // Obtener solicitud por ID
 router.get('/:id', getRequestById);

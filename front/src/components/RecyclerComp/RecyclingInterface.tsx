@@ -15,6 +15,7 @@ interface Recycler {
 // Definición de la interfaz User
 interface User {
   id: number;
+  email: string;
   username: string;
   role: string;
   state: number;
@@ -42,9 +43,13 @@ const RecyclingInterface: React.FC = () => {
       navigate("/login", { replace: true });
       return;
     }
-
-    const u: User = JSON.parse(userStr);
+    const u = JSON.parse(userStr);
     u.state = Number(u.state); // asegurarse que sea número
+    // Asegurarse que el usuario tiene email
+    if (!u.email) {
+      u.email = ""; // o asignar un valor por defecto si es necesario
+    }
+    setUser(u as User);
     setUser(u);
 
     // Si el estado es 1, mostrar modal de cambio de contraseña
@@ -106,7 +111,7 @@ const RecyclingInterface: React.FC = () => {
       </div>
 
       {/* Request and Appoint */}
-      <RequestAndAppoint />
+      <RequestAndAppoint user={user} />
     </div>
   );
 };

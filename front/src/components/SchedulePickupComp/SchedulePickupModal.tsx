@@ -24,6 +24,7 @@ interface Image {
 
 interface RequestData {
   id: number;
+  idUser: number;  // ID del dueño de la solicitud
   name: string;
   description: string;
   startHour: string;
@@ -41,10 +42,10 @@ interface RequestData {
 }
 
 
-const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({ 
-  show, 
-  onClose, 
-  selectedRequest 
+const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
+  show,
+  onClose,
+  selectedRequest
 }) => {
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
@@ -54,6 +55,26 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   const [requestData, setRequestData] = useState<RequestData | null>(null);
   const [daysAvailability, setDaysAvailability] = useState<DayAvailability[]>([]);
   const [timeError, setTimeError] = useState<string>(''); // Error de validación de hora
+
+  //Valida el formato de hora
+  const validateTimeFormat = (time: string): boolean => {
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$/;
+    return timeRegex.test(time);
+  };
+  //Convierte la hora al formato HH:MM:SS
+  const normalizeTimeToSQL = (time: string): string => {
+    if (!time) return '';
+
+    if (time.split(':').length === 3) {
+      return time;
+    }
+
+    if (time.split(':').length === 2) {
+      return `${time}:00`;
+    }
+
+    return time;
+  };
 
   /**
    * Mapeo de días de la semana de inglés a español
@@ -122,10 +143,10 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         
         debugLog('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
         setRequestData(formattedData);
-        
+
         // Parsear daysAvailability
-        const daysData = typeof result.data.daysAvailability === 'string' 
-          ? JSON.parse(result.data.daysAvailability) 
+        const daysData = typeof result.data.daysAvailability === 'string'
+          ? JSON.parse(result.data.daysAvailability)
           : result.data.daysAvailability;
 
         // Crear array de disponibilidad de días en español
@@ -190,33 +211,39 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
    */
   const isTimeInRange = (time: string): boolean => {
     if (!time || !requestData) return false;
-    
+
     // Convertir horas a minutos totales para comparación
     const selectedMinutes = parseInt(time.split(':')[0]) * 60 + parseInt(time.split(':')[1]);
     const startMinutes = parseInt(requestData.startHour.split(':')[0]) * 60 + parseInt(requestData.startHour.split(':')[1]);
     const endMinutes = parseInt(requestData.endHour.split(':')[0]) * 60 + parseInt(requestData.endHour.split(':')[1]);
-    
+
     return selectedMinutes >= startMinutes && selectedMinutes <= endMinutes;
   };
 
   /**
-   * Maneja el cambio de hora en el time picker
+
    * Limpia cualquier error previo cuando el usuario modifica la hora
    */
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = e.target.value;
     setSelectedTime(newTime);
-    
+
     // Limpiar mensaje de error al cambiar la hora
     if (timeError) {
       setTimeError('');
     }
   };
 
-  const handleConfirm = () => {
-    // Validar que se haya ingresado una hora
+  const handleConfirm = async () => {
+   // Validar que se haya ingresado una hora
     if (!selectedTime) {
       setTimeError('Por favor selecciona una hora');
+      return;
+    }
+    
+    // Validar formato de hora
+    if (!validateTimeFormat(selectedTime)) {
+      setTimeError('Formato de hora inválido. Use HH:MM');
       return;
     }
     
@@ -226,9 +253,76 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       return;
     }
     
-    // Si todo es válido, limpiar error y mostrar modal de éxito
-    setTimeError('');
-    setShowSuccess(true);
+    try {
+      // Obtener el ID del recolector desde localStorage
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        setTimeError('No se encontró información del usuario. Por favor inicia sesión nuevamente.');
+        return;
+      }
+
+      const parsedUser = JSON.parse(userStr);
+      const collectorId = parsedUser.id;
+
+      if (!collectorId) {
+        setTimeError('No se pudo obtener el ID del recolector');
+        return;
+      }
+
+      // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
+      if (requestData && requestData.idUser === collectorId) {
+        setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
+        alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        return;
+      }
+
+      // Obtener la próxima fecha para el día seleccionado (formato: "DD/MM/YY")
+      const dateString = getNextDateForDay(selectedDay);
+      const [day, month, year] = dateString.split('/');
+      const fullYear = `20${year}`; // Convertir "25" a "2025"
+      
+      // Formato DATE para MySQL: "YYYY-MM-DD"
+      const acceptedDate = `${fullYear}-${month}-${day}`;
+
+      //Normalizar la hora al formato HH:MM:SS 
+      const acceptedHour = normalizeTimeToSQL(selectedTime);
+
+      // Preparar para enviar al backend
+      const appointmentData = {
+        idRequest: selectedRequest.id,      // ID de la solicitud
+        acceptedDate: acceptedDate,         // Fecha en formato YYYY-MM-DD
+        collectorId: collectorId,           // ID del recolector
+        acceptedHour: acceptedHour          // Hora en formato HH:MM:SS
+      };
+
+      console.log('[INFO] Enviando cita:', appointmentData);
+
+      // Realizar petición POST al endpoint de creación de citas
+      const response = await fetch('http://localhost:3000/api/appointments/schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+      });
+
+      const result = await response.json();
+
+      // Verificar si la respuesta fue exitosa
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Error al crear la cita');
+      }
+
+      console.log('[SUCCESS] Cita creada:', result);
+      
+      // Limpiar errores y mostrar modal de confirmación
+      setTimeError('');
+      setShowSuccess(true);
+
+    } catch (err) {
+      console.error('[ERROR] Error al confirmar cita:', err);
+      setTimeError(err instanceof Error ? err.message : 'Error al agendar el recojo. Intenta nuevamente.');
+    }
   };
 
   // No renderizar si el modal no está visible
@@ -261,14 +355,14 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                   </button>
                 </div>
               ) : requestData ? (
-              
+
                 <>
                   <div className="card-header text-center mb-2">
                     <h4 className="pickup-title">
                       Reciclaje de {requestData.name}
                     </h4>
                   </div>
-                  
+
                   {/* Debug info temporal */}
                   <div style={{ fontSize: '11px', color: '#666', marginBottom: '10px', padding: '8px', background: '#f8f9fa', borderRadius: '4px', border: '1px solid #dee2e6' }}>
                     <div><strong>Debug Info:</strong></div>
@@ -279,25 +373,30 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                       <div>• First image: {requestData.images[0].image}</div>
                     )}
                   </div>
-                  
-                  <ImageCarousel 
-                    images={requestData.images || []} 
-                    altText={`${requestData.name} reciclable`} 
+
+                  <ImageCarousel
+                    images={requestData.images || []}
+                    altText={`${requestData.name} reciclable`}
                   />
-                  
+
                   <div className="description mb-2">
-                    <p className="text-muted small">
+                    <p className="text-muted small" style={{ 
+                      wordWrap: 'break-word', 
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'break-word'
+                    }}>
                       {requestData.description}
                     </p>
                   </div>
-                  
-                
+
+
                   <div className="availability-section mb-2">
                     <h6 className="section-title mb-2">Disponibilidad de recojo</h6>
                     <div className="days-container">
                       {daysAvailability.map((day) => (
                         <div key={day.day} className="day-item text-center">
-                          <div 
+                          <div
                             className={`day-checkbox ${day.available ? 'available' : 'unavailable'}`}
                             style={{ cursor: 'default' }}
                           ></div>
@@ -306,21 +405,21 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                       ))}
                     </div>
                   </div>
-                  
-                 
+
+
                   <div className="schedule-section mb-2">
                     <div className="schedule-info mb-2">
-                   
+
                       <span className="schedule-time">
                         {requestData.startHour} - {requestData.endHour}
                       </span>
                     </div>
-                    
+
                     <div className="row">
-                     
+
                       <div className="col-md-6 mb-2">
                         <label className="form-label">Selecciona un día</label>
-                        <select 
+                        <select
                           className="form-select"
                           value={selectedDay}
                           onChange={(e) => setSelectedDay(e.target.value)}
@@ -340,8 +439,8 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                           </small>
                         )}
                       </div>
-                      
-                     
+
+
                       <div className="col-md-6 mb-2">
                         <label className="form-label">Ingresa la hora</label>
                         <div className="time-picker-container">
@@ -353,21 +452,21 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                           />
                           <div className="time-icon">🕐</div>
                         </div>
-                        
+
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Mensaje de error de validación de hora */}
                   {timeError && (
                     <div className="alert alert-danger mb-2" role="alert">
                       {timeError}
                     </div>
                   )}
-                  
-                
+
+
                   <div className="text-center">
-                    <button 
+                    <button
                       className="btn modal-button"
                       onClick={handleConfirm}
                       disabled={!selectedDay || !selectedTime}
@@ -387,7 +486,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         <SuccessModal
           title="¡Recojo agendado!"
           message={`Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`}
-          redirectUrl="/recicladorIndex" 
+          redirectUrl="/recolectorIndex"
         />
       )}
     </>

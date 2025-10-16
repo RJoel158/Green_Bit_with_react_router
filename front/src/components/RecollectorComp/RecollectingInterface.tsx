@@ -77,15 +77,11 @@ const RecollectingInterface: React.FC = () => {
 
         {/* Sección Reciclaje */}
         <div className="recycling-section">
-          <button className="recycling-button">♻️R E C O L E C T A♻️</button>
+          <button className="recycling-button"
+            onClick={() => navigate("/recycling-points")}
+            >♻️R E C O L E C T A♻️</button>
           
           {/* Botón para ver puntos de reciclaje */}
-          <button 
-            className="recycling-points-button"
-            onClick={() => navigate("/recycling-points")}
-          >
-            📍 Ver Puntos de Reciclaje
-          </button>
 
           <div className="recyclers-card">
             <h3 className="card-title">Top Recicladores</h3>
@@ -108,7 +104,7 @@ const RecollectingInterface: React.FC = () => {
         {/* Banner Derecho */}
         <div className="banner-right"></div>
       </div>
-       <RequestAndAppoint />
+       <RequestAndAppoint user={user} />
     </div>
     
   );

@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import './Map.css';
 import SchedulePickupModal from '../SchedulePickupComp/SchedulePickupModal';
 import { config, apiUrl, debugLog } from '../../config/environment';
+import { REQUEST_STATE } from '../../shared/constants';
 
 // Importar el icono existente de location.png
 import locationIcon from "../../assets/icons/location.png";
@@ -335,14 +336,14 @@ const RecyclingPointsMap: React.FC = () => {
         debugLog('Received requests data:', requestsData);
         debugLog('Total requests received:', requestsData.length);
 
-        // Agregar nombres de materiales a las requests
+        // Si el backend ya envía materialName, usarlo. Si no, usar getMaterialName como fallback
         const requestsWithMaterials = requestsData.map((request: any) => ({
           ...request,
-          materialName: getMaterialName(request.materialId, materialsArray)
+          materialName: request.materialName || getMaterialName(request.materialId, materialsArray)
         }));
 
         // Filtrar solo las requests que tengan coordenadas válidas
-        // Según la imagen, el estado parece ser numérico (0, 1) en lugar de string
+        // Solo mostrar requests en estado OPEN (1) - disponibles para recoger
         const activeRequests = requestsWithMaterials.filter((request: any) => {
           // Parsear coordenadas a números y validar que sean válidos
           const lat = parseFloat(request.latitude);
@@ -353,11 +354,10 @@ const RecyclingPointsMap: React.FC = () => {
             lat >= -90 && lat <= 90 &&
             lng >= -180 && lng <= 180;
 
-          // Aceptar tanto estados numéricos como string para flexibilidad
-          // Incluyendo state = 0 y state = 1 para ver todas las requests con coordenadas
-          const isActive = request.state === 'open' ||
-            request.state === 1 || request.state === '1' ||
-            request.state === 0 || request.state === '0';
+          // Solo mostrar requests con estado OPEN (1)
+          const isOpen = request.state === REQUEST_STATE.OPEN || 
+                         request.state === 1 || 
+                         request.state === '1';
 
           console.log('Request filter check:', {
             id: request.id,
@@ -367,11 +367,11 @@ const RecyclingPointsMap: React.FC = () => {
             parsedLng: lng,
             state: request.state,
             hasValidCoordinates,
-            isActive,
-            willInclude: hasValidCoordinates && isActive
+            isOpen,
+            willInclude: hasValidCoordinates && isOpen
           });
 
-          return hasValidCoordinates && isActive;
+          return hasValidCoordinates && isOpen;
         });
 
         debugLog('Filtered active requests:', activeRequests);
@@ -655,11 +655,9 @@ const RecyclingPointsMap: React.FC = () => {
                             <h4>{cluster.count} Materiales Disponibles</h4>
                             <div className="cluster-requests-list">
                               {cluster.requests.map((request) => {
-                                // Asegurar que siempre tengamos un nombre de material válido
-                                // Si no hay materialName o está vacío, usar getMaterialName
-                                const displayName = request.materialName && request.materialName.trim() !== '' 
-                                  ? request.materialName 
-                                  : getMaterialName(request.materialId, materials);
+                                // Usar el materialName que ya viene del backend
+                                // Si por alguna razón no existe, usar getMaterialName como fallback
+                                const displayName = request.materialName || getMaterialName(request.materialId, materials);
                                 
                                 return (
                                 <div key={request.id} className="cluster-request-item">

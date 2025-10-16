@@ -1,10 +1,12 @@
 // Models/Forms/requestModel.js
 import db from "../../Config/DBConnect.js";
+import { REQUEST_STATE } from "../../shared/constants.js";
 
 /**
  * Crear una solicitud (request)
+ * Por defecto se crea en estado OPEN (1) para que aparezca en el mapa
  */
-export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = 'open') => {
+export const create = async (conn, idUser, description, materialId, latitude = null, longitude = null, state = REQUEST_STATE.OPEN) => {
   try {
     const [res] = await conn.query(
       `INSERT INTO request (idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate)
@@ -37,9 +39,12 @@ export const getAll = async () => {
   try {
     console.log("[INFO] RequestModel.getAll - fetching requests");
     const [rows] = await db.query(
-      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
-       FROM request
-       ORDER BY registerDate DESC`
+      `SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+              r.latitude, r.longitude, r.modificationDate,
+              m.name as materialName
+       FROM request r
+       LEFT JOIN material m ON r.materialId = m.id
+       ORDER BY r.registerDate DESC`
     );
     return rows;
   } catch (err) {
@@ -61,9 +66,12 @@ export const getAll = async () => {
 export const getById = async (id) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
-       FROM request
-       WHERE id = ?`,
+      `SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+              r.latitude, r.longitude, r.modificationDate,
+              m.name as materialName
+       FROM request r
+       LEFT JOIN material m ON r.materialId = m.id
+       WHERE r.id = ?`,
       [id]
     );
     return rows[0] || null;
@@ -131,9 +139,9 @@ export const getByIdWithAdditionalInfo = async (id) => {
   try {
     console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Fetching request ${id}`);
     
-    // Primera consulta: datos básicos de la solicitud
+    // Primera consulta: datos básicos de la solicitud (INCLUYE idUser)
     const [requestRows] = await db.query(
-      `SELECT r.id, m.name, r.description, s.startHour, s.endHour,
+      `SELECT r.id, r.idUser, m.name, r.description, s.startHour, s.endHour,
            JSON_OBJECT(
         'Monday', s.monday,
         'Tuesday', s.tuesday,
@@ -180,6 +188,43 @@ export const getByIdWithAdditionalInfo = async (id) => {
   }
   catch (err) {
     console.error("[ERROR] RequestModel.getByIdWithAdditionalInfo:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
+// Obtener requests por usuario y estado con limit
+export const getRequestsByUserAndState = async (userId, state = null, limit = null) => {
+  try {
+    let query = `
+      SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+             r.latitude, r.longitude, r.modificationDate,
+             m.name as materialName,
+             CONCAT(p.firstname, ' ', p.lastname) as userName
+      FROM request r
+      LEFT JOIN material m ON r.materialId = m.id
+      LEFT JOIN users u ON r.idUser = u.id
+      LEFT JOIN person p ON p.userId = u.id
+      WHERE r.idUser = ?
+    `;
+    
+    const params = [userId];
+    
+    if (state !== null) {
+      query += ` AND r.state = ?`;
+      params.push(state);
+    }
+    
+    query += ` ORDER BY r.registerDate DESC`;
+    
+    if (limit) {
+      query += ` LIMIT ?`;
+      params.push(limit);
+    }
+    
+    const [rows] = await db.query(query, params);
+    return rows;
+  } catch (err) {
+    console.error("[ERROR] RequestModel.getRequestsByUserAndState:", err);
     throw err;
   }
 };

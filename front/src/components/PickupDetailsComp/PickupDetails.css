@@ -1,0 +1,536 @@
+/* PickupDetails.css - Estilos para la página de detalles del recojo con Bootstrap */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+.pickupdetail-page {
+  min-height: 100vh;
+  background-color: #FAF8F1;
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+
+/* Header */
+.pickupdetail-header {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-image: url("../../assets/Cardboard.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0 1rem;
+  color: white;
+}
+
+.pickupdetail-logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pickupdetail-logo-img {
+  max-width: 150px !important;
+  height: auto;
+}
+
+.pickupdetail-header-title {
+  font-weight: 700;
+  font-size: 1.9rem;
+  margin: 0;
+  text-align: center;
+  flex-grow: 1;
+ 
+}
+
+/* Seccion del mapa */
+.pickupdetail-map-section {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pickupdetail-map-wrapper {
+  position: relative;
+  flex: 1;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  min-height: 500px;
+  background: linear-gradient(135deg, #2d5016 0%, #3e6b1f 50%, #4a7d25 100%);
+  padding: 6px;
+}
+
+@media (max-width: 991.98px) {
+  .pickupdetail-map-wrapper {
+    min-height: 400px;
+  }
+}
+
+/* capa interior del mapa */
+.pickupdetail-map-wrapper > * {
+  border-radius: 1rem;
+  background: #FAF8F1;
+  width: 100%;
+  height: 100%;
+}
+.pickupdetail-back-button {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4A7C59 !important;
+  text-decoration: none !important;
+  transition: all 0.2s;
+}
+
+.pickupdetail-back-button:hover {
+  color: #2d5016 !important;
+  text-decoration: none !important;
+  transform: translateX(-4px);
+}
+
+
+/* Panel de informacion */
+.pickupdetail-info-section {
+  height: 100%;
+}
+
+.pickupdetail-pickup-container {
+  height: 100%;
+  background-color: #FAF8F1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(76, 124, 91, 0.1);
+}
+
+.pickupdetail-pickup-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: #4C7C5B;
+  margin-bottom: 2rem;
+   display: flex;
+    justify-content: center;
+}
+
+.pickupdetail-pickup-image {
+  width: 100%;
+  height: 200px;
+  background-color: #E5E5E5;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.pickupdetail-pickup-description {
+  color: #4B5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.pickupdetail-pickup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.pickupdetail-info-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.pickupdetail-info-label {
+  font-weight: bold;
+  color: #4C7C5B;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.pickupdetail-info-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #9CC33C;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pickupdetail-cancel-button {
+  margin-top: auto;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background-color: #FF5F57;
+  color: white;
+  font-weight: bold;
+  font-size: 1.125rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pickupdetail-cancel-button:hover {
+  background-color: #fd473d;
+}
+
+/* --- Estilos simplificados para el mapa --- */
+.pickupdetail-map-wrapper .leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  border-radius: 1rem !important;
+}
+
+/* Evita que el mapa desaparezca en resoluciones medianas */
+.pickupdetail-map-wrapper .map-container {
+  min-height: 100% !important;
+  height: 100% !important;
+}
+
+.pickupdetail-map-section {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 400px;
+}
+
+/* Mejoras para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .pickupdetail-cancel-button {
+    min-height: 48px;
+  }
+  
+  .pickupdetail-image {
+    border-width: 1px;
+  }
+}
+
+/* Loading y error states */
+.loading, .error {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+  color: #4C7C5B;
+}
+
+.pickupdetail-no-images {
+  text-align: center;
+  padding: 2rem 1rem;
+  background-color: #f5f5f5;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pickupdetail-no-images p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Ajustes adicionales de Bootstrap */
+.min-vh-100 {
+  min-height: calc(100vh - 120px) !important;
+}
+
+@media (max-width: 991.98px) {
+  .min-vh-100 {
+    min-height: auto !important;
+  }
+}
+
+/* Forzar visibilidad del mapa y elementos */
+.pickupdetail-map-wrapper * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.leaflet-container {
+  background: #e6f3e6 !important;
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  display: block !important;
+}
+
+/* Asegurar que las imágenes se carguen correctamente */
+.carousel-thumbnail img,
+.pickupdetail-image {
+  max-width: 100%;
+  display: block !important;
+  object-fit: cover !important;
+}
+
+
+/* Responsive Adjustments for Bootstrap */
+
+/* Solo ajustes específicos que complementen Bootstrap */
+@media (max-width: 991.98px) {
+  .pickupdetail-pickup-container {
+    padding: 1.5rem;
+  }
+  
+  .pickupdetail-pickup-title {
+    font-size: 1.625rem;
+  }
+  
+  .pickupdetail-map-wrapper {
+    padding: 4px;
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pickupdetail-header {
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .pickupdetail-header-title {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .pickupdetail-logo-img {
+    max-width: 140px;
+  }
+
+  .pickupdetail-map-wrapper {
+    min-height: 350px;
+  }
+
+  .pickupdetail-back-button {
+    font-size: 1rem;
+  }
+
+  .pickupdetail-pickup-container {
+    padding: 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .pickupdetail-pickup-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .pickupdetail-pickup-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pickupdetail-cancel-button {
+    font-size: 1rem;
+    padding: 0.875rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pickupdetail-header {
+    padding: 0.75rem;
+  }
+
+  .pickupdetail-header-title {
+    font-size: 1.25rem;
+  }
+
+  .pickupdetail-logo-img {
+    max-width: 120px;
+  }
+
+  .pickupdetail-map-wrapper {
+    min-height: 300px;
+    padding: 3px;
+    border-radius: 0.75rem;
+  }
+
+  .pickupdetail-pickup-container {
+    padding: 1rem;
+  }
+
+  .pickupdetail-pickup-title {
+    font-size: 1.25rem;
+  }
+
+  .pickupdetail-pickup-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .pickupdetail-pickup-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .pickupdetail-info-label {
+    font-size: 0.875rem;
+  }
+
+  .pickupdetail-info-value {
+    font-size: 0.95rem;
+  }
+
+  .pickupdetail-cancel-button {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Estilos para las imágenes - TAMAÑOS GRANDES */
+.pickupdetail-pickup-images {
+  margin: 1.5rem 0;
+}
+
+.pickupdetail-single-image {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.pickupdetail-image-carousel {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #4C7C5B #f0f0f0;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+.pickupdetail-image-carousel::-webkit-scrollbar-thumb {
+  background: #4C7C5B;
+  border-radius: 4px;
+}
+
+.pickupdetail-carousel-item {
+  flex: 0 0 auto;
+  width: 250px; /* Más grande */
+}
+
+.pickupdetail-image {
+  width: 100%;
+  height: 250px; /* Más grande */
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.pickupdetail-image:hover {
+  transform: scale(1.02);
+  cursor: pointer;
+  border-color: #4C7C5B;
+  box-shadow: 0 8px 25px rgba(76, 124, 91, 0.3);
+}
+
+/* Override estilos del carousel component - TAMAÑOS GRANDES */
+.carousel-container {
+  margin: 1.5rem 0 !important;
+}
+
+.carousel-thumbnail {
+  flex: 0 0 250px !important; /* Más grande */
+  height: 250px !important; /* Más grande */
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.carousel-thumbnail:hover {
+  transform: scale(1.02) !important;
+  border-color: #4C7C5B !important;
+  box-shadow: 0 8px 25px rgba(76, 124, 91, 0.3) !important;
+}
+
+.carousel-thumbnail img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.carousel-thumbnails {
+  display: flex !important;
+  gap: 15px !important;
+  overflow-x: auto !important;
+  padding: 8px 0 !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #4C7C5B #f0f0f0 !important;
+}
+
+.carousel-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #4C7C5B !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Responsive para imágenes - MANTENIENDO TAMAÑOS GRANDES */
+@media (max-width: 991.98px) {
+  .pickupdetail-carousel-item {
+    width: 200px; /* Más grande en tablets */
+  }
+  
+  .pickupdetail-image {
+    height: 200px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 200px !important;
+    height: 200px !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .pickupdetail-carousel-item {
+    width: 180px; /* Más grande en móviles */
+  }
+  
+  .pickupdetail-image {
+    height: 180px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 180px !important;
+    height: 180px !important;
+  }
+  
+  .pickupdetail-image-carousel {
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+  }
+  
+  .carousel-thumbnails {
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .pickupdetail-carousel-item {
+    width: 160px; /* Aún grande en móviles pequeños */
+  }
+  
+  .pickupdetail-image {
+    height: 160px;
+  }
+  
+  .carousel-thumbnail {
+    flex: 0 0 160px !important;
+    height: 160px !important;
+  }
+  
+  .pickupdetail-image-carousel {
+    gap: 0.5rem;
+  }
+  
+  .carousel-thumbnails {
+    gap: 10px !important;
+  }
+}

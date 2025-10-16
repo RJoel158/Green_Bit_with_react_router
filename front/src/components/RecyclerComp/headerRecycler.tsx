@@ -1,7 +1,7 @@
 import React from "react";
 import "./RecyclingInterface.css";
 import logoText from "../../assets/logoText.svg";
-import bellIcon from "../../assets/icons/bell.svg";
+import NotificationBell from "../CommonComp/NotificationBell";
 
 //Definicion de usuario
 interface User {
@@ -77,8 +77,10 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
           </ul>
         </div>
 
-        <div className="notification-bell ms-2">
-          <img src={bellIcon} alt="Notificaciones" />
+        <div className="ms-2">
+          {user?.id ? (
+            <NotificationBell userId={user.id} />
+          ) : null}
         </div>
       </div>
     </header>

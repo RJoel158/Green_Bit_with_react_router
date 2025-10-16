@@ -2,9 +2,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import userRoutes from './Routes/userRoutes.js';
 import materialRoutes from './Routes/materialRoutes.js';
 import requestRoutes from './Routes/requestRoutes.js';
+import requestAppointmentRoutes from './Routes/requestAppointmentRoutes.js';
+import notificationRoutes from './Routes/notificationRoutes.js';
 import { verifyEmailConnection } from './Services/emailService.js';
 import { checkConnection } from './Config/DBConnect.js';
 
@@ -19,6 +23,7 @@ console.log('DB_NAME:', process.env.DB_NAME);
 console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '***configured***' : 'NOT SET');
 
 const app = express();
+const server = createServer(app);
 
 // Configurar CORS usando variable de entorno
 const corsOptions = {
@@ -26,6 +31,17 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 200
 };
+
+// Configurar Socket.IO con CORS
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Mapa para mantener usuarios conectados
+const connectedUsers = new Map();
 
 app.use(cors(corsOptions));
 app.use(express.json({ 
@@ -40,6 +56,8 @@ app.use('/uploads', express.static(uploadDir));
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
+app.use("/api/appointments", requestAppointmentRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {
@@ -60,14 +78,51 @@ app.get('/api/db-status', async (req, res) => {
   });
 });
 
+// Configurar Socket.IO
+io.on('connection', (socket) => {
+  console.log('[Socket.IO] Usuario conectado:', socket.id);
+
+  // El cliente debe enviar su userId al conectarse
+  socket.on('join', (userId) => {
+    if (userId) {
+      connectedUsers.set(userId, socket.id);
+      socket.userId = userId;
+      console.log(`[Socket.IO] Usuario ${userId} registrado con socket ${socket.id}`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    if (socket.userId) {
+      connectedUsers.delete(socket.userId);
+      console.log(`[Socket.IO] Usuario ${socket.userId} desconectado`);
+    }
+  });
+});
+
+// Función para enviar notificación en tiempo real
+export const sendRealTimeNotification = (userId, notification) => {
+  const socketId = connectedUsers.get(String(userId));
+  if (socketId) {
+    const socket = io.sockets.sockets.get(socketId);
+    if (socket) {
+      socket.emit('notification', notification);
+      console.log(`[Socket.IO] Notificación enviada a usuario ${userId}:`, notification.title);
+      return true;
+    }
+  }
+  console.log(`[Socket.IO] Usuario ${userId} no conectado`);
+  return false;
+};
+
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`🚀 ${process.env.APP_NAME || 'GreenBit'} v${process.env.APP_VERSION || '1.0.0'}`);
-  console.log(`🌐 Servidor escuchando en puerto ${PORT}`);
+  console.log(`🌐 Servidor + Socket.IO escuchando en puerto ${PORT}`);
   console.log(`📱 Frontend permitido desde: ${process.env.FRONTEND_URL}`);
   console.log(`🗄️  Base de datos: ${process.env.DB_HOST}/${process.env.DB_NAME}`);
   console.log(`📂 Directorio de uploads: ${uploadDir}`);
+  console.log(`🔔 Sistema de notificaciones en tiempo real activo`);
   
   // Verificar conexión de email al iniciar
   const emailReady = await verifyEmailConnection();
