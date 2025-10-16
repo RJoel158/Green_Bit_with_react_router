@@ -32,7 +32,7 @@ const LargeImageCarousel: React.FC<LargeImageCarouselProps> = ({ images, apiUrl 
         marginBottom: '1.5rem', 
         fontSize: '1.3rem' 
       }}>
-        📸 Imágenes del Material
+         Imágenes del Material
       </h3>
       
       <div style={{

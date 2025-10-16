@@ -35,8 +35,8 @@ const PickupDetails: React.FC = () => {
     setMapLocation({ lat, lng });
   }, []);
 
-  console.log('📄 PickupDetails component rendered');
-  console.log('📍 Map location state:', mapLocation);
+  console.log(' PickupDetails component rendered');
+  console.log(' Map location state:', mapLocation);
 
   // Fuerza el redibujado del mapa (por compatibilidad con Leaflet)
   useEffect(() => {
@@ -77,7 +77,7 @@ const PickupDetails: React.FC = () => {
           <div className="col-12 col-lg-8">
             <div className="pickupdetail-map-section">
               <h3 className="mb-3" style={{ color: '#4C7C5B', fontWeight: '600' }}>
-                📍 Ubicación del Recojo
+                 Ubicación del Recojo
               </h3>
               <div
                 className="pickupdetail-map-wrapper"
