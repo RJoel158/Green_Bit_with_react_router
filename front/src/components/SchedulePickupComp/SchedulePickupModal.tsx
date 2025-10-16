@@ -372,7 +372,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                   />
 
                   <div className="description mb-2">
-                    <p className="text-muted small">
+                    <p className="text-muted small" style={{ 
+                      wordWrap: 'break-word', 
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'break-word'
+                    }}>
                       {requestData.description}
                     </p>
                   </div>

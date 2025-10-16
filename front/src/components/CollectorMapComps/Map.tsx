@@ -336,10 +336,10 @@ const RecyclingPointsMap: React.FC = () => {
         debugLog('Received requests data:', requestsData);
         debugLog('Total requests received:', requestsData.length);
 
-        // Agregar nombres de materiales a las requests
+        // Si el backend ya envía materialName, usarlo. Si no, usar getMaterialName como fallback
         const requestsWithMaterials = requestsData.map((request: any) => ({
           ...request,
-          materialName: getMaterialName(request.materialId, materialsArray)
+          materialName: request.materialName || getMaterialName(request.materialId, materialsArray)
         }));
 
         // Filtrar solo las requests que tengan coordenadas válidas
@@ -655,11 +655,9 @@ const RecyclingPointsMap: React.FC = () => {
                             <h4>{cluster.count} Materiales Disponibles</h4>
                             <div className="cluster-requests-list">
                               {cluster.requests.map((request) => {
-                                // Asegurar que siempre tengamos un nombre de material válido
-                                // Si no hay materialName o está vacío, usar getMaterialName
-                                const displayName = request.materialName && request.materialName.trim() !== '' 
-                                  ? request.materialName 
-                                  : getMaterialName(request.materialId, materials);
+                                // Usar el materialName que ya viene del backend
+                                // Si por alguna razón no existe, usar getMaterialName como fallback
+                                const displayName = request.materialName || getMaterialName(request.materialId, materials);
                                 
                                 return (
                                 <div key={request.id} className="cluster-request-item">

@@ -179,7 +179,11 @@ const FormComp: React.FC = () => {
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData({ ...formData, description: e.target.value });
+    const value = e.target.value;
+    // Limitar a 150 caracteres
+    if (value.length <= 150) {
+      setFormData({ ...formData, description: value });
+    }
   };
 
   // FUNCIÓN CORREGIDA: Ahora agrega fotos en lugar de reemplazar
@@ -270,9 +274,16 @@ const FormComp: React.FC = () => {
   const handleSubmit = async () => {
     if (formData.materialId === 0) return setMensaje("Debes seleccionar un material");
     if (!formData.description.trim()) return setMensaje("Debes proporcionar una descripción");
+    if (formData.description.length > 150) return setMensaje("La descripción no puede exceder 150 caracteres");
     if (formData.photos.length === 0) return setMensaje("Debes subir al menos una foto");
     if (formData.availableDays.length === 0) return setMensaje("Debes seleccionar al menos un día disponible");
     if (!formData.timeFrom || !formData.timeTo) return setMensaje("Debes especificar el horario disponible");
+    
+    // Validar que la hora de inicio no sea mayor que la hora de fin
+    if (formData.timeFrom >= formData.timeTo) {
+      return setMensaje("La hora de inicio debe ser menor que la hora de fin");
+    }
+    
     if (!selectedLocation) return setMensaje("Debes seleccionar la ubicación en el mapa");
 
     setSubmitting(true);
@@ -405,7 +416,18 @@ const FormComp: React.FC = () => {
                 onChange={handleDescriptionChange} 
                 className="textarea-input" 
                 placeholder="Describe el material..." 
+                maxLength={150}
               />
+              <div 
+                style={{ 
+                  fontSize: '12px', 
+                  color: formData.description.length >= 150 ? '#dc3545' : '#666',
+                  marginTop: '4px',
+                  textAlign: 'right'
+                }}
+              >
+                {formData.description.length}/150 caracteres
+              </div>
             </div>
           </div>
 
