@@ -83,7 +83,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                   className="forgot-input"
                   value={recoveryEmail}
                   onChange={(e) => setRecoveryEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder="example@gmail.com"
                   required
                 />
               </div>

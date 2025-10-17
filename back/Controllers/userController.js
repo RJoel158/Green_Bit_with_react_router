@@ -462,7 +462,9 @@ export const forgotPassword = async (req, res) => {
         userDetails?.firstname || "Usuario",
         userDetails?.lastname || "",
         email,
-        result.tempPassword
+        result.tempPassword,
+        //Se envia el valor 1 para cambiar el contenido del correo
+        1
       );
       console.log("[INFO] forgotPassword - email sent successfully to", { email });
     } catch (emailErr) {

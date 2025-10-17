@@ -23,7 +23,16 @@ const transporter = nodemailer.createTransport({
 });
 
 // Plantilla HTML para credenciales
-const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
+const getCredentialsEmailTemplate = (nombre, apellidos, username, password, emailType = 0) => {
+  let title = "¡Bienvenido a GreenBit!";
+  let lead = "Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso.";
+  let message = "¡Bienvenido a nuestra plataforma de reciclaje! Tu cuenta ha sido creada correctamente.";
+  if (emailType == 1) {
+    title = "Restablecimiento de contraseña";
+    lead = "Tu contraseña ha sido restablecida exitosamente. Aquí están tus credenciales de acceso.";
+    message = "¡Bienvenido a nuestra plataforma de reciclaje! Tu contraseña ha sido restablecida correctamente.";
+  }
+
   return `<!doctype html>
 <html lang="es">
 <head>
@@ -81,15 +90,15 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
                 <tr>
                   <td align="center" style="padding:26px 30px;">
-                    <h1>¡Bienvenido a GreenBit!</h1>
+                    <h1>${title}</h1>
                     <div style="height:12px;"></div>
-                    <p class="lead">Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso.</p>
+                    <p class="lead">${lead}</p>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:20px 34px;">
                     <p>Hola <strong>${nombre} ${apellidos}</strong>,</p>
-                    <p>¡Bienvenido a nuestra plataforma de reciclaje! Tu cuenta ha sido creada correctamente.</p>
+                    <p>${message}</p>
                     
                     <div class="credentials">
                       <div class="credential-item">👤 Usuario: <span style="color:#14A24F;">${username}</span></div>
@@ -123,7 +132,7 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
 };
 
 // Función para enviar credenciales por email
-export const sendCredentialsEmail = async (to, nombre, apellidos, username, password) => {
+export const sendCredentialsEmail = async (to, nombre, apellidos, username, password, emailType=0) => {
   // Verificar si el transporter está configurado
   if (!transporter) {
     const error = "❌ No se puede enviar email: falta configurar GMAIL_USER y GMAIL_APP_PASSWORD en .env";
@@ -132,8 +141,8 @@ export const sendCredentialsEmail = async (to, nombre, apellidos, username, pass
   }
 
   try {
-    const html = getCredentialsEmailTemplate(nombre, apellidos, username, password);
-    
+    const html = getCredentialsEmailTemplate(nombre, apellidos, username, password,emailType);
+
     const info = await transporter.sendMail({
       from: `"GreenBit" <${USER}>`,
       to: to,
