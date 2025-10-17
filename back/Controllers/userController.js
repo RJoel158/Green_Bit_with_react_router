@@ -409,3 +409,84 @@ export const registerCollector = async (req, res) => {
     return res.status(500).json({ success: false, error: "Error en el registro" });
   }
 };
+//Recuperacion de contraseña
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      console.warn("[WARN] forgotPassword - missing email", { body: req.body });
+      return res.status(400).json({ 
+        success: false, 
+        error: "El correo electrónico es requerido" 
+      });
+    }
+
+    // Validar formato de email
+    if (typeof email !== "string" || !email.includes("@")) {
+      console.warn("[WARN] forgotPassword - invalid email", { email });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Email inválido" 
+      });
+    }
+
+    // Buscar usuario por email
+    const user = await UserModel.loginUser(email);
+    
+    if (!user) {
+      console.warn("[WARN] forgotPassword - user not found", { email });
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña" 
+      });
+    }
+
+  
+    // Generar nueva contraseña temporal usando el ID del usuario
+    const result = await UserModel.resetPasswordWithTemp(user.id);
+
+    console.log("[INFO] forgotPassword - password reset successful", { 
+      email, 
+      userId: user.id 
+    });
+
+    // Enviar email con la contraseña temporal
+    try {
+     
+      const userDetails = await UserModel.getByIdWithPersona(user.id);
+      
+      await sendCredentialsEmail(
+        email,
+        userDetails?.firstname || "Usuario",
+        userDetails?.lastname || "",
+        email,
+        result.tempPassword
+      );
+      console.log("[INFO] forgotPassword - email sent successfully to", { email });
+    } catch (emailErr) {
+      console.error("[ERROR] forgotPassword - failed to send email:", {
+        email,
+        message: emailErr.message
+      });
+     
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Se ha enviado una contraseña temporal a tu correo electrónico" 
+    });
+
+  } catch (err) {
+    console.error("[ERROR] forgotPassword controller:", { 
+      body: req.body, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: "Error al procesar la solicitud de recuperación" 
+    });
+  }
+};

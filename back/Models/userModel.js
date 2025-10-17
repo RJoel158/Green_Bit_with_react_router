@@ -391,3 +391,69 @@ export const softDeleteWithInstitution = async (id) => {
     conn.release();
   }
 };
+/**
+ * Resetea la contraseña del usuario a una temporal y cambia el estado a 1 (cambio pendiente)
+ */
+export const resetPasswordWithTemp = async (userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] resetPasswordWithTemp - start", { userId });
+
+    await conn.beginTransaction();
+
+    // Verificar que el usuario existe
+    const [userRows] = await conn.query(
+      "SELECT id FROM users WHERE id = ? AND state != 0",
+      [userId]
+    );
+
+    if (userRows.length === 0) {
+      await conn.rollback();
+      const err = new Error("Usuario no encontrado o inactivo");
+      err.code = "USER_NOT_FOUND";
+      throw err;
+    }
+
+    // Generar contraseña temporal
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Actualizar contraseña y poner estado en 1 (pendiente cambio de contraseña)
+    const [updateRes] = await conn.query(
+      "UPDATE users SET password = ?, state = 1 WHERE id = ?",
+      [hashedPassword, userId]
+    );
+
+    if (updateRes.affectedRows === 0) {
+      await conn.rollback();
+      throw new Error("No se pudo actualizar la contraseña");
+    }
+
+    await conn.commit();
+    console.log("[INFO] resetPasswordWithTemp - committed", { userId });
+
+    return { 
+      success: true, 
+      tempPassword 
+    };
+
+  } catch (err) {
+    console.error("[ERROR] resetPasswordWithTemp:", { 
+      userId, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    try { 
+      await conn.rollback(); 
+    } catch (rbErr) { 
+      console.error("[ERROR] resetPasswordWithTemp rollback:", rbErr); 
+    }
+    throw err;
+  } finally {
+    try { 
+      conn.release(); 
+    } catch (relErr) { 
+      console.error("[ERROR] resetPasswordWithTemp release:", relErr); 
+    }
+  }
+};

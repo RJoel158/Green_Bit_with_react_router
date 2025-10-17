@@ -142,6 +142,28 @@ html, body, #root {
   background-position: center;
 }
 
+/* Recuperacion de contraseña */
+.forgot-password {
+  display: flex;
+  text-align: center;
+  margin-top: -5px;
+}
+
+.forgot-link {
+  font-size: 0.9rem;
+  color: var(--verde-medio);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgot-link span {
+  font-weight: 600;
+}
+
+.forgot-link:hover {
+  color: var(--verde-principal);
+  text-decoration: underline;
+}
 /* Responsive */
 @media (max-width: 992px) {
   .register-right { display: none; }

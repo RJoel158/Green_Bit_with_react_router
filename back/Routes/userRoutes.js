@@ -16,12 +16,14 @@ import {
   deleteUser,
   loginUser,
   changePassword,
+  forgotPassword
 } from "../Controllers/userController.js";
 
 const router = express.Router();
 
 //  Auth
 router.post("/login", loginUser);
+router.post("/forgotPassword", loginUser);
 router.put("/changePassword/:userId", changePassword);
 
 //  Users con Persona

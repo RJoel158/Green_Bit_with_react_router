@@ -69,18 +69,18 @@ const Login: React.FC = () => {
       setErrors({});
       //Redirección segun el rol
       switch (data.user.role) {
-    case "admin":
-      window.location.href = "/adminDashboard";
-      break;
-    case "recolector":
-      window.location.href = "/recolectorIndex";
-      break;
-    case "reciclador":
-      window.location.href = "/recicladorIndex";
-      break;
-    default:
-      window.location.href = "/main";
-  }
+        case "admin":
+          window.location.href = "/adminDashboard";
+          break;
+        case "recolector":
+          window.location.href = "/recolectorIndex";
+          break;
+        case "reciclador":
+          window.location.href = "/recicladorIndex";
+          break;
+        default:
+          window.location.href = "/main";
+      }
 
     } catch (err) {
       console.error("Error de conexión:", err);
@@ -119,9 +119,8 @@ const Login: React.FC = () => {
                   value={form[field as keyof FormData]}
                   onChange={onChange}
                   type={field === "email" ? "email" : "password"}
-                  className={`form-control form-control-lg ${
-                    errors[field as keyof FormData] ? "is-invalid" : ""
-                  }`}
+                  className={`form-control form-control-lg ${errors[field as keyof FormData] ? "is-invalid" : ""
+                    }`}
                   placeholder={field === "email" ? "Correo electrónico" : "Contraseña"}
                 />
                 {errors[field as keyof FormData] && (
@@ -129,7 +128,12 @@ const Login: React.FC = () => {
                 )}
               </div>
             ))}
-
+            {/* Recuperación de contraseña */}
+            <div className="forgot-password text-end mb-3">
+              <a href="/forgot-password" className="forgot-link">
+                ¿Olvidaste tu contraseña? <span>Recupérala aquí</span>
+              </a>
+            </div>
             <button type="submit" className="btn btn-success btn-lg w-100" disabled={loading}>
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
@@ -145,7 +149,7 @@ const Login: React.FC = () => {
           )}
         </div>
 
-       <div className="cta-banner text-center mb-5">
+        <div className="cta-banner text-center mb-5">
           <span>
             <p style={{ fontSize: "1rem", fontWeight: "600" }}>
               ¿Aún no tienes cuenta?
