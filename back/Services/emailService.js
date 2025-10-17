@@ -81,7 +81,7 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
                 <tr>
                   <td align="center" style="padding:26px 30px;">
-                    <h1>¡Bienvenido a EcoRecicla!</h1>
+                    <h1>¡Bienvenido a GreenBit!</h1>
                     <div style="height:12px;"></div>
                     <p class="lead">Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso.</p>
                   </td>
@@ -107,7 +107,7 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password) => {
                     <div style="height:14px;"></div>
                     <p style="color:#6b725f; font-size:12px; margin:0;">
                       Si no solicitaste esta cuenta, contacta con soporte técnico.<br/>
-                      © EcoRecicla 2025 - Cuidando el planeta juntos
+                      © GreenBit 2025 - Cuidando el planeta juntos
                     </p>
                   </td>
                 </tr>
@@ -135,9 +135,9 @@ export const sendCredentialsEmail = async (to, nombre, apellidos, username, pass
     const html = getCredentialsEmailTemplate(nombre, apellidos, username, password);
     
     const info = await transporter.sendMail({
-      from: `"EcoRecicla" <${USER}>`,
+      from: `"GreenBit" <${USER}>`,
       to: to,
-      subject: "🌱 Tus credenciales de acceso - EcoRecicla",
+      subject: "🌱 Tus credenciales de acceso - GreenBit",
       html: html,
     });
 
