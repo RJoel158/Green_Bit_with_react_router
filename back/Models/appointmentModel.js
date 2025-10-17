@@ -114,7 +114,9 @@ export const getAppointmentsByCollectorAndState = async (collectorId, state = nu
     let query = `
       SELECT ac.id, ac.idRequest, ac.acceptedDate, ac.collectorId, ac.acceptedHour, ac.state,
              r.description, r.materialId, r.idUser as recyclerId,
-             CONCAT(p.firstname, ' ', p.lastname) as recyclerName,
+             COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as recyclerName,
+             u.phone as recyclerPhone,
+             u.email as recyclerEmail,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
@@ -139,6 +141,18 @@ export const getAppointmentsByCollectorAndState = async (collectorId, state = nu
     }
     
     const [rows] = await db.query(query, params);
+    
+    // Log para debugging
+    console.log("[DEBUG] getAppointmentsByCollectorAndState - Rows returned:", rows.length);
+    if (rows.length > 0) {
+      console.log("[DEBUG] First row sample:", {
+        id: rows[0].id,
+        recyclerName: rows[0].recyclerName,
+        recyclerPhone: rows[0].recyclerPhone,
+        recyclerEmail: rows[0].recyclerEmail
+      });
+    }
+    
     return rows;
   } catch (err) {
     console.error("[ERROR] AppointmentModel.getAppointmentsByCollectorAndState:", err);
@@ -152,7 +166,9 @@ export const getAppointmentsByRecyclerAndState = async (recyclerId, state = null
     let query = `
       SELECT ac.id, ac.idRequest, ac.acceptedDate, ac.collectorId, ac.acceptedHour, ac.state,
              r.description, r.materialId, r.idUser as recyclerId,
-             CONCAT(p.firstname, ' ', p.lastname) as collectorName,
+             COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as collectorName,
+             u.phone as collectorPhone,
+             u.email as collectorEmail,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
@@ -177,6 +193,18 @@ export const getAppointmentsByRecyclerAndState = async (recyclerId, state = null
     }
     
     const [rows] = await db.query(query, params);
+    
+    // Log para debugging
+    console.log("[DEBUG] getAppointmentsByRecyclerAndState - Rows returned:", rows.length);
+    if (rows.length > 0) {
+      console.log("[DEBUG] First row sample:", {
+        id: rows[0].id,
+        collectorName: rows[0].collectorName,
+        collectorPhone: rows[0].collectorPhone,
+        collectorEmail: rows[0].collectorEmail
+      });
+    }
+    
     return rows;
   } catch (err) {
     console.error("[ERROR] AppointmentModel.getAppointmentsByRecyclerAndState:", err);
@@ -190,8 +218,12 @@ export const getAppointmentById = async (id) => {
     const query = `
       SELECT ac.id, ac.idRequest, ac.acceptedDate, ac.collectorId, ac.acceptedHour, ac.state,
              r.description, r.materialId, r.idUser as recyclerId,
-             CONCAT(pc.firstname, ' ', pc.lastname) as collectorName,
-             CONCAT(pr.firstname, ' ', pr.lastname) as recyclerName,
+             COALESCE(CONCAT(pc.firstname, ' ', pc.lastname), uc.email) as collectorName,
+             uc.phone as collectorPhone,
+             uc.email as collectorEmail,
+             COALESCE(CONCAT(pr.firstname, ' ', pr.lastname), ur.email) as recyclerName,
+             ur.phone as recyclerPhone,
+             ur.email as recyclerEmail,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
@@ -204,6 +236,18 @@ export const getAppointmentById = async (id) => {
     `;
     
     const [rows] = await db.query(query, [id]);
+    
+    // Log para debugging
+    if (rows.length > 0) {
+      console.log("[DEBUG] getAppointmentById - Result:", {
+        id: rows[0].id,
+        collectorName: rows[0].collectorName,
+        collectorPhone: rows[0].collectorPhone,
+        recyclerName: rows[0].recyclerName,
+        recyclerPhone: rows[0].recyclerPhone
+      });
+    }
+    
     return rows.length > 0 ? rows[0] : null;
   } catch (err) {
     console.error("[ERROR] AppointmentModel.getAppointmentById:", err);

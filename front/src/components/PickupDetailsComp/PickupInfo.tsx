@@ -38,7 +38,11 @@ interface AppointmentData {
   description: string;
   materialName?: string;
   collectorName?: string;
+  collectorPhone?: string;
+  collectorEmail?: string;
   recyclerName?: string;
+  recyclerPhone?: string;
+  recyclerEmail?: string;
   collectorId?: number;
   recyclerId?: number;
 }
@@ -53,6 +57,24 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [rejecting, setRejecting] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+
+  // Obtener el usuario actual desde localStorage
+  const getCurrentUser = () => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  };
+
+  // Verificar si el usuario actual es el reciclador (dueño de la request)
+  const isRecycler = () => {
+    const currentUser = getCurrentUser();
+    return currentUser && appointmentData && currentUser.id === appointmentData.recyclerId;
+  };
+
+  // Verificar si el usuario actual es el recolector (quien aceptó la request)
+  const isCollector = () => {
+    const currentUser = getCurrentUser();
+    return currentUser && appointmentData && currentUser.id === appointmentData.collectorId;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -455,6 +477,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               <p className="pickupdetail-info-value">
                 {appointmentData.collectorName || 'No asignado'}
               </p>
+              {appointmentData.collectorPhone && (
+                <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                  Tel: {appointmentData.collectorPhone}
+                </p>
+              )}
             </div>
             <div className="pickupdetail-info-block">
               <h3 className="pickupdetail-info-label">
@@ -463,6 +490,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               <p className="pickupdetail-info-value">
                 {appointmentData.recyclerName || 'No asignado'}
               </p>
+              {appointmentData.recyclerPhone && (
+                <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                  Tel: {appointmentData.recyclerPhone}
+                </p>
+              )}
             </div>
             <div className="pickupdetail-info-block">
               <h3 className="pickupdetail-info-label">
@@ -506,8 +538,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       {/* Botones según el estado de la cita */}
       {isAppointmentView && appointmentData && (
         <div className="pickupdetail-actions" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexDirection: 'column' }}>
-          {/* Botones para estado PENDING (0) - Reciclador puede aceptar o rechazar */}
-          {appointmentData.state === APPOINTMENT_STATE.PENDING && (
+          {/* Botones para estado PENDING (0) - SOLO el Reciclador puede aceptar o rechazar */}
+          {appointmentData.state === APPOINTMENT_STATE.PENDING && isRecycler() && (
             <>
               <button
                 onClick={handleAcceptAppointment}
@@ -544,6 +576,24 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                 {rejecting ? 'Rechazando...' : '✕ Rechazar Solicitud'}
               </button>
             </>
+          )}
+
+          {/* Mensaje informativo para el recolector cuando está en estado PENDING */}
+          {appointmentData.state === APPOINTMENT_STATE.PENDING && isCollector() && (
+            <div style={{
+              backgroundColor: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '0.5rem',
+              padding: '1rem',
+              color: '#856404'
+            }}>
+              <p style={{ margin: 0, fontWeight: 500 }}>
+                ⏳ <strong>Esperando confirmación del reciclador</strong>
+              </p>
+              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9em' }}>
+                Tu solicitud de recolección está pendiente. El reciclador debe aceptarla para continuar.
+              </p>
+            </div>
           )}
 
           {/* Botones para estado ACCEPTED (1) - Ambos pueden cancelar o completar */}

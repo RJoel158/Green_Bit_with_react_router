@@ -12,7 +12,11 @@ export interface Appointment {
   materialId: number;
   recyclerId?: number;
   recyclerName?: string;
+  recyclerPhone?: string;
+  recyclerEmail?: string;
   collectorName?: string;
+  collectorPhone?: string;
+  collectorEmail?: string;
   materialName?: string;
 }
 

@@ -106,10 +106,20 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           Fecha: {formatDate(appointment.acceptedDate)} - {appointment.acceptedHour}
         </p>
         {user.role === 'reciclador' && appointment.collectorName && (
-          <p className="appointment-collector">Recolector: {appointment.collectorName}</p>
+          <>
+            <p className="appointment-collector">Recolector: {appointment.collectorName}</p>
+            {appointment.collectorPhone && (
+              <p className="appointment-collector">Tel: {appointment.collectorPhone}</p>
+            )}
+          </>
         )}
         {user.role === 'recolector' && appointment.recyclerName && (
-          <p className="appointment-recycler">Reciclador: {appointment.recyclerName}</p>
+          <>
+            <p className="appointment-recycler">Reciclador: {appointment.recyclerName}</p>
+            {appointment.recyclerPhone && (
+              <p className="appointment-recycler">Tel: {appointment.recyclerPhone}</p>
+            )}
+          </>
         )}
         <Link to={`/pickupDetails/${appointment.idRequest}?appointmentId=${appointment.id}`} className="details-button">Ver Detalles</Link>
       </div>
