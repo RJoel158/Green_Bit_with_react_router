@@ -146,12 +146,13 @@ html, body, #root {
 .forgot-password {
   display: flex;
   text-align: center;
+
   margin-top: -5px;
 }
 
 .forgot-link {
   font-size: 0.9rem;
-  color: var(--verde-medio);
+  color: var(--verde-claro) !important;
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -161,7 +162,7 @@ html, body, #root {
 }
 
 .forgot-link:hover {
-  color: var(--verde-principal);
+  color: var(--verde-principal) !important;
   text-decoration: underline;
 }
 /* Responsive */

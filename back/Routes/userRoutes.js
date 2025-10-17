@@ -23,7 +23,7 @@ const router = express.Router();
 
 //  Auth
 router.post("/login", loginUser);
-router.post("/forgotPassword", loginUser);
+router.post("/forgotPassword", forgotPassword);
 router.put("/changePassword/:userId", changePassword);
 
 //  Users con Persona
