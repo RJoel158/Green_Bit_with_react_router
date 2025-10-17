@@ -27,17 +27,6 @@
   background-color: #dc3545;
   color: white;
   border-radius: 50%;
-<<<<<<< HEAD
-  min-width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-=======
   width: 20px;
   height: 20px;
   min-width: 20px;
@@ -51,7 +40,6 @@
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   line-height: 1;
->>>>>>> df157bc28aedb7188197d4d07a1cbe2af5debdad
 }
 
 .notification-dropdown {
