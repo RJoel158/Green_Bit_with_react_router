@@ -101,6 +101,26 @@ export const createNewAppointment = async (req, res) => {
       return res.status(400).json({ success: false, error: "La hora aceptada es requerida" });
     }
 
+    // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
+    const [requestOwner] = await db.query(
+      `SELECT idUser FROM request WHERE id = ?`,
+      [parseInt(idRequest)]
+    );
+
+    if (!requestOwner || requestOwner.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Solicitud no encontrada" 
+      });
+    }
+
+    if (requestOwner[0].idUser === parseInt(collectorId)) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "No puedes aceptar tu propia solicitud de reciclaje" 
+      });
+    }
+
     const appointmentId = await AppointmentModel.createAppointment(
       parseInt(idRequest),
       acceptedDate.trim(),
@@ -357,13 +377,13 @@ export const rejectAppointmentEndpoint = async (req, res) => {
 
     console.log("[INFO] rejectAppointment success:", result);
 
-    // Enviar notificación al collector informando que fue rechazado
+    // Insertar notificación en BD y enviar en tiempo real al collector
     try {
       console.log("[INFO] Intentando enviar notificación de rechazo para appointmentId:", parseInt(id));
       
       const [rows] = await db.query(
-        `SELECT ac.idRequest, ac.collectorId, 
-                u.email as recyclerEmail
+        `SELECT ac.idRequest, ac.collectorId, ac.state,
+                u.email as recyclerEmail, r.idUser as recyclerId
          FROM appointmentconfirmation ac
          JOIN request r ON r.id = ac.idRequest
          JOIN users u ON u.id = r.idUser
@@ -375,17 +395,35 @@ export const rejectAppointmentEndpoint = async (req, res) => {
 
       if (rows && rows[0]) {
         const collectorId = rows[0].collectorId;
+        const recyclerId = rows[0].recyclerId;
         const recyclerEmail = rows[0].recyclerEmail;
         const requestId = rows[0].idRequest;
         
-        console.log("[INFO] Datos para notificación:", { collectorId, recyclerEmail, requestId, appointmentId: parseInt(id) });
+        console.log("[INFO] Datos para notificación:", { collectorId, recyclerId, recyclerEmail, requestId, appointmentId: parseInt(id) });
+        
+        // Insertar notificación en la base de datos
+        await db.query(
+          `INSERT INTO notifications (userId, actorId, type, title, body, requestId, appointmentId, expireAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL 7 DAY)`,
+          [
+            collectorId,
+            recyclerId,
+            'appointment_rejected',
+            'Solicitud rechazada',
+            `Tu solicitud de recolección a ${recyclerEmail} fue rechazada`,
+            requestId,
+            parseInt(id)
+          ]
+        );
+        
+        console.log("[INFO] Notificación insertada en BD para userId:", collectorId);
         
         // Enviar notificación en tiempo real al collector
         const notificationSent = sendRealTimeNotification(collectorId, {
           id: Date.now(),
-          type: 'request_rejected',
+          type: 'appointment_rejected',
           title: 'Solicitud rechazada',
-          body: `El usuario ${recyclerEmail} ha rechazado tu solicitud de recolección`,
+          body: `Tu solicitud de recolección a ${recyclerEmail} fue rechazada`,
           requestId: requestId,
           appointmentId: parseInt(id),
           read: false,
@@ -393,7 +431,7 @@ export const rejectAppointmentEndpoint = async (req, res) => {
           actorEmail: recyclerEmail,
         });
         
-        console.log("[INFO] Notificación enviada:", notificationSent);
+        console.log("[INFO] Notificación en tiempo real enviada:", notificationSent);
       } else {
         console.warn('[WARN] No se encontró información del appointment para notificación');
       }

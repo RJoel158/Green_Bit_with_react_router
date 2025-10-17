@@ -39,9 +39,12 @@ export const getAll = async () => {
   try {
     console.log("[INFO] RequestModel.getAll - fetching requests");
     const [rows] = await db.query(
-      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
-       FROM request
-       ORDER BY registerDate DESC`
+      `SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+              r.latitude, r.longitude, r.modificationDate,
+              m.name as materialName
+       FROM request r
+       LEFT JOIN material m ON r.materialId = m.id
+       ORDER BY r.registerDate DESC`
     );
     return rows;
   } catch (err) {
@@ -63,9 +66,12 @@ export const getAll = async () => {
 export const getById = async (id) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, idUser, description, state, registerDate, materialId, latitude, longitude, modificationDate
-       FROM request
-       WHERE id = ?`,
+      `SELECT r.id, r.idUser, r.description, r.state, r.registerDate, r.materialId, 
+              r.latitude, r.longitude, r.modificationDate,
+              m.name as materialName
+       FROM request r
+       LEFT JOIN material m ON r.materialId = m.id
+       WHERE r.id = ?`,
       [id]
     );
     return rows[0] || null;
@@ -133,9 +139,9 @@ export const getByIdWithAdditionalInfo = async (id) => {
   try {
     console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Fetching request ${id}`);
     
-    // Primera consulta: datos básicos de la solicitud
+    // Primera consulta: datos básicos de la solicitud (INCLUYE idUser)
     const [requestRows] = await db.query(
-      `SELECT r.id, m.name, r.description, s.startHour, s.endHour,
+      `SELECT r.id, r.idUser, m.name, r.description, s.startHour, s.endHour,
            JSON_OBJECT(
         'Monday', s.monday,
         'Tuesday', s.tuesday,

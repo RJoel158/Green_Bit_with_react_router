@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Home from "./components/HomeComps/Home";
 import Register from "./Auth/Register";
 import Login from "./Auth/Login";
@@ -15,9 +16,20 @@ import RecyclingPointsMap from "./components/CollectorMapComps/Map";
 
 //CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
+function ScrollToTop() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+  
+  return null;
+}
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />

@@ -24,6 +24,7 @@ interface Image {
 
 interface RequestData {
   id: number;
+  idUser: number;  // ID del dueño de la solicitud
   name: string;
   description: string;
   startHour: string;
@@ -268,6 +269,13 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         return;
       }
 
+      // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
+      if (requestData && requestData.idUser === collectorId) {
+        setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
+        alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        return;
+      }
+
       // Obtener la próxima fecha para el día seleccionado (formato: "DD/MM/YY")
       const dateString = getNextDateForDay(selectedDay);
       const [day, month, year] = dateString.split('/');
@@ -372,7 +380,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                   />
 
                   <div className="description mb-2">
-                    <p className="text-muted small">
+                    <p className="text-muted small" style={{ 
+                      wordWrap: 'break-word', 
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      overflowWrap: 'break-word'
+                    }}>
                       {requestData.description}
                     </p>
                   </div>
