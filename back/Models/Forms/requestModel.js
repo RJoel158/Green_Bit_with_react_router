@@ -139,9 +139,9 @@ export const getByIdWithAdditionalInfo = async (id) => {
   try {
     console.log(`[INFO] RequestModel.getByIdWithAdditionalInfo: Fetching request ${id}`);
     
-    // Primera consulta: datos básicos de la solicitud
+    // Primera consulta: datos básicos de la solicitud (INCLUYE idUser)
     const [requestRows] = await db.query(
-      `SELECT r.id, m.name, r.description, s.startHour, s.endHour,
+      `SELECT r.id, r.idUser, m.name, r.description, s.startHour, s.endHour,
            JSON_OBJECT(
         'Monday', s.monday,
         'Tuesday', s.tuesday,

@@ -24,6 +24,7 @@ interface Image {
 
 interface RequestData {
   id: number;
+  idUser: number;  // ID del dueño de la solicitud
   name: string;
   description: string;
   startHour: string;
@@ -265,6 +266,13 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
 
       if (!collectorId) {
         setTimeError('No se pudo obtener el ID del recolector');
+        return;
+      }
+
+      // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
+      if (requestData && requestData.idUser === collectorId) {
+        setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
+        alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
         return;
       }
 

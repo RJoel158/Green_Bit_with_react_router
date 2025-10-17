@@ -101,6 +101,26 @@ export const createNewAppointment = async (req, res) => {
       return res.status(400).json({ success: false, error: "La hora aceptada es requerida" });
     }
 
+    // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
+    const [requestOwner] = await db.query(
+      `SELECT idUser FROM request WHERE id = ?`,
+      [parseInt(idRequest)]
+    );
+
+    if (!requestOwner || requestOwner.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Solicitud no encontrada" 
+      });
+    }
+
+    if (requestOwner[0].idUser === parseInt(collectorId)) {
+      return res.status(403).json({ 
+        success: false, 
+        error: "No puedes aceptar tu propia solicitud de reciclaje" 
+      });
+    }
+
     const appointmentId = await AppointmentModel.createAppointment(
       parseInt(idRequest),
       acceptedDate.trim(),
