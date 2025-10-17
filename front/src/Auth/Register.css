@@ -152,7 +152,7 @@ html, body, #root {
 
 .forgot-link {
   font-size: 0.9rem;
-  color: var(--verde-claro) !important;
+  color: var(--verde-medio) !important;
   text-decoration: none;
   transition: color 0.2s ease;
 }
