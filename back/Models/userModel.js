@@ -401,7 +401,7 @@ export const resetPasswordWithTemp = async (userId) => {
 
     await conn.beginTransaction();
 
-    // Verificar que el usuario existe
+    // Verificar que el usuario exista y este activo
     const [userRows] = await conn.query(
       "SELECT id FROM users WHERE id = ? AND state != 0",
       [userId]

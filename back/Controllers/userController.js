@@ -409,6 +409,8 @@ export const registerCollector = async (req, res) => {
     return res.status(500).json({ success: false, error: "Error en el registro" });
   }
 };
+
+/** POST /users/forgotPassword */
 //Recuperacion de contraseña
 export const forgotPassword = async (req, res) => {
   try {
@@ -463,8 +465,7 @@ export const forgotPassword = async (req, res) => {
         userDetails?.lastname || "",
         email,
         result.tempPassword,
-        //Se envia el valor 1 para cambiar el contenido del correo
-        1
+        1 // emailType = 1 => mensaje de restablecimiento
       );
       console.log("[INFO] forgotPassword - email sent successfully to", { email });
     } catch (emailErr) {
@@ -474,7 +475,7 @@ export const forgotPassword = async (req, res) => {
       });
      
     }
-
+   // Respuesta exitosa
     res.json({ 
       success: true, 
       message: "Se ha enviado una contraseña temporal a tu correo electrónico" 

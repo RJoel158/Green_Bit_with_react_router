@@ -23,6 +23,8 @@ const transporter = nodemailer.createTransport({
 });
 
 // Plantilla HTML para credenciales
+// emailType = 0 -> nuevo usuario
+// emailType = 1 -> restablecimiento de contraseña
 const getCredentialsEmailTemplate = (nombre, apellidos, username, password, emailType = 0) => {
   let title = "¡Bienvenido a GreenBit!";
   let lead = "Tu cuenta ha sido creada exitosamente. Aquí están tus credenciales de acceso.";
