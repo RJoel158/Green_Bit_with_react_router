@@ -85,7 +85,7 @@ const RecyclingInterface: React.FC = () => {
         {/* Sección Reciclaje */}
         <div className="recycling-section">
           <button className="recycling-button" onClick={handleRecycleClick}>
-            ♻️ R E C I C L A ♻️
+          ♻️R E C I C L A♻️
           </button>
 
           <div className="recyclers-card">

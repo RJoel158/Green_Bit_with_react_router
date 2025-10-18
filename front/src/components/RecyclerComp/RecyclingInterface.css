@@ -113,24 +113,50 @@
   border-radius: 20px;
 }
 
-/* Botón RECICLA */
+/* Botón RECICLA - Mejorado y Responsivo */
 .recycling-button {
-  background: #4CAF50;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
   font-size: 28px;
-  font-weight: bold;
+  font-weight: 700;
   letter-spacing: 8px;
   border: none;
   padding: 20px 60px;
   border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4), 0 4px 8px rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 500px;
+}
+
+.recycling-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.recycling-button:hover::before {
+  left: 100%;
 }
 
 .recycling-button:hover {
-  transform: translateY(-3px);
-  background: #45a049;
+  transform: translateY(-4px) scale(1.02);
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  box-shadow: 0 12px 28px rgba(76, 175, 80, 0.5), 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.recycling-button:active {
+  transform: translateY(-2px) scale(0.98);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3), 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Botón para ver puntos de reciclaje */
@@ -254,6 +280,11 @@
   
   .recycling-section {
     max-width: 100%;
+    width: 100%;
+  }
+  
+  .recycling-button {
+    max-width: 600px;
   }
 }
 
@@ -264,21 +295,136 @@
     gap: 15px;
   }
   
+  .logo-container {
+    width: 250px;
+    min-width: 250px;
+    height: 80px;
+  }
+  
   .main-content {
-    padding: 20px;
+    padding: 20px 15px;
+    gap: 25px;
   }
   
   .banner-left,
   .banner-right {
-    height: 200px;
+    height: 150px;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .recycling-section {
+    width: 100%;
+    gap: 25px;
   }
   
   .recycling-button {
-    font-size: 22px;
-    padding: 15px 40px;
+    font-size: 20px;
+    letter-spacing: 6px;
+    padding: 18px 40px;
+    border-radius: 12px;
+    max-width: 100%;
   }
   
   .recyclers-card {
     padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 20px;
+  }
+  
+  .recycler-item {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header {
+    padding: 12px 15px;
+  }
+  
+  .logo-container {
+    width: 200px;
+    min-width: 200px;
+    height: 60px;
+  }
+  
+  .user-name {
+    font-size: 14px;
+  }
+  
+  .user-avatar {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .main-content {
+    padding: 15px 10px;
+    gap: 20px;
+  }
+  
+  .banner-left,
+  .banner-right {
+    height: 120px;
+    border-radius: 15px;
+  }
+  
+  .recycling-button {
+    font-size: 16px;
+    letter-spacing: 4px;
+    padding: 15px 30px;
+    border-radius: 10px;
+  }
+  
+  .recyclers-card {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  
+  .card-title {
+    font-size: 18px;
+  }
+  
+  .card-subtitle {
+    font-size: 12px;
+  }
+  
+  .recycler-item {
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .recycler-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .recycler-name {
+    font-size: 14px;
+  }
+  
+  .recycler-points {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 400px) {
+  .recycling-button {
+    font-size: 14px;
+    letter-spacing: 3px;
+    padding: 12px 20px;
+  }
+  
+  .logo-container {
+    width: 180px;
+    min-width: 180px;
+    height: 50px;
+  }
+  
+  .banner-left,
+  .banner-right {
+    height: 100px;
+    border-radius: 12px;
   }
 }

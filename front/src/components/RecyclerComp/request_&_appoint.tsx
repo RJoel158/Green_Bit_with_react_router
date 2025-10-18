@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./requestandappointment.css";
 import { getRequestsByUserAndState } from "../../services/requestService";
 import { getAppointmentsByRecycler, getAppointmentsByCollector } from "../../services/appointmentService";
@@ -85,133 +86,179 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
   };
 
   const renderRequestCard = (request: Request) => (
-    <div key={request.id} className="appointment-card">
-      <div className="appointment-icon">♻️</div>
-      <div className="appointment-details">
-        <p className="appointment-title">{request.materialName || 'Material de reciclaje'}</p>
-        <p className="appointment-desc">{request.description}</p>
-        <p className="appointment-date">Fecha: {formatDate(request.registerDate)}</p>
-        <Link to={`/pickupDetails/${request.id}`} className="details-button">Ir a Detalles</Link>
+    <div key={request.id} className="card appointment-card mb-3">
+      <div className="card-body d-flex align-items-start gap-3">
+        <div className="appointment-icon">♻️</div>
+        <div className="flex-grow-1">
+          <h5 className="card-title appointment-title mb-2">
+            {request.materialName || 'Material de reciclaje'}
+          </h5>
+          <p className="card-text appointment-desc mb-3">{request.description}</p>
+          <div className="appointment-date mb-3">
+            📅 {formatDate(request.registerDate)}
+          </div>
+          <Link to={`/pickupDetails/${request.id}`} className="btn btn-sm details-button w-100">
+            Ver Detalles →
+          </Link>
+        </div>
       </div>
     </div>
   );
 
   const renderAppointmentCard = (appointment: Appointment) => (
-    <div key={appointment.id} className="appointment-card">
-      <div className="appointment-icon">♻️</div>
-      <div className="appointment-details">
-        <p className="appointment-title">{appointment.materialName || 'Material de reciclaje'}</p>
-        <p className="appointment-desc">{appointment.description}</p>
-        <p className="appointment-date">
-          Fecha: {formatDate(appointment.acceptedDate)} - {appointment.acceptedHour}
-        </p>
-        {user.role === 'reciclador' && appointment.collectorName && (
-          <>
-            <p className="appointment-collector">Recolector: {appointment.collectorName}</p>
-            {appointment.collectorPhone && (
-              <p className="appointment-collector">Tel: {appointment.collectorPhone}</p>
-            )}
-          </>
-        )}
-        {user.role === 'recolector' && appointment.recyclerName && (
-          <>
-            <p className="appointment-recycler">Reciclador: {appointment.recyclerName}</p>
-            {appointment.recyclerPhone && (
-              <p className="appointment-recycler">Tel: {appointment.recyclerPhone}</p>
-            )}
-          </>
-        )}
-        <Link to={`/pickupDetails/${appointment.idRequest}?appointmentId=${appointment.id}`} className="details-button">Ver Detalles</Link>
+    <div key={appointment.id} className="card appointment-card mb-3">
+      <div className="card-body d-flex align-items-start gap-3">
+        <div className="appointment-icon">♻️</div>
+        <div className="flex-grow-1">
+          <h5 className="card-title appointment-title mb-2">
+            {appointment.materialName || 'Material de reciclaje'}
+          </h5>
+          <p className="card-text appointment-desc mb-3">{appointment.description}</p>
+          <div className="appointment-date mb-3">
+            📅 {formatDate(appointment.acceptedDate)} <br></br>🕐 {appointment.acceptedHour}
+          </div>
+          {user.role === 'reciclador' && appointment.collectorName && (
+            <div className="mb-3 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '8px' }}>
+              <p className="appointment-collector mb-1">
+                <strong>👤 Recolector:</strong> {appointment.collectorName}
+              </p>
+              {appointment.collectorPhone && (
+                <p className="appointment-collector mb-0">
+                  <strong>📞 Tel:</strong> {appointment.collectorPhone}
+                </p>
+              )}
+            </div>
+          )}
+          {user.role === 'recolector' && appointment.recyclerName && (
+            <div className="mb-3 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '8px' }}>
+              <p className="appointment-recycler mb-1">
+                <strong>👤 Reciclador:</strong> {appointment.recyclerName}
+              </p>
+              {appointment.recyclerPhone && (
+                <p className="appointment-recycler mb-0">
+                  <strong>📞 Tel:</strong> {appointment.recyclerPhone}
+                </p>
+              )}
+            </div>
+          )}
+          <Link 
+            to={`/pickupDetails/${appointment.idRequest}?appointmentId=${appointment.id}`} 
+            className="btn btn-sm details-button w-100"
+          >
+            Ver Detalles →
+          </Link>
+        </div>
       </div>
     </div>
   );
 
   if (loading) {
     return (
-      <div className="request-appoint-container">
-        <div className="loading">Cargando...</div>
+      <div className="container my-5">
+        <div className="text-center">
+          <div className="spinner-border text-success" role="status">
+            <span className="visually-hidden">Cargando...</span>
+          </div>
+          <p className="mt-3">Cargando...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="request-appoint-container">
-        <div className="error">Error: {error}</div>
+      <div className="container my-5">
+        <div className="alert alert-danger" role="alert">
+          <strong>Error:</strong> {error}
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="request-appoint-container">
-        {user.role === 'reciclador' ? (
-          <>
-            {/* Para Recicladores */}
-            {/* Solicitudes Activas */}
-            <div className="appointments-column">
-              <h3>Solicitudes activas</h3>
-              {activeRequests.length > 0 ? (
-                activeRequests.map(renderRequestCard)
-              ) : (
-                <div className="no-data">No hay solicitudes activas</div>
-              )}
-            </div>
+      <div className="container my-4 px-3">
+        <div className="row g-4">
+          {user.role === 'reciclador' ? (
+            <>
+              {/* Para Recicladores */}
+              {/* Solicitudes Activas */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Solicitudes activas</h3>
+                  {activeRequests.length > 0 ? (
+                    activeRequests.map(renderRequestCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay solicitudes activas</div>
+                  )}
+                </div>
+              </div>
 
-            {/* Citas Activas */}
-            <div className="appointments-column">
-              <h3>Citas activas</h3>
-              {activeAppointments.length > 0 ? (
-                activeAppointments.map(renderAppointmentCard)
-              ) : (
-                <div className="no-data">No hay citas activas</div>
-              )}
-            </div>
+              {/* Citas Activas */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Citas activas</h3>
+                  {activeAppointments.length > 0 ? (
+                    activeAppointments.map(renderAppointmentCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay citas activas</div>
+                  )}
+                </div>
+              </div>
 
-            {/* Historial de Citas */}
-            <div className="appointments-column">
-              <h3>Historial de citas</h3>
-              {appointmentHistory.length > 0 ? (
-                appointmentHistory.map(renderAppointmentCard)
-              ) : (
-                <div className="no-data">No hay historial de citas</div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Para Recolectores */}
-            {/* Citas Pendientes */}
-            <div className="appointments-column">
-              <h3>Citas pendientes</h3>
-              {pendingAppointments.length > 0 ? (
-                pendingAppointments.map(renderAppointmentCard)
-              ) : (
-                <div className="no-data">No hay citas pendientes</div>
-              )}
-            </div>
+              {/* Historial de Citas */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Historial de citas</h3>
+                  {appointmentHistory.length > 0 ? (
+                    appointmentHistory.map(renderAppointmentCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay historial de citas</div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Para Recolectores */}
+              {/* Citas Pendientes */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Citas pendientes</h3>
+                  {pendingAppointments.length > 0 ? (
+                    pendingAppointments.map(renderAppointmentCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay citas pendientes</div>
+                  )}
+                </div>
+              </div>
 
-            {/* Citas Activas */}
-            <div className="appointments-column">
-              <h3>Citas activas</h3>
-              {activeAppointments.length > 0 ? (
-                activeAppointments.map(renderAppointmentCard)
-              ) : (
-                <div className="no-data">No hay citas activas</div>
-              )}
-            </div>
+              {/* Citas Activas */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Citas activas</h3>
+                  {activeAppointments.length > 0 ? (
+                    activeAppointments.map(renderAppointmentCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay citas activas</div>
+                  )}
+                </div>
+              </div>
 
-            {/* Historial de Citas */}
-            <div className="appointments-column">
-              <h3>Historial de citas</h3>
-              {appointmentHistory.length > 0 ? (
-                appointmentHistory.map(renderAppointmentCard)
-              ) : (
-                <div className="no-data">No hay historial de citas</div>
-              )}
-            </div>
-          </>
-        )}
+              {/* Historial de Citas */}
+              <div className="col-12 col-md-6 col-lg-4">
+                <div className="appointments-column">
+                  <h3 className="text-center mb-4">Historial de citas</h3>
+                  {appointmentHistory.length > 0 ? (
+                    appointmentHistory.map(renderAppointmentCard)
+                  ) : (
+                    <div className="no-data text-center p-4">No hay historial de citas</div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
