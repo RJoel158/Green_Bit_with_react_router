@@ -580,20 +580,42 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
           {/* Mensaje informativo para el recolector cuando está en estado PENDING */}
           {appointmentData.state === APPOINTMENT_STATE.PENDING && isCollector() && (
-            <div style={{
-              backgroundColor: '#fff3cd',
-              border: '1px solid #ffc107',
-              borderRadius: '0.5rem',
-              padding: '1rem',
-              color: '#856404'
-            }}>
-              <p style={{ margin: 0, fontWeight: 500 }}>
-                ⏳ <strong>Esperando confirmación del reciclador</strong>
-              </p>
-              <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9em' }}>
-                Tu solicitud de recolección está pendiente. El reciclador debe aceptarla para continuar.
-              </p>
-            </div>
+            <>
+              <div style={{
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '0.5rem',
+                padding: '1rem',
+                color: '#856404',
+                marginBottom: '1rem'
+              }}>
+                <p style={{ margin: 0, fontWeight: 500 }}>
+                  ⏳ <strong>Esperando confirmación del reciclador</strong>
+                </p>
+                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9em' }}>
+                  Tu solicitud de recolección está pendiente. El reciclador debe aceptarla para continuar.
+                </p>
+              </div>
+              
+              {/* Botón para que el recolector cancele su propia agenda */}
+              <button
+                onClick={handleCancelAppointment}
+                className="pickupdetail-cancel-button"
+                disabled={cancelling}
+                style={{
+                  opacity: cancelling ? 0.6 : 1,
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                  backgroundColor: '#ff9800',
+                  color: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '0.5rem',
+                  border: 'none',
+                  fontWeight: 600
+                }}
+              >
+                {cancelling ? 'Cancelando...' : '🗑️ Cancelar mi Agenda'}
+              </button>
+            </>
           )}
 
           {/* Botones para estado ACCEPTED (1) - Ambos pueden cancelar o completar */}
