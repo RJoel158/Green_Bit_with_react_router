@@ -9,6 +9,7 @@ import {
 import './PickupDetails.css';
 import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
+import { checkUserRated } from '../../services/scoreService';
 
 interface PickupInfoProps {
   requestId?: string;
@@ -57,6 +58,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [rejecting, setRejecting] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -161,6 +163,27 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
     }
   }, [requestData, onLocationUpdate]);
+
+  // Verificar si el usuario debe calificar cuando se carga una cita completada
+  useEffect(() => {
+    const checkRatingStatus = async () => {
+      if (appointmentData && appointmentData.state === APPOINTMENT_STATE.COMPLETED && appointmentId) {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
+          setHasRated(alreadyRated);
+          
+          // Si NO ha calificado, mostrar el modal automáticamente
+          if (!alreadyRated) {
+            setShowRatingModal(true);
+          }
+        }
+      }
+    };
+
+    checkRatingStatus();
+  }, [appointmentData, appointmentId]);
 
   const handleCancelAppointment = async () => {
     if (!appointmentId) {
@@ -388,7 +411,14 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       if (result.success) {
         alert('✓ Recolección completada exitosamente.');
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
-        setShowRatingModal(true);
+        
+        // Verificar si el usuario ya calificó
+        if (user?.id) {
+          const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
+          if (!alreadyRated) {
+            setShowRatingModal(true);
+          }
+        }
 
       } else {
         throw new Error(result.error || 'Error al completar la cita');
@@ -403,6 +433,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const handleRatingModalClose = () => {
     setShowRatingModal(false);
     onCancel();
+  };
+  
+  const handleRatingSuccess = () => {
+    setHasRated(true);
+    setShowRatingModal(false);
   };
 
   if (loading) {
@@ -719,8 +754,15 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           Cerrar
         </button>
       )}
-      {showRatingModal && (
-        <RatingModal onClose={handleRatingModalClose} />
+      {showRatingModal && appointmentData && (
+        <RatingModal 
+          appointmentId={Number(appointmentId)}
+          ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
+          ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          userRole={isRecycler() ? 'reciclador' : 'recolector'}
+          onClose={handleRatingModalClose}
+          onSuccess={handleRatingSuccess}
+        />
       )}
     </div>
   );

@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import './RatingModal.css';
+import { createScore } from '../../services/scoreService';
 
 interface RatingModalProps {
+  appointmentId: number;
+  ratedToUserId: number;
+  ratedToName: string;
+  userRole: string;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
+const RatingModal: React.FC<RatingModalProps> = ({ 
+  appointmentId,
+  ratedToUserId, 
+  ratedToName, 
+  userRole,
+  onClose,
+  onSuccess 
+}) => {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -18,19 +32,46 @@ const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
     day: '2-digit'
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       alert('Por favor selecciona una calificación');
       return;
     }
 
-    console.log('Calificación seleccionada:', {
-      rating,
-      comment
-    });
+    // Obtener usuario actual
+    const userString = localStorage.getItem('user');
+    if (!userString) {
+      alert('Error: No se encontró información del usuario');
+      return;
+    }
 
-    alert('✓ ¡Gracias por tu calificación!');
-    onClose();
+    const currentUser = JSON.parse(userString);
+
+    setIsSubmitting(true);
+
+    try {
+      await createScore({
+        appointmentId,
+        ratedByUserId: currentUser.id,
+        ratedToUserId,
+        score: rating,
+        comment: comment || undefined
+      });
+
+      alert('✓ ¡Gracias por tu calificación!');
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      onClose();
+    } catch (error: any) {
+      console.error('[RatingModal] Error al enviar calificación:', error);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';
+      alert(`Error: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -58,7 +99,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
 
        
         <h2 className="rating-title">
-          Califica a tu colector
+          Califica a {userRole === 'recolector' ? 'tu reciclador' : 'tu recolector'}
         </h2>
 
         {/* Campo de texto */}
@@ -70,7 +111,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
           maxLength={500}
         />
 
-        {/* Información del colector -(Datos estaticos) */}
+        {/* Información del usuario a calificar */}
         <div className="rating-collector-info">
           <div className="rating-avatar">
             <img 
@@ -81,7 +122,7 @@ const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
           </div>
           <div className="rating-collector-details">
             <h3 className="rating-collector-name">
-              Toby Fox Williams
+              {ratedToName}
             </h3>
             <p className="rating-collector-date">
               {today}
@@ -92,12 +133,12 @@ const RatingModal: React.FC<RatingModalProps> = ({ onClose }) => {
         
         <button
           onClick={handleSubmit}
-          disabled={rating === 0}
+          disabled={rating === 0 || isSubmitting}
           className={`rating-submit-button ${
-            rating === 0 ? 'rating-submit-button--disabled' : ''
+            (rating === 0 || isSubmitting) ? 'rating-submit-button--disabled' : ''
           }`}
         >
-          Enviar Calificación
+          {isSubmitting ? 'Enviando...' : 'Enviar Calificación'}
         </button>
       </div>
     </div>
