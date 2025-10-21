@@ -86,15 +86,15 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
   };
 
   const renderRequestCard = (request: Request) => (
-    <div key={request.id} className="card appointment-card mb-3">
-      <div className="card-body d-flex align-items-start gap-3">
+    <div key={request.id} className="card appointment-card mb-2">
+      <div className="card-body d-flex align-items-start gap-2">
         <div className="appointment-icon">♻️</div>
         <div className="flex-grow-1">
-          <h5 className="card-title appointment-title mb-2">
+          <h5 className="card-title appointment-title mb-1">
             {request.materialName || 'Material de reciclaje'}
           </h5>
-          <p className="card-text appointment-desc mb-3">{request.description}</p>
-          <div className="appointment-date mb-3">
+          <p className="card-text appointment-desc mb-2">{request.description}</p>
+          <div className="appointment-date mb-2">
             📅 {formatDate(request.registerDate)}
           </div>
           <Link to={`/pickupDetails/${request.id}`} className="btn btn-sm details-button w-100">
@@ -106,37 +106,37 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
   );
 
   const renderAppointmentCard = (appointment: Appointment) => (
-    <div key={appointment.id} className="card appointment-card mb-3">
-      <div className="card-body d-flex align-items-start gap-3">
+    <div key={appointment.id} className="card appointment-card mb-2">
+      <div className="card-body d-flex align-items-start gap-2">
         <div className="appointment-icon">♻️</div>
         <div className="flex-grow-1">
-          <h5 className="card-title appointment-title mb-2">
+          <h5 className="card-title appointment-title mb-1">
             {appointment.materialName || 'Material de reciclaje'}
           </h5>
-          <p className="card-text appointment-desc mb-3">{appointment.description}</p>
-          <div className="appointment-date mb-3">
-            📅 {formatDate(appointment.acceptedDate)} <br></br>🕐 {appointment.acceptedHour}
+          <p className="card-text appointment-desc mb-2">{appointment.description}</p>
+          <div className="appointment-date mb-2">
+            📅 {formatDate(appointment.acceptedDate)} 🕐 {appointment.acceptedHour}
           </div>
           {user.role === 'reciclador' && appointment.collectorName && (
-            <div className="mb-3 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '8px' }}>
+            <div className="mb-2 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '6px' }}>
               <p className="appointment-collector mb-1">
                 <strong>👤 Recolector:</strong> {appointment.collectorName}
               </p>
               {appointment.collectorPhone && (
                 <p className="appointment-collector mb-0">
-                  <strong>📞 Tel:</strong> {appointment.collectorPhone}
+                  <strong>📞</strong> {appointment.collectorPhone}
                 </p>
               )}
             </div>
           )}
           {user.role === 'recolector' && appointment.recyclerName && (
-            <div className="mb-3 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '8px' }}>
+            <div className="mb-2 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '6px' }}>
               <p className="appointment-recycler mb-1">
                 <strong>👤 Reciclador:</strong> {appointment.recyclerName}
               </p>
               {appointment.recyclerPhone && (
                 <p className="appointment-recycler mb-0">
-                  <strong>📞 Tel:</strong> {appointment.recyclerPhone}
+                  <strong>📞</strong> {appointment.recyclerPhone}
                 </p>
               )}
             </div>

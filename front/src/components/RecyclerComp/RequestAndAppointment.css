@@ -2,9 +2,9 @@
 .appointments-column {
   background: linear-gradient(135deg, #fffdf8 0%, #faf8f3 100%);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1rem;
   border: 1px solid #e8e3d8;
-  min-height: 350px;
+  min-height: 300px;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -12,12 +12,12 @@
 }
 
 .appointments-column h3 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #2d5016;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   border-bottom: 3px solid #b89968;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -55,18 +55,18 @@
 }
 
 .appointment-card .card-body {
-  padding: 1.25rem;
+  padding: 0.85rem;
   position: relative;
 }
 
 .appointment-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: #2d5016;
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.5);
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,18 +79,18 @@
 }
 
 .appointment-title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #1a2f0d;
-  margin-bottom: 0.5rem;
-  line-height: 1.3;
+  margin-bottom: 0.35rem;
+  line-height: 1.2;
 }
 
 .appointment-desc {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #3d3027;
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -99,22 +99,22 @@
 }
 
 .appointment-date {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #2d5016;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.4);
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 6px;
   display: inline-block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .appointment-collector, .appointment-recycler {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #2d5016;
   margin: 0;
-  padding: 0.25rem 0;
-  line-height: 1.4;
+  padding: 0.2rem 0;
+  line-height: 1.3;
 }
 
 .appointment-collector strong, .appointment-recycler strong {
@@ -125,10 +125,10 @@
 .details-button {
   background: linear-gradient(135deg, #2d5016 0%, #3d6620 100%) !important;
   color: #fff !important;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 700;
   border: none;
-  padding: 0.65rem 1.25rem !important;
+  padding: 0.5rem 1rem !important;
   border-radius: 8px;
   transition: all 0.3s ease;
   text-transform: uppercase;
