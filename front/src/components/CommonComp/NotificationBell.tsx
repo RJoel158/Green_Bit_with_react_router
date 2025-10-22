@@ -151,22 +151,25 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
   };
 
   return (
-    <div className="notification-bell" ref={dropdownRef}>
-      <button 
-        className="notification-bell-button"
-        onClick={toggleDropdown}
-        aria-label="Notificaciones"
-      >
-        🔔
-        {unreadCount > 0 && (
-          <span className="notification-badge">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
+    <>
+      <div className="notification-bell" ref={dropdownRef}>
+        <button 
+          className="notification-bell-button"
+          onClick={toggleDropdown}
+          aria-label="Notificaciones"
+        >
+          🔔
+          {unreadCount > 0 && (
+            <span className="notification-badge">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
+        </button>
 
-      {isOpen && (
-        <div className="notification-dropdown">
+        {isOpen && (
+          <>
+            <div className="notification-overlay" onClick={() => setIsOpen(false)} />
+            <div className="notification-dropdown">
           <div className="notification-header">
             Mis Notificaciones
             {unreadCount > 0 && (
@@ -245,8 +248,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
             )}
           </div>
         </div>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

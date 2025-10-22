@@ -31,6 +31,8 @@ export interface UserRating {
  */
 export const createScore = async (scoreData: CreateScoreData) => {
   try {
+    console.log('[scoreService] Sending score data:', scoreData);
+    
     const response = await fetch(apiUrl('/api/scores'), {
       method: 'POST',
       headers: {
@@ -39,12 +41,17 @@ export const createScore = async (scoreData: CreateScoreData) => {
       body: JSON.stringify(scoreData),
     });
 
+    console.log('[scoreService] Response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('[scoreService] Error response:', errorData);
       throw new Error(errorData.error || 'Error al crear calificación');
     }
 
-    return await response.json();
+    const result = await response.json();
+    console.log('[scoreService] Success response:', result);
+    return result;
   } catch (error) {
     console.error('[scoreService] Error creating score:', error);
     throw error;

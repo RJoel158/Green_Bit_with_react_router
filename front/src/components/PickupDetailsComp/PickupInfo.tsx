@@ -9,6 +9,7 @@ import {
 import './PickupDetails.css';
 import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
+import ComplaintModal from '../ComplaintModalComp/ComplaintModal';
 import { checkUserRated } from '../../services/scoreService';
 
 interface PickupInfoProps {
@@ -58,7 +59,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [rejecting, setRejecting] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [hasComplained, setHasComplained] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -164,25 +167,44 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     }
   }, [requestData, onLocationUpdate]);
 
-  // Verificar si el usuario debe calificar cuando se carga una cita completada
+  // Verificar si el usuario debe calificar/reclamar cuando se carga una cita
   useEffect(() => {
-    const checkRatingStatus = async () => {
-      if (appointmentData && appointmentData.state === APPOINTMENT_STATE.COMPLETED && appointmentId) {
+    const checkRatingAndComplaintStatus = async () => {
+      if (appointmentData && appointmentId) {
         const userStr = localStorage.getItem('user');
         if (userStr) {
           const user = JSON.parse(userStr);
           const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
-          setHasRated(alreadyRated);
           
-          // Si NO ha calificado, mostrar el modal automáticamente
-          if (!alreadyRated) {
-            setShowRatingModal(true);
+          // Si la cita está COMPLETADA
+          if (appointmentData.state === APPOINTMENT_STATE.COMPLETED) {
+            setHasRated(alreadyRated);
+            // Si NO ha calificado, mostrar el modal de calificación
+            if (!alreadyRated) {
+              setShowRatingModal(true);
+            }
+          }
+          
+          // Si la cita está CANCELADA
+          if (appointmentData.state === APPOINTMENT_STATE.CANCELLED) {
+            setHasComplained(alreadyRated);
+            
+            // Verificar si este usuario fue quien canceló la cita
+            const cancelledKey = `cancelled_${appointmentId}_${user.id}`;
+            const wasCancelledByMe = sessionStorage.getItem(cancelledKey) === 'true';
+            
+            // Solo mostrar modal si:
+            // 1. No ha reclamado antes
+            // 2. NO fue quien canceló la cita
+            if (!alreadyRated && !wasCancelledByMe) {
+              setShowComplaintModal(true);
+            }
           }
         }
       }
     };
 
-    checkRatingStatus();
+    checkRatingAndComplaintStatus();
   }, [appointmentData, appointmentId]);
 
   const handleCancelAppointment = async () => {
@@ -205,11 +227,16 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     try {
       console.log('[INFO] Iniciando cancelación, appointmentId=', appointmentId, 'appointmentData=', appointmentData);
 
-      // Seleccionar userId de forma segura (null si no existe)
-      const userId = appointmentData.collectorId ?? appointmentData.recyclerId ?? null;
-      if (!userId) {
-        console.warn('[WARN] userId no encontrado en appointmentData. Verifica si el backend acepta peticiones sin userId.');
+      // Obtener el usuario actual (quien está cancelando)
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentUser.id) {
+        alert('Error: No se pudo identificar al usuario actual');
+        setCancelling(false);
+        return;
       }
+      
+      const userId = currentUser.id;
+      console.log('[INFO] Usuario que cancela:', userId, 'appointmentData:', appointmentData);
 
       // Si usas token JWT en localStorage/sessionStorage:
       const token = localStorage.getItem('token'); // o donde lo guardes
@@ -241,21 +268,45 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       console.log('[INFO] Response status:', response.status, 'parsed:', result);
+      console.log('[DEBUG] Full response object:', { 
+        ok: response.ok, 
+        status: response.status, 
+        statusText: response.statusText,
+        result 
+      });
 
       if (!response.ok) {
         // Extrae mensaje de error si existe
-        const msg = result?.error || result?.message || result?.raw || `Error ${response.status}`;
+        const msg = result?.error || result?.message || result?.raw || `Error ${response.status}: ${response.statusText}`;
+        console.error('[ERROR] Backend returned error:', msg);
         throw new Error(msg);
       }
 
       // Aquí suponemos que result.success indica éxito
       if (result && (result.success === true || response.status === 200 || response.status === 204)) {
+        console.log('[SUCCESS] Appointment cancelled successfully');
+        
+        // Marcar que este usuario canceló esta cita (para no mostrarle el modal de reclamo)
+        const currentUser = getCurrentUser();
+        if (currentUser && appointmentId) {
+          const cancelledKey = `cancelled_${appointmentId}_${currentUser.id}`;
+          sessionStorage.setItem(cancelledKey, 'true');
+          console.log('[INFO] Marked as cancelled by user:', currentUser.id);
+        }
+        
         alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
+        
+        // TEMPORARY: 10 second delay to see backend logs (REMOVE THIS LATER!!!)
+        console.log('[DEBUG] ⏳ Waiting 10 seconds to check backend logs before redirect...');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        console.log('[DEBUG] ✅ Redirecting now...');
+        
         // Actualiza estado local para reflejar la cancelación sin recargar
-        setAppointmentData(prev => prev ? { ...prev, state: 3 } : prev);
+        setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
         onCancel();
       } else {
         const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
+        console.error('[ERROR] Unexpected response:', { result, status: response.status });
         throw new Error(msg);
       }
     } catch (err) {
@@ -438,6 +489,20 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const handleRatingSuccess = () => {
     setHasRated(true);
     setShowRatingModal(false);
+  };
+
+  const handleComplaintModalClose = () => {
+    setShowComplaintModal(false);
+    // No cerrar el PickupInfo, solo el modal de reclamo
+  };
+
+  const handleComplaintSuccess = () => {
+    setHasComplained(true);
+    setShowComplaintModal(false);
+  };
+
+  const handleOpenComplaintModal = () => {
+    setShowComplaintModal(true);
   };
 
   if (loading) {
@@ -702,16 +767,62 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           )}
 
           {appointmentData.state === APPOINTMENT_STATE.CANCELLED && (
-            <div style={{
-              padding: '0.75rem',
-              backgroundColor: '#fff3e0',
-              borderRadius: '0.5rem',
-              color: '#e65100',
-              textAlign: 'center',
-              fontWeight: 500
-            }}>
-              ⚠️ Esta cita ha sido cancelada
-            </div>
+            <>
+              <div style={{
+                padding: '0.75rem',
+                backgroundColor: '#fff3e0',
+                borderRadius: '0.5rem',
+                color: '#e65100',
+                textAlign: 'center',
+                fontWeight: 500
+              }}>
+                ⚠️ Esta cita ha sido cancelada
+              </div>
+              
+              {/* Botón sutil para hacer reclamo */}
+              {!hasComplained && (
+                <button
+                  onClick={handleOpenComplaintModal}
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.5rem 1rem',
+                    backgroundColor: 'transparent',
+                    color: '#d32f2f',
+                    border: '1px solid #d32f2f',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#d32f2f';
+                    e.currentTarget.style.color = 'white';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#d32f2f';
+                  }}
+                >
+                  📝 Reportar problema
+                </button>
+              )}
+              
+              {hasComplained && (
+                <div style={{
+                  marginTop: '0.75rem',
+                  padding: '0.5rem',
+                  backgroundColor: '#ffebee',
+                  borderRadius: '0.5rem',
+                  color: '#c62828',
+                  textAlign: 'center',
+                  fontSize: '0.9rem',
+                  fontWeight: 500
+                }}>
+                  ✓ Ya has reportado un problema con esta cita
+                </div>
+              )}
+            </>
           )}
 
           {appointmentData.state === APPOINTMENT_STATE.COMPLETED && (
@@ -762,6 +873,17 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleRatingModalClose}
           onSuccess={handleRatingSuccess}
+        />
+      )}
+
+      {showComplaintModal && appointmentData && (
+        <ComplaintModal 
+          appointmentId={Number(appointmentId)}
+          ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
+          ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          userRole={isRecycler() ? 'reciclador' : 'recolector'}
+          onClose={handleComplaintModalClose}
+          onSuccess={handleComplaintSuccess}
         />
       )}
     </div>

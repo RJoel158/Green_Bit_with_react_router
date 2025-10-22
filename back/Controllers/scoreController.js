@@ -8,6 +8,9 @@ export const createScore = async (req, res) => {
   try {
     const { appointmentId, ratedByUserId, ratedToUserId, score, comment } = req.body;
 
+    console.log('[INFO] scoreController.createScore - Request body:', req.body);
+    console.log('[INFO] Extracted values:', { appointmentId, ratedByUserId, ratedToUserId, score, comment });
+
     // Validaciones
     if (!appointmentId || !ratedByUserId || !ratedToUserId || !score) {
       return res.status(400).json({

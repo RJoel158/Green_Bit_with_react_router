@@ -5,15 +5,26 @@ import db from '../Config/DBConnect.js';
  */
 export const createScore = async (appointmentId, ratedByUserId, ratedToUserId, score, comment = null) => {
   try {
+    console.log('[INFO] ScoreModel.createScore - Parameters:', { 
+      appointmentId, 
+      ratedByUserId, 
+      ratedToUserId, 
+      score, 
+      comment 
+    });
+    
     const query = `
       INSERT INTO score (appointmentConfirmationId, ratedByUserId, ratedToUserId, score, comment, state)
       VALUES (?, ?, ?, ?, ?, 1)
     `;
     
+    console.log('[INFO] ScoreModel.createScore - Executing query:', query);
     const [result] = await db.query(query, [appointmentId, ratedByUserId, ratedToUserId, score, comment]);
+    console.log('[INFO] ScoreModel.createScore - Success! InsertId:', result.insertId);
     return result.insertId;
   } catch (err) {
     console.error('[ERROR] ScoreModel.createScore:', err);
+    console.error('[ERROR] Query parameters:', { appointmentId, ratedByUserId, ratedToUserId, score, comment });
     throw err;
   }
 };

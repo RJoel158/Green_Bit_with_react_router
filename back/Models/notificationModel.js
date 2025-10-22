@@ -2,6 +2,41 @@
 import db from "../Config/DBConnect.js";
 
 /**
+ * Crear una nueva notificación
+ * @param {number} userId - ID del usuario que recibirá la notificación
+ * @param {string} title - Título de la notificación
+ * @param {string} body - Cuerpo del mensaje
+ * @param {string} type - Tipo de notificación (request, appointment, etc.)
+ * @param {number} entityId - ID de la entidad relacionada (requestId o appointmentId)
+ * @returns {Promise<number>} - ID de la notificación creada
+ */
+export const createNotification = async (userId, title, body, type, entityId) => {
+  try {
+    // Determinar si es appointmentId o requestId basado en el tipo
+    const appointmentTypes = ['appointment', 'appointment_canceled', 'appointment_accepted', 'appointment_rejected'];
+    const isAppointment = appointmentTypes.includes(type);
+    
+    const [result] = await db.query(`
+      INSERT INTO notifications (
+        userId, 
+        type, 
+        title, 
+        body, 
+        ${isAppointment ? 'appointmentId' : 'requestId'},
+        \`read\`,
+        createdAt
+      ) VALUES (?, ?, ?, ?, ?, 0, NOW())
+    `, [userId, type, title, body, entityId]);
+
+    console.log(`[INFO] Notification created for user ${userId}: ${title} (type: ${type}, entityId: ${entityId})`);
+    return result.insertId;
+  } catch (error) {
+    console.error("[ERROR] NotificationModel.createNotification:", error);
+    throw error;
+  }
+};
+
+/**
  * Obtener notificaciones de un usuario
  * @param {number} userId - ID del usuario
  * @param {number} limit - Límite de notificaciones a obtener

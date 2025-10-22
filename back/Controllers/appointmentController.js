@@ -267,6 +267,38 @@ export const cancelAppointment = async (req, res) => {
       return res.status(400).json({ success: false, error: "ID de usuario requerido" });
     }
 
+    // Obtener información de la cita antes de cancelar para enviar notificación
+    let appointment = null;
+    try {
+      console.log("[INFO] Fetching appointment info for ID:", id);
+      const [rows] = await db.query(
+        `SELECT ac.idRequest, ac.collectorId,
+                r.idUser as recyclerId,
+                COALESCE(CONCAT(pc.firstname, ' ', pc.lastname), uc.email) as collectorName,
+                COALESCE(CONCAT(pr.firstname, ' ', pr.lastname), ur.email) as recyclerName
+         FROM appointmentconfirmation ac
+         JOIN request r ON r.id = ac.idRequest
+         LEFT JOIN users uc ON uc.id = ac.collectorId
+         LEFT JOIN person pc ON pc.userId = ac.collectorId
+         LEFT JOIN users ur ON ur.id = r.idUser
+         LEFT JOIN person pr ON pr.userId = r.idUser
+         WHERE ac.id = ?`,
+        [parseInt(id)]
+      );
+
+      console.log("[DEBUG] Query result - rows count:", rows?.length || 0);
+      if (rows && rows.length > 0) {
+        appointment = rows[0];
+        console.log("[INFO] Appointment info retrieved:", JSON.stringify(appointment, null, 2));
+      } else {
+        console.log("[WARN] No appointment info found for ID:", id);
+      }
+    } catch (queryError) {
+      console.error("[ERROR] Failed to get appointment info for notification:", queryError);
+      console.error("[ERROR] Query error details:", queryError.message);
+      // Continuar con la cancelación aunque falle obtener info para notificación
+    }
+    
     const result = await AppointmentModel.cancelAppointment(
       parseInt(id),
       parseInt(userId),
@@ -274,6 +306,52 @@ export const cancelAppointment = async (req, res) => {
     );
 
     console.log("[INFO] cancelAppointment success:", result);
+
+    // Enviar notificación al otro usuario (solo si tenemos la información)
+    console.log("[DEBUG] About to check appointment:", { hasAppointment: !!appointment, appointment });
+    if (appointment) {
+      try {
+        const isCollectorCancelling = parseInt(userId) === appointment.collectorId;
+        const notificationUserId = isCollectorCancelling ? appointment.recyclerId : appointment.collectorId;
+        const cancellerName = isCollectorCancelling ? appointment.collectorName : appointment.recyclerName;
+
+        const notificationTitle = "🚫 Cita cancelada";
+        const notificationMessage = `${cancellerName} canceló tu cita de recolección`;
+
+        console.log(`[INFO] Sending notification to user ${notificationUserId} about cancellation by ${cancellerName}`);
+
+        // Crear notificación en BD
+        const notifId = await NotificationModel.createNotification(
+          notificationUserId,
+          notificationTitle,
+          notificationMessage,
+          "appointment_canceled",
+          parseInt(id)
+        );
+
+        console.log(`[INFO] Notification created in DB with ID: ${notifId}`);
+
+        // Enviar en tiempo real
+        const notificationData = {
+          id: notifId,
+          title: notificationTitle,
+          body: notificationMessage,
+          type: "appointment_canceled",
+          appointmentId: parseInt(id),
+          requestId: appointment.idRequest,
+          createdAt: new Date().toISOString()
+        };
+        
+        console.log(`[INFO] Sending real-time notification:`, notificationData);
+        const sent = sendRealTimeNotification(notificationUserId, notificationData);
+        console.log(`[INFO] Real-time notification ${sent ? 'sent' : 'not sent'} to user ${notificationUserId}`);
+      } catch (notifError) {
+        console.error("[WARN] Failed to send cancellation notification:", notifError);
+        // No fallar la cancelación si falla la notificación
+      }
+    } else {
+      console.log("[WARN] Skipping notification - appointment info not available");
+    }
 
     // ✅ RESPUESTA JSON CORRECTA PARA EL FRONTEND
     return res.status(200).json({
