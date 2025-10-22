@@ -25,6 +25,19 @@ export const getUsersPerson = async (req, res) => {
   }
 };
 
+/** GET /users/collectors/pending */
+export const getCollectorsPendingWithPerson = async (req, res) => {
+  try {
+    const collectors = await UserModel.getCollectorsPendingWithPerson();
+    res.json({ success: true, collectors });
+  } catch (err) {
+    console.error("[ERROR] getCollectorsPendingWithPerson controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener solicitudes de recolectores pendientes" });
+  }
+};
+
+
+
 /** GET /users/:id */
 export const getUserById = async (req, res) => {
   try {
@@ -386,6 +399,17 @@ export const getUsersWithInstitution = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] getUsersWithInstitution:", { message: err.message });
     res.status(500).json({ success: false, error: "Error al obtener usuarios con institución" });
+  }
+};
+
+/** GET /users/collectors/pending/institution */
+export const getCollectorsPendingWithInstitution = async (req, res) => {
+  try {
+    const collectors = await UserModel.getCollectorsPendingWithInstitution();
+    res.json({ success: true, collectors });
+  } catch (err) {
+    console.error("[ERROR] getCollectorsPendingWithInstitution controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener solicitudes de recolectores institucionales pendientes" });
   }
 };
 

@@ -46,7 +46,6 @@ export default function RequestsTable({
                   <th className="collector-requests-table-head-cell">Correo electrónico</th>
                   <th className="collector-requests-table-head-cell">Teléfono</th>
                   <th className="collector-requests-table-head-cell">Fecha de registro</th>
-                  <th className="collector-requests-table-head-cell">Estado</th>
                   <th className="collector-requests-table-head-cell">Acciones</th>
                 </>
               ) : (
@@ -56,7 +55,6 @@ export default function RequestsTable({
                   <th className="collector-requests-table-head-cell">Correo electrónico</th>
                   <th className="collector-requests-table-head-cell">Teléfono</th>
                   <th className="collector-requests-table-head-cell">Fecha de registro</th>
-                  <th className="collector-requests-table-head-cell">Estado</th>
                   <th className="collector-requests-table-head-cell">Acciones</th>
                 </>
               )}
@@ -82,11 +80,6 @@ export default function RequestsTable({
                     <td className="collector-requests-table-body-cell">{request.email}</td>
                     <td className="collector-requests-table-body-cell">{request.phone}</td>
                     <td className="collector-requests-table-body-cell">{request.registrationDate}</td>
-                    <td className="collector-requests-table-body-cell">
-                      <span className="collector-requests-table-status-badge">
-                        {request.status}
-                      </span>
-                    </td>
                     <td className="collector-requests-table-body-cell">
                       <div className="collector-requests-table-actions">
                         <button 

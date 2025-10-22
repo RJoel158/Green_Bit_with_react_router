@@ -51,18 +51,15 @@ export default function CollectorRequests() {
     
     try {
       const endpoint = type === 'Persona' 
-        ? 'http://localhost:3000/api/users/withPerson' 
-        : 'http://localhost:3000/api/users/withInstitution';
+        ? 'http://localhost:3000/api/users/collectors/pending' 
+        : 'http://localhost:3000/api/users/collectors/pending/institution';
       
       const response = await fetch(endpoint);
       const data = await response.json();
       
       if (data.success) {
-        // Filtrar solo recolectores pendientes de aprobación
-        const pendingCollectors = data.users.filter((user: CollectorRequest) => 
-          user.roleId === 2 && user.userState === 0
-        );
-        setRequests(pendingCollectors);
+       
+        setRequests(data.collectors || []);
       } else {
         setError('Error al obtener solicitudes');
       }
@@ -92,7 +89,7 @@ export default function CollectorRequests() {
         email: request.email,
         phone: request.phone, 
         registrationDate: new Date(request.registerDate).toLocaleDateString('es-ES'),
-        status: request.userState === 0 ? 'Pendiente' : 'Aprobado',
+        status: request.userState === 3 ? 'Pendiente' : 'Aprobado',
         firstname: request.firstname,
         lastname: request.lastname,
         companyName: request.companyName,
@@ -157,20 +154,13 @@ export default function CollectorRequests() {
         />
         <div className="collector-requests-content">
           {loading && (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+            <div className="collector-requests-loading">
               Cargando solicitudes...
             </div>
           )}
           
           {error && (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '2rem', 
-              color: '#ef4444',
-              backgroundColor: '#fee2e2',
-              borderRadius: '0.5rem',
-              margin: '1rem 0'
-            }}>
+            <div className="collector-requests-error">
               {error}
             </div>
           )}
