@@ -34,6 +34,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow-y: auto; /* Permitir scroll si el contenido es muy largo */
 }
 
 /* Tarjeta del formulario */
@@ -42,6 +43,8 @@ html, body, #root {
   border-radius: 16px;
   padding: 2rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin: 0 auto;
+  width: 100%;
 }
 
 .auth-title {
@@ -97,6 +100,27 @@ html, body, #root {
   cursor: not-allowed;
 }
 
+/* Botón de login (outline) */
+.btn-outline-success {
+  background: transparent;
+  border: 2px solid var(--verde-medio);
+  color: var(--verde-medio);
+  padding: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+.btn-outline-success:hover {
+  background: var(--verde-medio);
+  color: #fff;
+  border-color: var(--verde-medio);
+  text-decoration: none;
+}
+
 /* Mensajes */
 .alert {
   border-radius: 12px;
@@ -140,6 +164,7 @@ html, body, #root {
   height: 100%;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* Recuperacion de contraseña */
@@ -167,10 +192,141 @@ html, body, #root {
 }
 /* Responsive */
 @media (max-width: 992px) {
-  .register-right { display: none; }
+  .register-right { 
+    display: none; 
+  }
+  
   .register-left {
     max-width: 100%;
     border-right: none;
     padding: 1.5rem;
+  }
+  
+  .auth-card {
+    padding: 1.5rem;
+  }
+  
+  .register-logo {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-page {
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .register-left {
+    padding: 1rem;
+    justify-content: flex-start;
+    padding-top: 2rem;
+  }
+  
+  .auth-card {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+  
+  .auth-title {
+    font-size: 20px;
+  }
+  
+  .register-logo {
+    width: 160px;
+    margin-bottom: 10px;
+  }
+  
+  .auth-form .form-control {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.95rem;
+  }
+  
+  .btn-success {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+  
+  .btn-outline-success {
+    padding: 0.65rem;
+    font-size: 0.9rem;
+  }
+  
+  .cta-banner {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-left {
+    padding: 0.75rem;
+    padding-top: 1.5rem;
+  }
+  
+  .auth-card {
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  
+  .auth-title {
+    font-size: 18px;
+  }
+  
+  .register-logo {
+    width: 140px;
+    margin-bottom: 8px;
+  }
+  
+  .auth-form .form-control {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+  
+  .btn-success {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+  
+  .btn-outline-success {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+  
+  .cta-banner {
+    font-size: 0.8rem;
+    padding: 7px 10px;
+    border-radius: 12px;
+  }
+  
+  .alert {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.85rem;
+  }
+  
+  .forgot-link {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .register-left {
+    padding: 0.5rem;
+  }
+  
+  .auth-card {
+    padding: 0.85rem;
+  }
+  
+  .register-logo {
+    width: 120px;
+  }
+  
+  .auth-title {
+    font-size: 16px;
   }
 }

@@ -203,6 +203,25 @@ const RegisterInstitution: React.FC = () => {
               {mensaje}
             </div>
           )}
+          
+          <div className="text-center mt-3 mb-3">
+            <p style={{ fontSize: "0.95rem", color: "#666", marginBottom: "8px" }}>
+              ¿Ya tienes una cuenta?
+            </p>
+            <a
+              href="/login"
+              className="btn btn-outline-success w-100"
+              style={{
+                borderWidth: "2px",
+                borderRadius: "12px",
+                padding: "0.7rem",
+                fontWeight: "600",
+                fontSize: "0.95rem"
+              }}
+            >
+              Iniciar Sesión
+            </a>
+          </div>
         </div>
 
         <div className="cta-banner text-center mt-3">

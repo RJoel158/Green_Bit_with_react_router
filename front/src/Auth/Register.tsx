@@ -33,10 +33,6 @@ const Register: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    window.history.back();
-  };
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -109,17 +105,6 @@ const Register: React.FC = () => {
         }}
       >
         <div className="auth-card shadow-lg p-4 rounded-4" id="registerPage">
-          {/* Botón volver arriba */}
-          <div className="mt-10 text-start">
-            <button
-              type="button"
-              className="btn-back btn btn-success"
-              onClick={handleBack}
-            >
-              ← Volver
-            </button>
-          </div>
-
           <div className="text-center mb-4">
             <h1 className="auth-title mb-2">Registra tu cuenta de reciclaje</h1>
             <img src={logo} alt="Logo EcoVerde" className="register-logo" />
@@ -166,7 +151,7 @@ const Register: React.FC = () => {
 
           {mensaje && (
             <div
-              className={`alert mt-3 ${
+              className={`alert ${
                 mensaje.includes("✅") ? "alert-success" : "alert-danger"
               }`}
               role="alert"
@@ -174,6 +159,25 @@ const Register: React.FC = () => {
               {mensaje}
             </div>
           )}
+          
+          <div className="text-center mt-3 mb-3">
+            <p style={{ fontSize: "0.95rem", color: "#666", marginBottom: "8px" }}>
+              ¿Ya tienes una cuenta?
+            </p>
+            <a
+              href="/login"
+              className="btn btn-outline-success w-100"
+              style={{
+                borderWidth: "2px",
+                borderRadius: "12px",
+                padding: "0.7rem",
+                fontWeight: "600",
+                fontSize: "0.95rem"
+              }}
+            >
+              Iniciar Sesión
+            </a>
+          </div>
         </div>
 
         <div className="cta-banner text-center mb-5">
