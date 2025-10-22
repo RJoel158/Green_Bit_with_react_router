@@ -8,18 +8,26 @@ interface User {
   userId: number;
   fullName: string;
   email: string;
+  phone: string;
   registrationDate: string;
   role: string;
+  // Campos opcionales para determinar tipo de usuario
+  firstname?: string;
+  lastname?: string;
+  companyName?: string;
+  nit?: string;
 }
 
 interface UserInfoPanelProps {
   user: User | null;
+  userType?: 'Persona' | 'Empresa'; 
 }
 
-export default function UserInfoPanel({ user }: UserInfoPanelProps) {
+export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
 
   const handleSaveClick = () => {
@@ -76,10 +84,44 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
     }
   };
 
-  const handleConfirmDelete = () => {
-    // Aquí puedes agregar la lógica para borrar el usuario
-    console.log('Usuario borrado');
-    setShowDeleteModal(false);
+  const handleConfirmDelete = async () => {
+    if (!user) return;
+
+    // Usar userType como fuente de verdad, con fallback a detección por campos
+    const isInstitution = userType === 'Empresa' || !!(user.companyName || user.nit);
+
+    let endpoint = '';
+    if (isInstitution) {
+      // Ruta para institución: DELETE /api/users/institution/:id
+      endpoint = `http://localhost:3000/api/users/institution/${user.userId}`;
+    } else {
+      // Ruta para persona: DELETE /api/users/:id
+      endpoint = `http://localhost:3000/api/users/${user.userId}`;
+    }
+
+    console.log(`[DELETE] Tipo: ${isInstitution ? 'Empresa' : 'Persona'}, Endpoint: ${endpoint}`);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log('Usuario eliminado exitosamente');
+        setShowDeleteModal(false);
+        setShowDeleteSuccessModal(true);
+      } else {
+        console.error('Error al eliminar el usuario:', data.error);
+        alert('Error al eliminar el usuario: ' + data.error);
+        setShowDeleteModal(false);
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('Error de conexión al eliminar el usuario');
+      setShowDeleteModal(false);
+    }
   };
 
   const handleCancelSave = () => {
@@ -100,10 +142,14 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
     );
   }
 
+  // Determinar si es persona o empresa
+  const isInstitution = !!(user.companyName || user.nit);
+  const displayName = isInstitution ? (user.companyName || user.fullName) : user.fullName;
+
   return (
     <div className="user-management-info-panel">
       <div className="user-management-info-header">
-        <h3 className="user-management-info-title">Usuario</h3>
+        <h3 className="user-management-info-title">{isInstitution ? 'Empresa' : 'Usuario'}</h3>
         <div 
           className={`user-management-info-avatar ${
             user.role === 'Recolector' 
@@ -111,19 +157,41 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
               : 'user-management-info-avatar-recycler'
           }`}
         >
-          {user.fullName.split(' ').map(n => n[0]).join('')}
+          {displayName.split(' ').map(n => n[0]).join('')}
         </div>
-        <h2 className="user-management-info-name">{user.fullName}</h2>
+        <h2 className="user-management-info-name">{displayName}</h2>
         <p className="user-management-info-role">{user.role}</p>
       </div>
 
       <div className="user-management-info-form">
+
+        {isInstitution && user.nit && (
+          <div className="user-management-info-field">
+            <label className="user-management-info-label">NIT:</label>
+            <input 
+              type="text" 
+              value={user.nit} 
+              readOnly 
+              className="user-management-info-input user-management-info-input-readonly"
+            />
+          </div>
+        )}
 
         <div className="user-management-info-field">
           <label className="user-management-info-label">Correo electrónico:</label>
           <input 
             type="email" 
             value={user.email} 
+            readOnly 
+            className="user-management-info-input user-management-info-input-readonly"
+          />
+        </div>
+
+        <div className="user-management-info-field">
+          <label className="user-management-info-label">Teléfono:</label>
+          <input 
+            type="text" 
+            value={user.phone} 
             readOnly 
             className="user-management-info-input user-management-info-input-readonly"
           />
@@ -190,6 +258,14 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
         <SuccessModal
           title="¡Rol actualizado!"
           message="El rol del usuario se ha actualizado correctamente"
+          redirectUrl={window.location.href}
+        />
+      )}
+
+      {showDeleteSuccessModal && (
+        <SuccessModal
+          title="¡Usuario eliminado!"
+          message="El usuario ha sido eliminado correctamente"
           redirectUrl={window.location.href}
         />
       )}

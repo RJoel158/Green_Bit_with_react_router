@@ -14,6 +14,7 @@ import {
   getUserWithInstitutionById,
   createUserWithInstitution,
   updateUserWithInstitution,
+  deleteUserWithInstitution,
 
   deleteUser,
   loginUser,
@@ -33,18 +34,17 @@ router.get("/withInstitution", getUsersWithInstitution);
 router.get("/withInstitution/:id", getUserWithInstitutionById);
 router.post('/institution', createUserWithInstitution);
 router.put("/withInstitution/:id", updateUserWithInstitution);
+router.delete("/institution/:id", deleteUserWithInstitution);
 
 //  Users con Persona
 router.get("/", getUsers);
 router.get("/withPerson", getUsersPerson);
 router.get("/:id", getUserById);
 router.post("/", createUser);
+router.put("/:id/role", updateUserRole);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 router.post("/collector", createCollectorUser);
-
-//User
-router.put("/:id/role", updateUserRole);
 
 
 

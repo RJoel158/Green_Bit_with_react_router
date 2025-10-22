@@ -28,8 +28,14 @@ interface TableUser {
   userId: number;
   fullName: string;
   email: string;
+  phone: string;
   registrationDate: string;
   role: string;
+  // Agregar campos opcionales para determinar tipo de usuario
+  firstname?: string;
+  lastname?: string;
+  companyName?: string;
+  nit?: string;
 }
 
 type UserType = 'Persona' | 'Empresa';
@@ -78,7 +84,7 @@ export default function UserManagement() {
     }
   };
 
-  // Cargar usuarios al montar el componente y cuando cambie el tipo
+  // Cargar usuarios al cargar la página y cuando cambie el tipo
   useEffect(() => {
     fetchUsers(userType);
   }, [userType]);
@@ -94,8 +100,14 @@ export default function UserManagement() {
         userId: user.userId,
         fullName: fullName || 'Sin nombre',
         email: user.email,
+        phone: user.phone, 
         registrationDate: new Date(user.registerDate).toLocaleDateString('es-ES'),
         role: getRoleName(user.roleId),
+        // Pasar campos adicionales para determinar el tipo
+        firstname: user.firstname,
+        lastname: user.lastname,
+        companyName: user.companyName,
+        nit: user.nit,
       };
     });
   };
@@ -158,9 +170,13 @@ export default function UserManagement() {
             <div className="user-management-layout">
               <UserTable 
                 users={filterUsers(formatUsersForTable())} 
-                onSelectUser={setSelectedUser} 
+                onSelectUser={setSelectedUser}
+                userType={userType}
               />
-              <UserInfoPanel user={selectedUser} />
+              <UserInfoPanel 
+                user={selectedUser}
+                userType={userType}
+              />
             </div>
           )}
         </div>
