@@ -363,17 +363,6 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                     </h4>
                   </div>
 
-                  {/* Debug info temporal */}
-                  <div style={{ fontSize: '11px', color: '#666', marginBottom: '10px', padding: '8px', background: '#f8f9fa', borderRadius: '4px', border: '1px solid #dee2e6' }}>
-                    <div><strong>Debug Info:</strong></div>
-                    <div>• Request ID: {requestData.id}</div>
-                    <div>• Material: {requestData.name}</div>
-                    <div>• Images count: {requestData.images ? requestData.images.length : 0}</div>
-                    {requestData.images && requestData.images.length > 0 && (
-                      <div>• First image: {requestData.images[0].image}</div>
-                    )}
-                  </div>
-
                   <ImageCarousel
                     images={requestData.images || []}
                     altText={`${requestData.name} reciclable`}

@@ -296,11 +296,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         
         alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
         
-        // TEMPORARY: 10 second delay to see backend logs (REMOVE THIS LATER!!!)
-        console.log('[DEBUG] ⏳ Waiting 10 seconds to check backend logs before redirect...');
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        console.log('[DEBUG] ✅ Redirecting now...');
-        
         // Actualiza estado local para reflejar la cancelación sin recargar
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
         onCancel();
