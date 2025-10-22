@@ -665,3 +665,227 @@ body {
     font-size: 0.8rem;
   }
 }
+
+/* Modal Create User Styles */
+.modalCreateUserOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalCreateUserContainer {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalCreateUserHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modalCreateUserTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.modalCreateUserCloseBtn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.modalCreateUserCloseBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modalCreateUserContent {
+  padding: 2rem;
+}
+
+.modalCreateUserFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  position: sticky;
+  bottom: 0;
+}
+
+.modalCreateUserCancelBtn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalCreateUserCancelBtn:hover {
+  background-color: #e5e7eb;
+}
+
+.modalCreateUserCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalCreateUserSubmitBtn {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalCreateUserSubmitBtn:hover {
+  background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+  box-shadow: 0 4px 8px rgba(21, 128, 61, 0.3);
+}
+
+.modalCreateUserSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form styles within modal */
+.modalCreateUserFormGroup {
+  margin-bottom: 1.25rem;
+}
+
+.modalCreateUserLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 0.5rem;
+}
+
+.modalCreateUserInput,
+.modalCreateUserSelect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.modalCreateUserInput:focus,
+.modalCreateUserSelect:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.modalCreateUserInput.modalCreateUserInputError {
+  border-color: #ef4444;
+}
+
+.modalCreateUserSelect {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.modalCreateUserErrorMessage {
+  display: block;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.modalCreateUserAlert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.modalCreateUserAlertSuccess {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.modalCreateUserAlertError {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+  .modalCreateUserContainer {
+    width: 95%;
+    margin: 1rem;
+    max-height: 95vh;
+  }
+
+  .modalCreateUserHeader {
+    padding: 1rem 1.5rem;
+  }
+
+  .modalCreateUserTitle {
+    font-size: 1.25rem;
+  }
+
+  .modalCreateUserContent {
+    padding: 1.5rem;
+  }
+
+  .modalCreateUserFooter {
+    padding: 1rem 1.5rem;
+    flex-direction: column-reverse;
+  }
+
+  .modalCreateUserCancelBtn,
+  .modalCreateUserSubmitBtn {
+    width: 100%;
+  }
+}

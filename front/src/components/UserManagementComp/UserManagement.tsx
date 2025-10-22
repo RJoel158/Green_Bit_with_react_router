@@ -4,6 +4,7 @@ import Sidebar from '../AdminDashboardComp/Sidebar';
 import Header from './Header';
 import UserTable from './UserTable';
 import UserInfoPanel from './UserInfoPanel';
+import CreateUserModal from './CreateUserModal';
 import './UserManagement.css';
 
 interface User {
@@ -47,6 +48,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mapeo de roleId a nombre de rol
   const getRoleName = (roleId: number): string => {
@@ -135,6 +137,11 @@ export default function UserManagement() {
     setSearchQuery(query);
   };
 
+  const handleUserCreated = () => {
+    // Recargar la lista de usuarios después de crear uno nuevo
+    fetchUsers(userType);
+  };
+
   return (
     <div className="user-management-dashboard">
       <Sidebar />
@@ -142,7 +149,7 @@ export default function UserManagement() {
         <Header 
           userType={userType}
           onUserTypeChange={handleUserTypeChange}
-          onCreateUser={() => console.log('Crear usuario')}
+          onCreateUser={() => setIsModalOpen(true)}
           searchQuery={searchQuery}
           onSearch={handleSearch}
         />
@@ -181,6 +188,12 @@ export default function UserManagement() {
           )}
         </div>
       </div>
+
+      <CreateUserModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUserCreated={handleUserCreated}
+      />
     </div>
   );
 }

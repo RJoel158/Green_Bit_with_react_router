@@ -11,8 +11,8 @@ import RecolectorIndex from "./components/RecollectorComp/RecollectingInterface"
 import FormComp from "./components/FormComps/FormComp";
 import AdminDashboard from "./components/AdminDashboardComp/Home";
 import PickupDetails from "./components/PickupDetailsComp/PickupDetails";
-import UserManagement from "./components/UserManagementComponents/UserManagement";
-import CollectorRequests from "./components/CollectorRequestsComponents/CollectorRequests";
+import UserManagement from "./components/UserManagementComp/UserManagement";
+import CollectorRequests from "./components/CollectorRequestsComp/CollectorRequests";
 
 import RecyclingPointsMap from "./components/CollectorMapComps/Map";
 
