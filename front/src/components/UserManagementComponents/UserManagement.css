@@ -44,6 +44,8 @@ body {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Header */
@@ -52,25 +54,38 @@ body {
   border-bottom: 1px solid #e5e7eb;
   padding: 0.75rem 2rem;
   display: flex;
+  flex-direction: column; 
+  gap: 0.75rem; 
+  flex-shrink: 0;
+}
+
+.user-management-header-top {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-shrink: 0;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .user-management-header-title {
   font-size: 1.2rem;
   font-weight: 500;
   color: #15803d;
+  align-self: flex-start; 
 }
 
 .user-management-header-actions {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
 .user-management-header-search-box {
   position: relative;
+  flex: 1;
+  min-width: 250px; 
+  max-width: 600px; 
 }
 
 .user-management-header-search-icon {
@@ -79,6 +94,7 @@ body {
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
+  font-size: 1rem;
 }
 
 .user-management-header-search-input {
@@ -86,7 +102,7 @@ body {
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  width: 12rem;
+  width: 100%; 
   outline: none;
   background-color: white;
 }
@@ -178,56 +194,88 @@ body {
 /* Tabla usuarios */
 .user-management-table-container {
   flex: 2;
-  background-color: white;
-  border-radius: 0.5rem;
+  background-color: #faf8f1;
+  border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .user-management-table-scroll {
   overflow-x: auto;
+  overflow-y: visible;
+  border-radius: 0.75rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .user-management-table {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 900px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  table-layout: auto;
 }
 
 .user-management-table-head-row {
-  background-color: #86efac;
+  background-color: #B0EDCC;
 }
 
 .user-management-table-head-cell {
-  padding: 1rem;
-  color: #374151;
+  padding: 1rem 1.25rem;
+  color: #149D52;
   font-weight: 600;
   text-align: left;
   font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.user-management-table-head-cell:first-child {
+  border-top-left-radius: 0.75rem;
+  width: 30%;
+}
+
+.user-management-table-head-cell:nth-child(2) {
+  width: 30%;
+}
+
+.user-management-table-head-cell:nth-child(3) {
+  width: 20%;
+}
+
+.user-management-table-head-cell:last-child {
+  border-top-right-radius: 0.75rem;
+  width: 20%;
 }
 
 .user-management-table-body-row {
   cursor: pointer;
   transition: background-color 0.2s;
-  border-bottom: 1px solid #f3f4f6;
+  background-color: #FAF8F1;
 }
 
-.user-management-table-body-row:nth-child(odd) {
-  background-color: #dcfce7;
+.user-management-table-body-row.selected {
+  background-color: #6FC794 !important;
 }
 
-.user-management-table-body-row:nth-child(even) {
-  background-color: #ffffff;
+.user-management-table-body-row.selected .user-management-table-body-cell {
+  color: rgb(82, 82, 82);
 }
 
-.user-management-table-body-row:hover {
-  background-color: #bbf7d0 !important;
+.user-management-table-body-row:hover:not(.selected) {
+  background-color: #F0EDE1;
 }
 
 .user-management-table-body-cell {
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   font-size: 0.875rem;
   color: #374151;
+  border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
 }
 
 .user-management-table-user-cell {
@@ -289,11 +337,12 @@ body {
 /*Panel información usuario*/
 .user-management-info-panel {
   flex: 1;
-  min-width: 300px;
-  background-color: white;
+  min-width: 320px; 
+  max-width: 400px; 
+  background-color: #faf8f1;
   border-radius: 0.5rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+ 
 }
 
 .user-management-info-empty {
@@ -430,17 +479,46 @@ body {
 }
 
 /* Responsivo */
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .user-management-header-search-box {
+    max-width: 400px;
+  }
+
+  .user-management-info-panel {
+    min-width: 280px;
+    max-width: 320px;
+  }
+}
+
+/* Tablets pequeñas */
 @media (max-width: 768px) {
   .user-management-header {
     padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .user-management-header-top {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .user-management-header-title {
     font-size: 1rem;
+    order: 2; 
   }
 
   .user-management-header-search-box {
-    display: none;
+    width: 100%;
+    max-width: 100%;
+    order: 0;
+  }
+
+  .user-management-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    order: 1;
   }
 
   .user-management-content {
@@ -449,13 +527,85 @@ body {
 
   .user-management-layout {
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  .user-management-table-container {
+    width: 100%;
   }
 
   .user-management-info-panel {
     min-width: 100%;
+    max-width: 100%;
+    order: 2;
   }
 
   .user-management-table {
     min-width: 600px;
+  }
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+  .user-management-main {
+    max-width: 100vw;
+  }
+
+  .user-management-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .user-management-header-title {
+    font-size: 0.9rem;
+  }
+
+  .user-management-header-actions {
+    gap: 0.5rem;
+  }
+
+  .user-management-header-user-name {
+    display: none;
+  }
+
+  .user-management-header-type-select,
+  .user-management-header-create-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .user-management-content {
+    padding: 0.75rem;
+  }
+
+  .user-management-table-container {
+    padding: 1rem;
+  }
+
+  .user-management-table-scroll {
+    border-radius: 0.5rem;
+  }
+
+  .user-management-info-panel {
+    padding: 1rem;
+  }
+
+  .user-management-info-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 1.75rem;
+  }
+
+  .user-management-info-name {
+    font-size: 1.1rem;
+  }
+
+  .user-management-table {
+    min-width: 750px;
+  }
+
+  .user-management-table-head-cell,
+  .user-management-table-body-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
   }
 }

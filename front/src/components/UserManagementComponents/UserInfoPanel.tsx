@@ -1,9 +1,10 @@
 // UserInfoPanel.tsx
+import { useState } from 'react';
 import './UserManagement.css';
+import CheckModal from '../CommonComp/CheckModal';
 
 interface User {
   fullName: string;
-  username: string;
   email: string;
   registrationDate: string;
   role: string;
@@ -14,11 +15,44 @@ interface UserInfoPanelProps {
 }
 
 export default function UserInfoPanel({ user }: UserInfoPanelProps) {
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleSaveClick = () => {
+    setShowSaveModal(true);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmSave = () => {
+    // Aquí puedes agregar la lógica para guardar los cambios
+    console.log('Cambios guardados');
+    setShowSaveModal(false);
+    // TODO: Implementar la lógica de guardado
+  };
+
+  const handleConfirmDelete = () => {
+    // Aquí puedes agregar la lógica para borrar el usuario
+    console.log('Usuario borrado');
+    setShowDeleteModal(false);
+    // TODO: Implementar la lógica de borrado
+  };
+
+  const handleCancelSave = () => {
+    setShowSaveModal(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   if (!user) {
     return (
       <div className="user-management-info-panel">
         <div className="user-management-info-empty">
-          Selecciona un usuario de la tabla para ver sus detalles
+          Selecciona un usuario para ver sus detalles
         </div>
       </div>
     );
@@ -42,15 +76,6 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
       </div>
 
       <div className="user-management-info-form">
-        <div className="user-management-info-field">
-          <label className="user-management-info-label">Nombre de usuario:</label>
-          <input 
-            type="text" 
-            value={user.username} 
-            readOnly 
-            className="user-management-info-input user-management-info-input-readonly"
-          />
-        </div>
 
         <div className="user-management-info-field">
           <label className="user-management-info-label">Correo electrónico:</label>
@@ -83,9 +108,37 @@ export default function UserInfoPanel({ user }: UserInfoPanelProps) {
       </div>
 
       <div className="user-management-info-actions">
-        <button className="user-management-info-delete-btn">Borrar usuario</button>
-        <button className="user-management-info-save-btn">Guardar Cambios</button>
+        <button 
+          className="user-management-info-delete-btn"
+          onClick={handleDeleteClick}
+        >
+          Borrar usuario
+        </button>
+        <button 
+          className="user-management-info-save-btn"
+          onClick={handleSaveClick}
+        >
+          Guardar Cambios
+        </button>
       </div>
+
+      {showSaveModal && (
+        <CheckModal
+          title="¿Guardar cambios?"
+          message="¿Estás seguro de que deseas guardar los cambios realizados a este usuario?"
+          onConfirm={handleConfirmSave}
+          onCancel={handleCancelSave}
+        />
+      )}
+
+      {showDeleteModal && (
+        <CheckModal
+          title="¿Borrar usuario?"
+          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este usuario permanentemente?"
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
+      )}
     </div>
   );
 }

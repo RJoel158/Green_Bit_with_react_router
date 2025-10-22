@@ -26,7 +26,6 @@ interface User {
 
 interface TableUser {
   fullName: string;
-  username: string;
   email: string;
   registrationDate: string;
   role: string;
@@ -40,6 +39,7 @@ export default function UserManagement() {
   const [userType, setUserType] = useState<UserType>('Persona');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Mapeo de roleId a nombre de rol
   const getRoleName = (roleId: number): string => {
@@ -82,20 +82,15 @@ export default function UserManagement() {
     fetchUsers(userType);
   }, [userType]);
 
-  // Convertir usuarios de la API al formato de la tabla
+  // Convertir usuarios al formato de la tabla
   const formatUsersForTable = (): TableUser[] => {
     return users.map(user => {
       const fullName = userType === 'Persona'
         ? `${user.firstname || ''} ${user.lastname || ''}`.trim()
         : user.companyName || '';
-      
-      const username = userType === 'Persona'
-        ? user.email.split('@')[0] // Extraer username del email
-        : user.nit || '';
 
       return {
         fullName: fullName || 'Sin nombre',
-        username: username,
         email: user.email,
         registrationDate: new Date(user.registerDate).toLocaleDateString('es-ES'),
         role: getRoleName(user.roleId),
@@ -103,9 +98,27 @@ export default function UserManagement() {
     });
   };
 
+  // Filtrar usuarios según la búsqueda
+  const filterUsers = (usersToFilter: TableUser[]): TableUser[] => {
+    if (!searchQuery.trim()) {
+      return usersToFilter;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return usersToFilter.filter(user => 
+      user.fullName.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query)
+    );
+  };
+
   const handleUserTypeChange = (type: UserType) => {
     setUserType(type);
     setSelectedUser(null); // Limpiar selección al cambiar tipo
+    setSearchQuery(''); // Limpiar búsqueda al cambiar tipo
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
   };
 
   return (
@@ -116,6 +129,8 @@ export default function UserManagement() {
           userType={userType}
           onUserTypeChange={handleUserTypeChange}
           onCreateUser={() => console.log('Crear usuario')}
+          searchQuery={searchQuery}
+          onSearch={handleSearch}
         />
         <div className="user-management-content">
           {loading && (
@@ -140,7 +155,7 @@ export default function UserManagement() {
           {!loading && !error && (
             <div className="user-management-layout">
               <UserTable 
-                users={formatUsersForTable()} 
+                users={filterUsers(formatUsersForTable())} 
                 onSelectUser={setSelectedUser} 
               />
               <UserInfoPanel user={selectedUser} />

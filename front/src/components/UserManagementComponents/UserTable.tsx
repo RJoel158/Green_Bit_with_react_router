@@ -4,7 +4,6 @@ import './UserManagement.css';
 
 interface User {
   fullName: string;
-  username: string;
   email: string;
   registrationDate: string;
   role: string;
@@ -17,12 +16,18 @@ interface UserTableProps {
 
 export default function UserTable({ users, onSelectUser }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null);
   const itemsPerPage = 10;
   
   const totalPages = Math.ceil(users.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentUsers = users.slice(startIndex, endIndex);
+
+  const handleSelectUser = (user: User) => {
+    setSelectedUserEmail(user.email);
+    onSelectUser(user);
+  };
 
   return (
     <div className="user-management-table-container">
@@ -31,7 +36,6 @@ export default function UserTable({ users, onSelectUser }: UserTableProps) {
           <thead>
             <tr className="user-management-table-head-row">
               <th className="user-management-table-head-cell">Nombre Completo</th>
-              <th className="user-management-table-head-cell">Nombre de Usuario</th>
               <th className="user-management-table-head-cell">Correo electrónico</th>
               <th className="user-management-table-head-cell">Fecha de registro</th>
               <th className="user-management-table-head-cell">Rol</th>
@@ -41,8 +45,10 @@ export default function UserTable({ users, onSelectUser }: UserTableProps) {
             {currentUsers.map((user, index) => (
               <tr 
                 key={index}
-                className="user-management-table-body-row"
-                onClick={() => onSelectUser(user)}
+                className={`user-management-table-body-row ${
+                  selectedUserEmail === user.email ? 'selected' : ''
+                }`}
+                onClick={() => handleSelectUser(user)}
               >
                 <td className="user-management-table-body-cell">
                   <div className="user-management-table-user-cell">
@@ -56,7 +62,6 @@ export default function UserTable({ users, onSelectUser }: UserTableProps) {
                     {user.fullName}
                   </div>
                 </td>
-                <td className="user-management-table-body-cell">{user.username}</td>
                 <td className="user-management-table-body-cell">{user.email}</td>
                 <td className="user-management-table-body-cell">{user.registrationDate}</td>
                 <td className="user-management-table-body-cell">{user.role}</td>
