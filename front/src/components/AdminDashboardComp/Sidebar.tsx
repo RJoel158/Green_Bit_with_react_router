@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import logo from '../../assets/logo.png'
 
 export default function Sidebar() {
-  const [activeItem, setActiveItem] = useState('control');
+  const navigate = useNavigate();
   
   const menuItems = [
-    { id: 'control', label: 'Panel de Control', icon: '📊' },
-    { id: 'reportes', label: 'Reportes', icon: '📈' },
-    { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥' },
-    { id: 'anuncios', label: 'Anuncios', icon: '📢' },
-    { id: 'acciones', label: 'Accesos', icon: '⚡' }
+    { id: 'control', label: 'Panel de Control', icon: '📊', path: '/adminDashboard' },
+    { id: 'reportes', label: 'Reportes', icon: '📈', path: '/reportes' },
+    { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥', path: '/adminUserManagement' },
+    { id: 'anuncios', label: 'Anuncios', icon: '📢', path: '/anuncios' },
+    { id: 'acciones', label: 'Accesos', icon: '⚡', path: '/adminCollectorRequests' }
   ];
 
   return (
@@ -29,8 +29,8 @@ export default function Sidebar() {
           {menuItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveItem(item.id)}
-              className={`sidebar-button ${activeItem === item.id ? 'active' : ''}`}
+              onClick={() => navigate(item.path)}
+              className="sidebar-button"
             >
               <span className="sidebar-button-icon">{item.icon}</span>
               <span>{item.label}</span>

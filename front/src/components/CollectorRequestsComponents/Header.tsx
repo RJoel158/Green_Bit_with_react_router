@@ -1,12 +1,11 @@
 // Header.tsx
 import { useState, useEffect } from 'react';
-import './UserManagement.css';
+import './CollectorRequests.css';
 import NotificationBell from '../CommonComp/NotificationBell';
 
 interface HeaderProps {
-  userType: 'Persona' | 'Empresa';
-  onUserTypeChange: (type: 'Persona' | 'Empresa') => void;
-  onCreateUser: () => void;
+  requestType: 'Persona' | 'Empresa';
+  onRequestTypeChange: (type: 'Persona' | 'Empresa') => void;
   searchQuery: string;
   onSearch: (query: string) => void;
 }
@@ -24,9 +23,8 @@ const handleLogout = () => {
 };
 
 export default function Header({ 
-  userType, 
-  onUserTypeChange, 
-  onCreateUser,
+  requestType, 
+  onRequestTypeChange, 
   searchQuery,
   onSearch 
 }: HeaderProps) {
@@ -45,67 +43,60 @@ export default function Header({
   };
 
   return (
-    <div className="user-management-header">
-      <div className="user-management-header-top">
-        <div className="user-management-header-search-box">
-
+    <div className="collector-requests-header">
+      <div className="collector-requests-header-top">
+        <div className="collector-requests-header-search-box">
           <input 
             type="text" 
             placeholder="Buscar por nombre o correo" 
-            className="user-management-header-search-input"
+            className="collector-requests-header-search-input"
             value={searchQuery}
             onChange={(e) => onSearch(e.target.value)}
           />
         </div>
-        <div className="user-management-header-actions">
+        <div className="collector-requests-header-actions">
           <select 
-            className="user-management-header-type-select"
-            value={userType}
-            onChange={(e) => onUserTypeChange(e.target.value as 'Persona' | 'Empresa')}
+            className="collector-requests-header-type-select"
+            value={requestType}
+            onChange={(e) => onRequestTypeChange(e.target.value as 'Persona' | 'Empresa')}
           >
             <option value="Persona">Persona</option>
             <option value="Empresa">Empresa</option>
           </select>
-          <button 
-            className="user-management-header-create-btn"
-            onClick={onCreateUser}
-          >
-            + Crear usuario
-          </button>
           
           {/* User dropdown */}
-          <div className="user-management-header-user-wrapper">
+          <div className="collector-requests-header-user-wrapper">
             <div 
               onClick={() => setShowDropdown(!showDropdown)}
-              className="user-management-header-user-trigger"
+              className="collector-requests-header-user-trigger"
             >
-              <div className="user-management-header-user-avatar">
+              <div className="collector-requests-header-user-avatar">
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
               </div>
-              <span className="user-management-header-user-name">
+              <span className="collector-requests-header-user-name">
                 {user?.email || 'Usuario'}
               </span>
-              <span className="user-management-header-user-arrow">▼</span>
+              <span className="collector-requests-header-user-arrow">▼</span>
             </div>
             
             {showDropdown && (
-              <div className="user-management-header-dropdown">
+              <div className="collector-requests-header-dropdown">
                 <button
                   onClick={() => {
                     setShowDropdown(false);
                     handleProfileClick();
                   }}
-                  className="user-management-header-dropdown-item"
+                  className="collector-requests-header-dropdown-item"
                 >
                   Perfil
                 </button>
-                <hr className="user-management-header-dropdown-divider" />
+                <hr className="collector-requests-header-dropdown-divider" />
                 <button
                   onClick={() => {
                     setShowDropdown(false);
                     handleLogout();
                   }}
-                  className="user-management-header-dropdown-item"
+                  className="collector-requests-header-dropdown-item"
                 >
                   Cerrar sesión
                 </button>
@@ -114,18 +105,18 @@ export default function Header({
           </div>
 
           {/* Notification Bell */}
-          <div className="user-management-header-notification-wrapper">
+          <div className="collector-requests-header-notification-wrapper">
             {user?.id ? (
               <NotificationBell userId={user.id} />
             ) : (
-              <button className="user-management-header-notif-btn">
+              <button className="collector-requests-header-notif-btn">
                 🔔
               </button>
             )}
           </div>
         </div>
       </div>
-      <h1 className="user-management-header-title">Administrar usuarios</h1>
+      <h1 className="collector-requests-header-title">Solicitudes de Recolectores</h1>
     </div>
   );
 }
