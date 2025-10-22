@@ -1,14 +1,17 @@
-import { useState } from 'react';
 import './AdminDashboard.css';
 import logo from '../../assets/logo.png'
 
-export default function Sidebar() {
-  const [activeItem, setActiveItem] = useState('control');
-  
+interface SidebarProps {
+  onMenuSelect: (menuId: string) => void;
+  activeMenu: string;
+}
+
+export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
   const menuItems = [
     { id: 'control', label: 'Panel de Control', icon: '📊' },
     { id: 'reportes', label: 'Reportes', icon: '📈' },
     { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥' },
+    { id: 'materiales', label: 'Materiales', icon: '♻️' },
     { id: 'anuncios', label: 'Anuncios', icon: '📢' },
     { id: 'acciones', label: 'Accesos', icon: '⚡' }
   ];
@@ -29,8 +32,8 @@ export default function Sidebar() {
           {menuItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveItem(item.id)}
-              className={`sidebar-button ${activeItem === item.id ? 'active' : ''}`}
+              onClick={() => onMenuSelect(item.id)}
+              className={`sidebar-button ${activeMenu === item.id ? 'active' : ''}`}
             >
               <span className="sidebar-button-icon">{item.icon}</span>
               <span>{item.label}</span>
