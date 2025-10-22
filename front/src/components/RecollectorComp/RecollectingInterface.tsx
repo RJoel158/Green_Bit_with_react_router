@@ -80,6 +80,9 @@ const RecollectingInterface: React.FC = () => {
           <button className="recycling-button"
             onClick={() => navigate("/recycling-points")}
             >♻️R E C O L E C T A♻️</button>
+          <button className="recycling-button"
+            onClick={() => navigate("/adminUserManagement")}
+            >Admin User</button>
           
           {/* Botón para ver puntos de reciclaje */}
 

@@ -1,0 +1,88 @@
+// UserTable.tsx
+import { useState } from 'react';
+import './UserManagement.css';
+
+interface User {
+  fullName: string;
+  username: string;
+  email: string;
+  registrationDate: string;
+  role: string;
+}
+
+interface UserTableProps {
+  users: User[];
+  onSelectUser: (user: User) => void;
+}
+
+export default function UserTable({ users, onSelectUser }: UserTableProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentUsers = users.slice(startIndex, endIndex);
+
+  return (
+    <div className="user-management-table-container">
+      <div className="user-management-table-scroll">
+        <table className="user-management-table">
+          <thead>
+            <tr className="user-management-table-head-row">
+              <th className="user-management-table-head-cell">Nombre Completo</th>
+              <th className="user-management-table-head-cell">Nombre de Usuario</th>
+              <th className="user-management-table-head-cell">Correo electrónico</th>
+              <th className="user-management-table-head-cell">Fecha de registro</th>
+              <th className="user-management-table-head-cell">Rol</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentUsers.map((user, index) => (
+              <tr 
+                key={index}
+                className="user-management-table-body-row"
+                onClick={() => onSelectUser(user)}
+              >
+                <td className="user-management-table-body-cell">
+                  <div className="user-management-table-user-cell">
+                    <div className={`user-management-table-avatar ${
+                      user.role === 'Recolector' 
+                        ? 'user-management-table-avatar-collector' 
+                        : 'user-management-table-avatar-recycler'
+                    }`}>
+                      {user.fullName.charAt(0)}
+                    </div>
+                    {user.fullName}
+                  </div>
+                </td>
+                <td className="user-management-table-body-cell">{user.username}</td>
+                <td className="user-management-table-body-cell">{user.email}</td>
+                <td className="user-management-table-body-cell">{user.registrationDate}</td>
+                <td className="user-management-table-body-cell">{user.role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      <div className="user-management-table-pagination">
+        <button 
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className="user-management-table-pagination-btn"
+        >
+          ◀
+        </button>
+        <span className="user-management-table-pagination-page">{currentPage}</span>
+        <button 
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className="user-management-table-pagination-btn"
+        >
+          ▶
+        </button>
+      </div>
+    </div>
+  );
+}

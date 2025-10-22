@@ -14,6 +14,17 @@ export const getUsers = async (req, res) => {
   }
 };
 
+/** GET /users/withPerson */
+export const getUsersPerson = async (req, res) => {
+  try {
+    const users = await UserModel.getAllUsersWithPerson();
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error("[ERROR] getUsers controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener usuarios" });
+  }
+};
+
 /** GET /users/:id */
 export const getUserById = async (req, res) => {
   try {

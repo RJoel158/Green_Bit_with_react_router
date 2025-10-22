@@ -11,6 +11,7 @@ import RecolectorIndex from "./components/RecollectorComp/RecollectingInterface"
 import FormComp from "./components/FormComps/FormComp";
 import AdminDashboard from "./components/AdminDashboardComp/Home";
 import PickupDetails from "./components/PickupDetailsComp/PickupDetails";
+import UserManagement from "./components/UserManagementComponents/UserManagement";
 
 import RecyclingPointsMap from "./components/CollectorMapComps/Map";
 
@@ -43,6 +44,7 @@ function App() {
         <Route path="/adminDashboard" element={<AdminDashboard />} />
         <Route path="/recycling-points" element={<RecyclingPointsMap />} />
         <Route path="/pickupDetails/:id" element={<PickupDetails />} />
+        <Route path="/adminUserManagement" element={<UserManagement />} />
       </Routes>
     </Router>
   );

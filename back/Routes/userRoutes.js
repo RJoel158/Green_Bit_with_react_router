@@ -3,6 +3,7 @@ import express from "express";
 import {
   getUsers,
   getUserById,
+  getUsersPerson,
 
   createCollectorUser,
   createUser,
@@ -26,8 +27,15 @@ router.post("/login", loginUser);
 router.post("/forgotPassword", forgotPassword);
 router.put("/changePassword/:userId", changePassword);
 
+//  Users con Institución
+router.get("/withInstitution", getUsersWithInstitution);
+router.get("/withInstitution/:id", getUserWithInstitutionById);
+router.post('/institution', createUserWithInstitution);
+router.put("/withInstitution/:id", updateUserWithInstitution);
+
 //  Users con Persona
 router.get("/", getUsers);
+router.get("/withPerson", getUsersPerson);
 router.get("/:id", getUserById);
 router.post("/", createUser);
 router.put("/:id", updateUser);
@@ -35,10 +43,6 @@ router.delete("/:id", deleteUser);
 router.post("/collector", createCollectorUser);
 
 
-//  Users con Institución
-router.get("/withInstitution", getUsersWithInstitution);
-router.get("/withInstitution/:id", getUserWithInstitutionById);
-router.post('/institution', createUserWithInstitution);
-router.put("/withInstitution/:id", updateUserWithInstitution);
+
 
 export default router;

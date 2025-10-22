@@ -40,6 +40,19 @@ export const getAllWithPersona = async () => {
   );
   return rows;
 };
+/**
+ * Obtener todos los usuarios con su persona (si existe).
+ */
+export const getAllUsersWithPerson = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+          p.firstname, p.lastname, p.state AS personState
+     FROM users u
+     INNER JOIN person p ON p.userId = u.id
+     WHERE u.state != 0`
+  );
+  return rows;
+};
 
 export const getByIdWithPersona = async (id) => {
   const [rows] = await db.query(
@@ -278,7 +291,19 @@ export const updatePasswordAndState = async (id, password) => {
 };
 
 // Institucion Model
-
+/**
+ * Obtener todas las instituciones (user + institution).
+ */
+export const getAllWithInstitution = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+           i.companyName, i.nit, i.state AS institutionState
+     FROM users u
+     INNER JOIN institution i ON i.userId = u.id
+     WHERE u.state != 0`
+  );
+  return rows;
+};
 /**
  * Crear user + institution con contraseña temporal.
  */
@@ -391,6 +416,15 @@ export const softDeleteWithInstitution = async (id) => {
     conn.release();
   }
 };
+
+
+
+
+
+
+
+
+
 /**
  * Resetea la contraseña del usuario a una temporal y cambia el estado a 1 (cambio pendiente)
  */
