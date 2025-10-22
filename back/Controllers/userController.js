@@ -225,6 +225,46 @@ export const updateUser = async (req, res) => {
   }
 };
 
+/** PUT /users/:id/role - Actualizar solo el rol del usuario */
+export const updateUserRole = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { roleId } = req.body;
+
+    // Validar que se envió el roleId
+    if (!roleId) {
+      console.warn("[WARN] updateUserRole - missing roleId", { userId });
+      return res.status(400).json({ success: false, error: "El roleId es requerido" });
+    }
+
+    // Validar que roleId sea un número válido
+    const roleIdParsed = Number(roleId);
+    if (isNaN(roleIdParsed) || roleIdParsed < 1) {
+      console.warn("[WARN] updateUserRole - invalid roleId", { userId, roleId });
+      return res.status(400).json({ success: false, error: "El roleId debe ser un número válido" });
+    }
+
+    // Actualizar el rol
+    const updated = await UserModel.updateUserRole(userId, roleIdParsed);
+
+    if (!updated) {
+      console.warn("[WARN] updateUserRole - user not found", { userId });
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+
+    console.log("[INFO] updateUserRole - success", { userId, roleId: roleIdParsed });
+    res.json({ success: true, message: "Rol actualizado correctamente" });
+  } catch (err) {
+    console.error("[ERROR] updateUserRole controller:", { 
+      params: req.params, 
+      body: req.body, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ success: false, error: "Error al actualizar el rol del usuario" });
+  }
+};
+
 /** DELETE /users/:id */
 export const deleteUser = async (req, res) => {
   try {

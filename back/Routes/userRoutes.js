@@ -8,6 +8,7 @@ import {
   createCollectorUser,
   createUser,
   updateUser,
+  updateUserRole,
 
   getUsersWithInstitution,
   getUserWithInstitutionById,
@@ -41,6 +42,9 @@ router.post("/", createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
 router.post("/collector", createCollectorUser);
+
+//User
+router.put("/:id/role", updateUserRole);
 
 
 

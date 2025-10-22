@@ -25,6 +25,7 @@ interface User {
 }
 
 interface TableUser {
+  userId: number;
   fullName: string;
   email: string;
   registrationDate: string;
@@ -90,6 +91,7 @@ export default function UserManagement() {
         : user.companyName || '';
 
       return {
+        userId: user.userId,
         fullName: fullName || 'Sin nombre',
         email: user.email,
         registrationDate: new Date(user.registerDate).toLocaleDateString('es-ES'),

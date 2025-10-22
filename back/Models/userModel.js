@@ -290,6 +290,34 @@ export const updatePasswordAndState = async (id, password) => {
   return res.affectedRows > 0;
 };
 
+/**
+ * Actualizar el rol de un usuario por su ID
+ */
+export const updateUserRole = async (userId, roleId) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // Verificar que el rol existe
+    await ensureRoleExists(conn, roleId);
+
+    // Actualizar el rol del usuario
+    const [res] = await conn.query(
+      "UPDATE users SET roleId = ? WHERE id = ?",
+      [roleId, userId]
+    );
+
+    await conn.commit();
+    return res.affectedRows > 0;
+  } catch (error) {
+    await conn.rollback();
+    console.error("[ERROR] updateUserRole:", { userId, roleId, message: error.message });
+    throw error;
+  } finally {
+    conn.release();
+  }
+};
+
 // Institucion Model
 /**
  * Obtener todas las instituciones (user + institution).

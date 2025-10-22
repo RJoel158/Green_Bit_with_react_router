@@ -3,6 +3,7 @@ import { useState } from 'react';
 import './UserManagement.css';
 
 interface User {
+  userId: number;
   fullName: string;
   email: string;
   registrationDate: string;
@@ -42,9 +43,10 @@ export default function UserTable({ users, onSelectUser }: UserTableProps) {
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map((user, index) => (
+            {currentUsers.map((user) => (
               <tr 
-                key={index}
+                key={user.userId}
+                data-user-id={user.userId}
                 className={`user-management-table-body-row ${
                   selectedUserEmail === user.email ? 'selected' : ''
                 }`}
