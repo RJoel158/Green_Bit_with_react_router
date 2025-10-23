@@ -97,10 +97,12 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
           message="Tu contraseña ha sido cambiada exitosamente."
           redirectUrl={
             role === "admin"
-              ? "/admin-dashboard"
+              ? "/adminDashboard"
+              : role === "recolector"
+              ? "/recolectorIndex"
               : role === "reciclador"
               ? "/recicladorIndex" 
-              : "/recicladorIndex"
+              : "/recolectorIndex"
           }
         />
       )}
