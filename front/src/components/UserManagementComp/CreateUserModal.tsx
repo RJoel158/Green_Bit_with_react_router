@@ -1,6 +1,7 @@
 // CreateUserModal.tsx
 import { useState } from 'react';
 import { Validator } from '../../common/Validator';
+import SuccessModal from '../CommonComp/SuccesModal';
 import './UserManagement.css';
 
 interface CreateUserModalProps {
@@ -36,7 +37,10 @@ export default function CreateUserModal({
   const [userType, setUserType] = useState<UserType>('persona');
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
   
+  // Formulario de persona - valores iniciales con roleId = 2 (recolector por defecto)
   // Formulario de persona - valores iniciales con roleId = 2 (recolector por defecto)
   const [personForm, setPersonForm] = useState<PersonFormData>({
     nombres: '',
@@ -128,14 +132,15 @@ export default function CreateUserModal({
 
         const data = await res.json();
         if (data.success) {
-          const successMessage = personForm.roleId === 2 
+          const title = personForm.roleId === 2 
+            ? '¡Recolector Registrado!'
+            : '¡Usuario Creado!';
+          const message = personForm.roleId === 2 
             ? 'Recolector registrado exitosamente. Solicitud pendiente de aprobación.'
             : 'Usuario creado exitosamente. Se envió un correo con las credenciales.';
-          setMensaje(successMessage);
-          setTimeout(() => {
-            onUserCreated();
-            handleClose();
-          }, 1500);
+          
+          setSuccessMessage({ title, message });
+          setShowSuccessModal(true);
         } else {
           setMensaje(data.error || 'Error al crear usuario');
         }
@@ -177,11 +182,11 @@ export default function CreateUserModal({
 
         const data = await res.json();
         if (data.success) {
-          setMensaje('Institución creada exitosamente. Solicitud pendiente de aprobación.');
-          setTimeout(() => {
-            onUserCreated();
-            handleClose();
-          }, 1500);
+          setSuccessMessage({
+            title: '¡Institución Registrada!',
+            message: 'Institución creada exitosamente. Solicitud pendiente de aprobación.'
+          });
+          setShowSuccessModal(true);
         } else {
           setMensaje(data.error || 'Error al crear institución');
         }
@@ -200,8 +205,22 @@ export default function CreateUserModal({
     setInstitutionErrors({});
     setMensaje('');
     setUserType('persona');
+    setShowSuccessModal(false);
     onClose();
   };
+
+  if (!isOpen) return null;
+
+  // Si el modal de éxito está activo, mostrarlo
+  if (showSuccessModal) {
+    return (
+      <SuccessModal
+        title={successMessage.title}
+        message={successMessage.message}
+        redirectUrl="/adminUserManagement"
+      />
+    );
+  }
 
   return (
     <div className="modalCreateUserOverlay" onClick={handleClose}>

@@ -29,3 +29,4 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ title, message, redirectUrl
 };
 
 export default SuccessModal;
+
