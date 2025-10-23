@@ -27,7 +27,6 @@ interface TableRequest {
   email: string;
   phone: string;
   registrationDate: string;
-  status: string;
   // Campos opcionales para determinar tipo
   firstname?: string;
   lastname?: string;
@@ -89,7 +88,6 @@ export default function CollectorRequests() {
         email: request.email,
         phone: request.phone, 
         registrationDate: new Date(request.registerDate).toLocaleDateString('es-ES'),
-        status: request.userState === 3 ? 'Pendiente' : 'Aprobado',
         firstname: request.firstname,
         lastname: request.lastname,
         companyName: request.companyName,

@@ -164,7 +164,7 @@ export const createUser = async (req, res) => {
 };
 
 
-/** POST /users/collector -> crea user + persona de recolector con state = 0 */
+/** POST /users/collector -> crea user con state = 3 + persona de recolector con state = 0 */
 export const createCollectorUser = async (req, res) => {
   try {
     const { nombres, apellidos, email, phone } = req.body;
@@ -178,7 +178,7 @@ export const createCollectorUser = async (req, res) => {
 
     // role_id fijo para recolector
     const roleId = 2;
-    const state = 0; // pendiente
+    const state = 3; // pendiente de aprobación
 
     const result = await UserModel.createCollectorWithPersona(
       nombres,

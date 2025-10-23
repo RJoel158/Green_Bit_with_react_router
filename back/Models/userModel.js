@@ -49,7 +49,7 @@ export const getAllUsersWithPerson = async () => {
           p.firstname, p.lastname, p.state AS personState
      FROM users u
      INNER JOIN person p ON p.userId = u.id
-     WHERE u.state != 0`
+     WHERE u.state != 0 AND u.state != 3`
   );
   return rows;
 };
@@ -216,7 +216,7 @@ export const createCollectorWithPersona = async (
   email,
   phone,
   roleId = 2, // recolector
-  state = 0   // pendiente
+  state = 3   // pendiente de aprobación
 ) => {
   const conn = await db.getConnection();
   try {
@@ -226,10 +226,11 @@ export const createCollectorWithPersona = async (
     const tempPassword = passwordGenerater(12);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone);
+    // Crear usuario con estado 3 (pendiente de aprobación)
+    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone, state);
 
-    // Crear persona con state específico
-    const personId = await PersonModel.create(conn, firstname, lastname, userId, state);
+    // Crear persona con estado 1 (activo)
+    const personId = await PersonModel.create(conn, firstname, lastname, userId, 1);
 
     await conn.commit();
     return { userId, personId, password: tempPassword };
@@ -353,7 +354,7 @@ export const getAllWithInstitution = async () => {
            i.companyName, i.nit, i.state AS institutionState
      FROM users u
      INNER JOIN institution i ON i.userId = u.id
-     WHERE u.state != 0`
+     WHERE u.state != 0 AND u.state != 3`
   );
   return rows;
 };
@@ -365,15 +366,15 @@ export const createWithInstitution = async (companyName, nit, email, phone, role
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Crear usuario
+    // Crear usuario(estado 3 - solicitud pendiente)
     const [userRes] = await conn.query(
       `INSERT INTO users (email, phone, roleId, state)
-       VALUES (?, ?, ?, 1)`,
+       VALUES (?, ?, ?, 3)`,
       [ email, phone, roleId || null]
     );
     const userId = userRes.insertId;
 
-    // 2️⃣ Crear institución ligada a este userId
+    // Crear institución ligada a este userId
     const institutionId = await create(conn, companyName, nit, userId);
 
     await conn.commit();
@@ -413,7 +414,7 @@ export const updateWithInstitution = async (
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Actualizar usuario
+    // Actualizar usuario
     const [userRes] = await conn.query(
       `UPDATE users
        SET email = ?, phone = ?, role_id = ?, state = ?
@@ -421,7 +422,7 @@ export const updateWithInstitution = async (
       [email, phone, roleId || null, state, id]
     );
 
-    // 2️⃣ Actualizar institución ligada
+    // Actualizar institución ligada
     const [instRes] = await conn.query(
       `UPDATE institution
        SET companyName = ?, nit = ?

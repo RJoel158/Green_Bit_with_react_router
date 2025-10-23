@@ -32,10 +32,12 @@ export default function CreateUserModal({
   onClose,
   onUserCreated
 }: CreateUserModalProps) {
+  // Tipo de usuario seleccionado (persona o institución)
   const [userType, setUserType] = useState<UserType>('persona');
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
   
+  // Formulario de persona - valores iniciales con roleId = 2 (recolector por defecto)
   const [personForm, setPersonForm] = useState<PersonFormData>({
     nombres: '',
     apellidos: '',
@@ -44,6 +46,7 @@ export default function CreateUserModal({
     roleId: 2,
   });
   
+  // Formulario de institución - valores iniciales con roleId = 2 (recolector)
   const [institutionForm, setInstitutionForm] = useState<InstitutionFormData>({
     companyName: '',
     nit: '',
@@ -57,19 +60,27 @@ export default function CreateUserModal({
 
   if (!isOpen) return null;
 
+  // Maneja cambios en los campos del formulario de persona
   const handlePersonChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    // Si el campo es roleId, convertir a número, sino dejar como string
     const finalValue = name === 'roleId' ? parseInt(value) : value;
+    // Actualizar el estado del formulario
     setPersonForm(prev => ({ ...prev, [name]: finalValue }));
+    // Si había un error en ese campo, quitarlo
     if (personErrors[name as keyof PersonFormData]) {
       setPersonErrors(prev => ({ ...prev, [name]: undefined }));
     }
   };
 
+  // Maneja cambios en los campos del formulario de institución
   const handleInstitutionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    // Si el campo es roleId, convertir a número, sino dejar como string
     const finalValue = name === 'roleId' ? parseInt(value) : value;
+    // Actualizar el estado del formulario
     setInstitutionForm(prev => ({ ...prev, [name]: finalValue }));
+    // Si había un error en ese campo, quitarlo
     if (institutionErrors[name as keyof InstitutionFormData]) {
       setInstitutionErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -96,7 +107,14 @@ export default function CreateUserModal({
 
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:3000/api/users/collector', {
+        // Seleccionar endpoint según el rol:
+        // roleId = 2 (Recolector): /api/users/collector -> estado 3, sin correo
+        // roleId = 3 (Reciclador): /api/users -> estado 1, envía correo
+        const endpoint = personForm.roleId === 2 
+          ? 'http://localhost:3000/api/users/collector'
+          : 'http://localhost:3000/api/users';
+
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -110,7 +128,10 @@ export default function CreateUserModal({
 
         const data = await res.json();
         if (data.success) {
-          setMensaje('Usuario creado exitosamente');
+          const successMessage = personForm.roleId === 2 
+            ? 'Recolector registrado exitosamente. Solicitud pendiente de aprobación.'
+            : 'Usuario creado exitosamente. Se envió un correo con las credenciales.';
+          setMensaje(successMessage);
           setTimeout(() => {
             onUserCreated();
             handleClose();
@@ -140,6 +161,8 @@ export default function CreateUserModal({
 
       setLoading(true);
       try {
+        // Instituciones siempre roleId = 2 (Recolector)
+        // /api/users/institution -> estado 3, sin correo hasta aprobación
         const res = await fetch('http://localhost:3000/api/users/institution', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -148,13 +171,13 @@ export default function CreateUserModal({
             nit: institutionForm.nit,
             email: institutionForm.email,
             phone: institutionForm.phone,
-            role_id: institutionForm.roleId,
+            role_id: 2,
           }),
         });
 
         const data = await res.json();
         if (data.success) {
-          setMensaje('Institución creada exitosamente');
+          setMensaje('Institución creada exitosamente. Solicitud pendiente de aprobación.');
           setTimeout(() => {
             onUserCreated();
             handleClose();
@@ -375,18 +398,18 @@ export default function CreateUserModal({
 
                 <div className="modalCreateUserFormGroup">
                   <label htmlFor="roleId-inst" className="modalCreateUserLabel">
-                    Rol *
+                    Rol
                   </label>
-                  <select
+                  <input
                     id="roleId-inst"
-                    name="roleId"
-                    className="modalCreateUserSelect"
-                    value={institutionForm.roleId}
-                    onChange={handleInstitutionChange}
-                  >
-                    <option value={2}>Recolector</option>
-                    <option value={3}>Reciclador</option>
-                  </select>
+                    type="text"
+                    className="modalCreateUserInput modalCreateUserInputDisabled"
+                    value="Recolector"
+                    disabled
+                    readOnly
+                    title="Las instituciones solo pueden ser recolectoras"
+                  />
+                  
                 </div>
               </>
             )}

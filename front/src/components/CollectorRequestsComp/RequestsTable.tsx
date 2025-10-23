@@ -8,7 +8,6 @@ interface Request {
   email: string;
   phone: string; 
   registrationDate: string;
-  status: string;
   companyName?: string;
   nit?: string;
 }
@@ -111,11 +110,6 @@ export default function RequestsTable({
                     <td className="collector-requests-table-body-cell">{request.email}</td>
                     <td className="collector-requests-table-body-cell">{request.phone}</td>
                     <td className="collector-requests-table-body-cell">{request.registrationDate}</td>
-                    <td className="collector-requests-table-body-cell">
-                      <span className="collector-requests-table-status-badge">
-                        {request.status}
-                      </span>
-                    </td>
                     <td className="collector-requests-table-body-cell">
                       <div className="collector-requests-table-actions">
                         <button 
