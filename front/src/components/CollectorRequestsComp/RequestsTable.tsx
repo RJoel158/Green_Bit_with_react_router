@@ -1,5 +1,6 @@
 // RequestsTable.tsx
 import { useState } from 'react';
+import CheckModal from '../CommonComp/CheckModal';
 import './CollectorRequests.css';
 
 interface Request {
@@ -26,6 +27,8 @@ export default function RequestsTable({
   onReject 
 }: RequestsTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const itemsPerPage = 10;
   
   const totalPages = Math.ceil(requests.length / itemsPerPage);
@@ -33,8 +36,36 @@ export default function RequestsTable({
   const endIndex = startIndex + itemsPerPage;
   const currentRequests = requests.slice(startIndex, endIndex);
 
+  const handleRejectClick = (userId: number) => {
+    setSelectedUserId(userId);
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = () => {
+    if (selectedUserId !== null) {
+      onReject(selectedUserId);
+      setShowRejectModal(false);
+      setSelectedUserId(null);
+    }
+  };
+
+  const handleCancelReject = () => {
+    setShowRejectModal(false);
+    setSelectedUserId(null);
+  };
+
   return (
-    <div className="collector-requests-table-container">
+    <>
+      {showRejectModal && (
+        <CheckModal
+          title="Confirmar Rechazo"
+          message={`¿Está seguro que desea rechazar esta solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'}? Esta acción no se puede deshacer.`}
+          onConfirm={handleConfirmReject}
+          onCancel={handleCancelReject}
+        />
+      )}
+      
+      <div className="collector-requests-table-container">
       <div className="collector-requests-table-scroll">
         <table className="collector-requests-table">
           <thead>
@@ -89,7 +120,7 @@ export default function RequestsTable({
                         </button>
                         <button 
                           className="collector-requests-table-reject-btn"
-                          onClick={() => onReject(request.userId)}
+                          onClick={() => handleRejectClick(request.userId)}
                         >
                           ✗ Rechazar
                         </button>
@@ -120,7 +151,7 @@ export default function RequestsTable({
                         </button>
                         <button 
                           className="collector-requests-table-reject-btn"
-                          onClick={() => onReject(request.userId)}
+                          onClick={() => handleRejectClick(request.userId)}
                         >
                           ✗ Rechazar
                         </button>
@@ -152,5 +183,6 @@ export default function RequestsTable({
         </button>
       </div>
     </div>
+    </>
   );
 }

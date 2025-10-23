@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../AdminDashboardComp/Sidebar';
 import Header from './Header';
 import RequestsTable from './RequestsTable';
+import SuccessModal from '../CommonComp/SuccesModal';
 import './CollectorRequests.css';
 
 interface CollectorRequest {
@@ -42,6 +43,7 @@ export default function CollectorRequests() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Función para obtener solicitudes según el tipo
   const fetchRequests = async (type: RequestType) => {
@@ -131,17 +133,44 @@ export default function CollectorRequests() {
 
   const handleRejectRequest = async (userId: number) => {
     try {
-      // Aquí iría la lógica para rechazar la solicitud
-      console.log('Rechazar solicitud:', userId);
-      // Recargar las solicitudes después de rechazar
-      await fetchRequests(requestType);
+      // Determinar el endpoint según el tipo de solicitud
+      const endpoint = requestType === 'Persona'
+        ? `http://localhost:3000/api/users/${userId}`
+        : `http://localhost:3000/api/users/institution/${userId}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Solicitud rechazada exitosamente');
+        // Mostrar el modal de éxito
+        setShowSuccessModal(true);
+      
+        await fetchRequests(requestType);
+      } else {
+        console.error('Error al rechazar solicitud:', data.error);
+        setError(data.error || 'Error al rechazar la solicitud');
+      }
     } catch (err) {
       console.error('Error al rechazar solicitud:', err);
+      setError('Error de conexión al rechazar la solicitud');
     }
   };
 
   return (
-    <div className="collector-requests-dashboard">
+    <>
+      {showSuccessModal && (
+        <SuccessModal
+          title="¡Solicitud Rechazada!"
+          message={`La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido rechazada exitosamente.`}
+          redirectUrl="/adminCollectorRequests"
+        />
+      )}
+      
+      <div className="collector-requests-dashboard">
       <Sidebar />
       <div className="collector-requests-main">
         <Header 
@@ -176,5 +205,6 @@ export default function CollectorRequests() {
         </div>
       </div>
     </div>
+    </>
   );
 }
