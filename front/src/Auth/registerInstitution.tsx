@@ -110,7 +110,7 @@ const RegisterInstitution: React.FC = () => {
           nit: form.nit,
           email: form.email,
           phone: form.phone,
-          role_id: 2, // institución colectora
+          role_id: 2, // recolector institución
           // state: 1, // pendiente (opcional, si quieres forzar)
         }),
       });

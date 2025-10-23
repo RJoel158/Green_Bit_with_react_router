@@ -133,6 +133,90 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password, emai
 </html>`;
 };
 
+// Plantilla HTML para rechazo de solicitud
+const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
+  const tipoUsuario = userType === 'institucion' ? 'empresa' : 'persona';
+  
+  return `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    table { border-collapse: collapse !important; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
+    .email-wrapper { width:100%; background-color:#C9A171; padding:20px 0; }
+    .email-content { width:600px; max-width:600px; margin:0 auto; }
+    .card { background:#F5F3E8; border-radius:12px; border:3px solid #0A5C30; overflow:hidden; }
+    h1 { margin:0; font-size:36px; line-height:1.1; color:#B33A3A; font-weight:700; }
+    p { margin:0 0 12px 0; color:#2f5441; font-size:15px; line-height:1.4; }
+    .lead { color:#385a45; font-size:15px; line-height:1.4; }
+    .rejection-box { 
+      background: #ffe8e8; 
+      border: 2px solid #B33A3A; 
+      border-radius: 8px; 
+      padding: 16px; 
+      margin: 16px 0;
+    }
+    @media only screen and (max-width:600px) {
+      .email-content { width:94% !important; max-width:94% !important; }
+      h1 { font-size:26px !important; }
+      .card { border-width:2px !important; border-radius:10px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#C9A171; font-family:Arial, Helvetica, sans-serif;">
+  <table class="email-wrapper" role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table class="email-content" role="presentation" width="600" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding:18px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
+                <tr>
+                  <td align="center" style="padding:26px 30px;">
+                    <h1>Solicitud de Cuenta Rechazada</h1>
+                    <div style="height:12px;"></div>
+                    <p class="lead">Lamentamos informarte que tu solicitud no ha sido aprobada.</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:20px 34px;">
+                    <p>Estimado/a <strong>${nombre} ${apellidos}</strong>,</p>
+                    <p>Lamentamos informarte que tu solicitud de registro como ${tipoUsuario} recolector/a en GreenBit no ha sido aprobada.</p>
+                    
+                    <div class="rejection-box">
+                      <p style="margin:0; color:#B33A3A; font-weight:bold;">❌ Estado: Solicitud Rechazada</p>
+                    </div>
+                    
+                    <p><strong>Posibles razones:</strong></p>
+                    <ul style="color:#2f5441; padding-left: 20px;">
+                      <li>La información proporcionada no cumple con nuestros requisitos</li>
+                      <li>No se pudo verificar la documentación enviada</li>
+                      <li>La solicitud no cumple con los criterios de aprobación</li>
+                    </ul>
+                    
+                    <p>Si consideras que esto es un error o deseas obtener más información, por favor contacta con nuestro equipo de soporte.</p>
+                    
+                    <div style="height:14px;"></div>
+                    <p style="color:#6b725f; font-size:12px; margin:0;">
+                      Puedes intentar registrarte nuevamente en el futuro.<br/>
+                      © GreenBit 2025 - Cuidando el planeta juntos
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+};
+
 // Función para enviar credenciales por email
 export const sendCredentialsEmail = async (to, nombre, apellidos, username, password, emailType=0) => {
   // Verificar si el transporter está configurado
@@ -177,3 +261,29 @@ export const verifyEmailConnection = async () => {
   }
 };
 
+// Función para enviar email de rechazo
+export const sendRejectionEmail = async (to, nombre, apellidos, userType = 'persona') => {
+  
+  if (!transporter) {
+    const error = "❌ No se puede enviar email: falta configurar GMAIL_USER y GMAIL_APP_PASSWORD en .env";
+    console.error(error);
+    throw new Error("Servicio de email no configurado");
+  }
+
+  try {
+    const html = getRejectionEmailTemplate(nombre, apellidos, userType);
+
+    const info = await transporter.sendMail({
+      from: `"GreenBit" <${USER}>`,
+      to: to,
+      subject: "⚠️ Solicitud de Cuenta Rechazada - GreenBit",
+      html: html,
+    });
+
+    console.log(`✅ Email de rechazo enviado a ${to}:`, info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error enviando email de rechazo:", error);
+    throw error;
+  }
+};

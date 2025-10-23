@@ -44,6 +44,7 @@ export default function CollectorRequests() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAction, setSuccessAction] = useState<'approved' | 'rejected'>('approved');
 
   // Función para obtener solicitudes según el tipo
   const fetchRequests = async (type: RequestType) => {
@@ -122,12 +123,29 @@ export default function CollectorRequests() {
 
   const handleApproveRequest = async (userId: number) => {
     try {
-      // Aquí iría la lógica para aprobar la solicitud
-      console.log('Aprobar solicitud:', userId);
-      // Recargar las solicitudes después de aprobar
-      await fetchRequests(requestType);
+      const endpoint = requestType === 'Persona' 
+        ? `http://localhost:3000/api/users/approve/${userId}`
+        : `http://localhost:3000/api/users/institution/approve/${userId}`;
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Solicitud aprobada exitosamente y credenciales enviadas');
+        // Mostrar el modal de éxito
+        setSuccessAction('approved');
+        setShowSuccessModal(true);
+        await fetchRequests(requestType);
+      } else {
+        console.error('Error al aprobar solicitud:', data.error);
+        setError(data.error || 'Error al aprobar la solicitud');
+      }
     } catch (err) {
       console.error('Error al aprobar solicitud:', err);
+      setError('Error de conexión al aprobar la solicitud');
     }
   };
 
@@ -135,20 +153,20 @@ export default function CollectorRequests() {
     try {
       // Determinar el endpoint según el tipo de solicitud
       const endpoint = requestType === 'Persona'
-        ? `http://localhost:3000/api/users/${userId}`
-        : `http://localhost:3000/api/users/institution/${userId}`;
+        ? `http://localhost:3000/api/users/reject/${userId}`
+        : `http://localhost:3000/api/users/institution/reject/${userId}`;
       
       const response = await fetch(endpoint, {
-        method: 'DELETE',
+        method: 'POST',
       });
 
       const data = await response.json();
       
       if (data.success) {
-        console.log('Solicitud rechazada exitosamente');
+        console.log('Solicitud rechazada exitosamente y email enviado');
         // Mostrar el modal de éxito
+        setSuccessAction('rejected');
         setShowSuccessModal(true);
-      
         await fetchRequests(requestType);
       } else {
         console.error('Error al rechazar solicitud:', data.error);
@@ -164,8 +182,12 @@ export default function CollectorRequests() {
     <>
       {showSuccessModal && (
         <SuccessModal
-          title="¡Solicitud Rechazada!"
-          message={`La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido rechazada exitosamente.`}
+          title={successAction === 'approved' ? '¡Solicitud Aprobada!' : '¡Solicitud Rechazada!'}
+          message={
+            successAction === 'approved'
+              ? `La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido aprobada exitosamente. Las credenciales han sido enviadas por email.`
+              : `La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido rechazada exitosamente.`
+          }
           redirectUrl="/adminCollectorRequests"
         />
       )}

@@ -41,7 +41,6 @@ export default function CreateUserModal({
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
   
   // Formulario de persona - valores iniciales con roleId = 2 (recolector por defecto)
-  // Formulario de persona - valores iniciales con roleId = 2 (recolector por defecto)
   const [personForm, setPersonForm] = useState<PersonFormData>({
     nombres: '',
     apellidos: '',
@@ -50,7 +49,7 @@ export default function CreateUserModal({
     roleId: 2,
   });
   
-  // Formulario de institución - valores iniciales con roleId = 2 (recolector)
+  // Formulario de institución - valores iniciales con roleId = 2 (recolector institución)
   const [institutionForm, setInstitutionForm] = useState<InstitutionFormData>({
     companyName: '',
     nit: '',
@@ -166,7 +165,7 @@ export default function CreateUserModal({
 
       setLoading(true);
       try {
-        // Instituciones siempre roleId = 2 (Recolector)
+        // Instituciones siempre roleId = 2 (Recolector institución)
         // /api/users/institution -> estado 3, sin correo hasta aprobación
         const res = await fetch('http://localhost:3000/api/users/institution', {
           method: 'POST',
