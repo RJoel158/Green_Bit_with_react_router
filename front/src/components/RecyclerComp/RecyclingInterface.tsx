@@ -4,6 +4,7 @@ import "./RecyclingInterface.css";
 import Header from "./headerRecycler";
 import RequestAndAppoint from "./request_&_appoint";
 import ChangePasswordModal from "../PasswordComp/ChangePasswordModal";
+import AnnouncementBanner from "../CommonComp/AnnouncementBanner";
 
 interface Recycler {
   id: number;
@@ -79,8 +80,8 @@ const RecyclingInterface: React.FC = () => {
       )}
 
       <div className="main-content">
-        {/* Banner Izquierdo */}
-        <div className="banner-left"></div>
+        {/* Banner Izquierdo con Anuncios */}
+        <AnnouncementBanner role="reciclador" position="left" />
 
         {/* Sección Reciclaje */}
         <div className="recycling-section">
@@ -106,8 +107,8 @@ const RecyclingInterface: React.FC = () => {
           </div>
         </div>
 
-        {/* Banner Derecho */}
-        <div className="banner-right"></div>
+        {/* Banner Derecho con Anuncios */}
+        <AnnouncementBanner role="reciclador" position="right" />
       </div>
 
       {/* Request and Appoint */}

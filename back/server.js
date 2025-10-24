@@ -9,6 +9,8 @@ import materialRoutes from './Routes/materialRoutes.js';
 import requestRoutes from './Routes/requestRoutes.js';
 import requestAppointmentRoutes from './Routes/requestAppointmentRoutes.js';
 import notificationRoutes from './Routes/notificationRoutes.js';
+import announcementRoutes from './Routes/announcementRoutes.js';
+import uploadRoutes from './Routes/uploadRoutes.js';
 import { verifyEmailConnection } from './Services/emailService.js';
 import { checkConnection } from './Config/DBConnect.js';
 
@@ -58,6 +60,8 @@ app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
 app.use("/api/appointments", requestAppointmentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/announcement", announcementRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {

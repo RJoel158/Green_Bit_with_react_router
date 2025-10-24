@@ -109,8 +109,9 @@
 .banner-right {
   width: 300px;
   height: 500px;
-  background: #6B46C1;
+  background: transparent;
   border-radius: 20px;
+  overflow: hidden;
 }
 
 /* Botón RECICLA */

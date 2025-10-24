@@ -7,6 +7,7 @@ import PendingApprovals from './PendingApprovals';
 import TopRecyclers from './TopRecyclers';
 import TopCollectors from './TopCollectors';
 import MaterialesAdmin from './MaterialesAdmin';
+import AnnouncementsAdmin from './AnnouncementsAdmin';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
@@ -35,6 +36,8 @@ export default function AdminDashboard() {
         );
       case 'materiales':
         return <MaterialesAdmin />;
+      case 'anuncios':
+        return <AnnouncementsAdmin />;
       default:
         return (
           <div className="dashboard-content">

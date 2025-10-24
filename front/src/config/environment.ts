@@ -27,6 +27,8 @@ export const config = {
     endpoints: {
       requests: '/api/request',
       materials: '/api/material',
+      announcements: '/api/announcement',
+      upload: '/api/upload',
       users: '/api/users',
       health: '/health',
       dbStatus: '/api/db-status',
