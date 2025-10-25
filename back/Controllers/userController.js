@@ -1,7 +1,7 @@
 // Controllers/userController.js
 import bcrypt from "bcrypt";
 import * as UserModel from "../Models/userModel.js";
-import { sendCredentialsEmail } from "../Services/emailService.js";
+import { sendCredentialsEmail, sendRejectionEmail } from "../Services/emailService.js";
 
 /** GET /users */
 export const getUsers = async (req, res) => {
@@ -13,6 +13,30 @@ export const getUsers = async (req, res) => {
     res.status(500).json({ success: false, error: "Error al obtener usuarios" });
   }
 };
+
+/** GET /users/withPerson */
+export const getUsersPerson = async (req, res) => {
+  try {
+    const users = await UserModel.getAllUsersWithPerson();
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error("[ERROR] getUsers controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener usuarios" });
+  }
+};
+
+/** GET /users/collectors/pending */
+export const getCollectorsPendingWithPerson = async (req, res) => {
+  try {
+    const collectors = await UserModel.getCollectorsPendingWithPerson();
+    res.json({ success: true, collectors });
+  } catch (err) {
+    console.error("[ERROR] getCollectorsPendingWithPerson controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener solicitudes de recolectores pendientes" });
+  }
+};
+
+
 
 /** GET /users/:id */
 export const getUserById = async (req, res) => {
@@ -140,7 +164,7 @@ export const createUser = async (req, res) => {
 };
 
 
-/** POST /users/collector -> crea user + persona de recolector con state = 0 */
+/** POST /users/collector -> crea user con state = 3 + persona de recolector con state = 0 */
 export const createCollectorUser = async (req, res) => {
   try {
     const { nombres, apellidos, email, phone } = req.body;
@@ -153,8 +177,8 @@ export const createCollectorUser = async (req, res) => {
     }
 
     // role_id fijo para recolector
-    const roleId = 2;
-    const state = 0; // pendiente
+    const roleId = 2; // rol 2 = recolector
+    const state = 3; // pendiente de aprobación
 
     const result = await UserModel.createCollectorWithPersona(
       nombres,
@@ -214,6 +238,46 @@ export const updateUser = async (req, res) => {
   }
 };
 
+/** PUT /users/:id/role - Actualizar solo el rol del usuario */
+export const updateUserRole = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { roleId } = req.body;
+
+    // Validar que se envió el roleId
+    if (!roleId) {
+      console.warn("[WARN] updateUserRole - missing roleId", { userId });
+      return res.status(400).json({ success: false, error: "El roleId es requerido" });
+    }
+
+    // Validar que roleId sea un número válido
+    const roleIdParsed = Number(roleId);
+    if (isNaN(roleIdParsed) || roleIdParsed < 1) {
+      console.warn("[WARN] updateUserRole - invalid roleId", { userId, roleId });
+      return res.status(400).json({ success: false, error: "El roleId debe ser un número válido" });
+    }
+
+    // Actualizar el rol
+    const updated = await UserModel.updateUserRole(userId, roleIdParsed);
+
+    if (!updated) {
+      console.warn("[WARN] updateUserRole - user not found", { userId });
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+
+    console.log("[INFO] updateUserRole - success", { userId, roleId: roleIdParsed });
+    res.json({ success: true, message: "Rol actualizado correctamente" });
+  } catch (err) {
+    console.error("[ERROR] updateUserRole controller:", { 
+      params: req.params, 
+      body: req.body, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ success: false, error: "Error al actualizar el rol del usuario" });
+  }
+};
+
 /** DELETE /users/:id */
 export const deleteUser = async (req, res) => {
   try {
@@ -262,7 +326,7 @@ export const createUserWithInstitution = async (req, res) => {
       });
     }
 
-    const roleIdParsed = role_id !== undefined ? Number(role_id) : 3; 
+    const roleIdParsed = role_id !== undefined ? Number(role_id) : 2; // default: recolector
 
     // El modelo debe crear el usuario con password: null y state: 0
     const result = await UserModel.createWithInstitution(
@@ -335,6 +399,17 @@ export const getUsersWithInstitution = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] getUsersWithInstitution:", { message: err.message });
     res.status(500).json({ success: false, error: "Error al obtener usuarios con institución" });
+  }
+};
+
+/** GET /users/collectors/pending/institution */
+export const getCollectorsPendingWithInstitution = async (req, res) => {
+  try {
+    const collectors = await UserModel.getCollectorsPendingWithInstitution();
+    res.json({ success: true, collectors });
+  } catch (err) {
+    console.error("[ERROR] getCollectorsPendingWithInstitution controller:", { message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al obtener solicitudes de recolectores institucionales pendientes" });
   }
 };
 
@@ -490,6 +565,192 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ 
       success: false, 
       error: "Error al procesar la solicitud de recuperación" 
+    });
+  }
+};
+
+/** POST /users/reject/:id - Rechazar usuario persona con envío de email */
+export const rejectUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("[INFO] rejectUser - start", { userId: id });
+    
+    // Rechazar usuario y obtener datos
+    const userData = await UserModel.rejectUserWithPersona(id);
+    
+    if (!userData) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+    
+    // Enviar email de rechazo si tiene datos completos
+    if (userData.firstname && userData.lastname && userData.email) {
+      try {
+        await sendRejectionEmail(
+          userData.email, 
+          userData.firstname, 
+          userData.lastname, 
+          'persona'
+        );
+        console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+      } catch (emailError) {
+        console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        // Continuar aunque falle el email
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Usuario rechazado exitosamente" 
+    });
+  } catch (err) {
+    console.error("[ERROR] rejectUser controller:", { 
+      params: req.params, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: "Error al rechazar usuario" 
+    });
+  }
+};
+
+/** POST /users/institution/reject/:id - Rechazar usuario institución con envío de email */
+export const rejectInstitution = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("[INFO] rejectInstitution - start", { userId: id });
+    
+    // Rechazar institución y obtener datos
+    const userData = await UserModel.rejectUserWithInstitution(id);
+    
+    if (!userData) {
+      return res.status(404).json({ success: false, error: "Institución no encontrada" });
+    }
+    
+    // Enviar email de rechazo si tiene datos completos
+    if (userData.companyName && userData.email) {
+      try {
+        await sendRejectionEmail(
+          userData.email, 
+          userData.companyName, 
+          '', 
+          'institucion'
+        );
+        console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+      } catch (emailError) {
+        console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        // Continuar aunque falle el email
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Institución rechazada exitosamente" 
+    });
+  } catch (err) {
+    console.error("[ERROR] rejectInstitution controller:", { 
+      params: req.params, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: "Error al rechazar institución" 
+    });
+  }
+};
+
+/** POST /users/approve/:id - Aprobar usuario persona con generación de contraseña y envío de email */
+export const approveUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("[INFO] approveUser - start", { userId: id });
+    
+    // Aprobar usuario, generar contraseña y obtener datos
+    const userData = await UserModel.approveUserWithPersona(id);
+    
+    if (!userData) {
+      return res.status(404).json({ success: false, error: "Usuario no encontrado" });
+    }
+    
+    // Enviar email con credenciales si tiene datos completos
+    if (userData.firstname && userData.lastname && userData.email && userData.tempPassword) {
+      try {
+        await sendCredentialsEmail(
+          userData.email,          
+          userData.firstname,      
+          userData.lastname,       
+          userData.email,          
+          userData.tempPassword    
+        );
+        console.log(`✅ Email de credenciales enviado a ${userData.email}`);
+      } catch (emailError) {
+        console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
+       
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Usuario aprobado exitosamente y credenciales enviadas" 
+    });
+  } catch (err) {
+    console.error("[ERROR] approveUser controller:", { 
+      params: req.params, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: "Error al aprobar usuario" 
+    });
+  }
+};
+
+/** POST /users/institution/approve/:id - Aprobar usuario institución con generación de contraseña y envío de email */
+export const approveInstitution = async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log("[INFO] approveInstitution - start", { userId: id });
+    
+    // Aprobar institución, generar contraseña y obtener datos
+    const userData = await UserModel.approveUserWithInstitution(id);
+    
+    if (!userData) {
+      return res.status(404).json({ success: false, error: "Institución no encontrada" });
+    }
+    
+    // Enviar email con credenciales si tiene datos completos
+    if (userData.companyName && userData.email && userData.tempPassword) {
+      try {
+        await sendCredentialsEmail(
+          userData.email,           // to: email destino
+          userData.companyName,     // nombre (companyName para instituciones)
+          '',                       // apellidos (vacío para instituciones)
+          userData.email,           // username: el email es el usuario
+          userData.tempPassword     // password: contraseña temporal
+        );
+        console.log(`✅ Email de credenciales enviado a ${userData.email}`);
+      } catch (emailError) {
+        console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
+        // Continuar aunque falle el email
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: "Institución aprobada exitosamente y credenciales enviadas" 
+    });
+  } catch (err) {
+    console.error("[ERROR] approveInstitution controller:", { 
+      params: req.params, 
+      message: err.message, 
+      stack: err.stack 
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: "Error al aprobar institución" 
     });
   }
 };

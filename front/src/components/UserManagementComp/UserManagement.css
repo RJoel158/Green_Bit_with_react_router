@@ -1,0 +1,903 @@
+/* UserManagement.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background-color: #f9fafb;
+}
+
+
+.user-management-dashboard {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #faf8f1;
+  overflow: hidden;
+}
+
+.user-management-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  max-width: calc(100vw - 256px);
+  height: 100vh;
+}
+
+.user-management-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #FAF8F1;
+  padding: 2rem;
+  width: 100%;
+}
+
+.user-management-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  min-width: 0;
+  width: 100%;
+}
+
+/* Header */
+.user-management-header {
+  background-color: #FAF8F1;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 2rem;
+  display: flex;
+  flex-direction: column; 
+  gap: 0.75rem; 
+  flex-shrink: 0;
+}
+
+.user-management-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.user-management-header-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #15803d;
+  align-self: flex-start; 
+}
+
+.user-management-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.user-management-header-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px; 
+  max-width: 600px; 
+}
+
+.user-management-header-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+.user-management-header-search-input {
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  width: 100%; 
+  outline: none;
+  background-color: white;
+}
+
+.user-management-header-search-input:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.user-management-header-type-select {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  background-color: white;
+  color: #16a34a;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.user-management-header-create-btn {
+  padding: 0.5rem 1rem;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.user-management-header-create-btn:hover {
+  background-color: #15803d;
+}
+
+.user-management-header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-management-header-user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #f97316;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.user-management-header-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.user-management-header-notif-btn {
+  position: relative;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.user-management-header-notif-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.user-management-header-notif-badge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #ef4444;
+  border-radius: 50%;
+}
+
+/* User dropdown */
+.user-management-header-user-wrapper {
+  position: relative;
+}
+
+.user-management-header-user-trigger {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.user-management-header-user-arrow {
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.user-management-header-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.user-management-header-dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.2s;
+}
+
+.user-management-header-dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.user-management-header-dropdown-divider {
+  margin: 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+.user-management-header-notification-wrapper {
+  margin-left: 8px;
+}
+
+/* Tabla usuarios */
+.user-management-table-container {
+  flex: 2;
+  background-color: #faf8f1;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.user-management-table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  border-radius: 0.75rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.user-management-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 900px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  table-layout: auto;
+}
+
+.user-management-table-head-row {
+  background-color: #B0EDCC;
+}
+
+.user-management-table-head-cell {
+  padding: 1rem 1.25rem;
+  color: #149D52;
+  font-weight: 600;
+  text-align: left;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.user-management-table-head-cell:first-child {
+  border-top-left-radius: 0.75rem;
+  width: 30%;
+}
+
+.user-management-table-head-cell:nth-child(2) {
+  width: 30%;
+}
+
+.user-management-table-head-cell:nth-child(3) {
+  width: 20%;
+}
+
+.user-management-table-head-cell:last-child {
+  border-top-right-radius: 0.75rem;
+  width: 20%;
+}
+
+.user-management-table-body-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background-color: #FAF8F1;
+}
+
+.user-management-table-body-row.selected {
+  background-color: #6FC794 !important;
+}
+
+.user-management-table-body-row.selected .user-management-table-body-cell {
+  color: rgb(82, 82, 82);
+}
+
+.user-management-table-body-row:hover:not(.selected) {
+  background-color: #F0EDE1;
+}
+
+.user-management-table-body-cell {
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  color: #374151;
+  border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+}
+
+.user-management-table-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-management-table-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+}
+
+.user-management-table-avatar-recycler {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.user-management-table-avatar-collector {
+  background-color: #1f2937;
+  color: white;
+}
+
+/* Paginación */
+.user-management-table-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.user-management-table-pagination-btn {
+  background: none;
+  border: none;
+  color: #16a34a;
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+.user-management-table-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-management-table-pagination-page {
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/*Panel información usuario*/
+.user-management-info-panel {
+  flex: 1;
+  min-width: 320px; 
+  max-width: 400px; 
+  background-color: #faf8f1;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+ 
+}
+
+.user-management-info-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.user-management-info-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.user-management-info-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1.5rem;
+}
+
+.user-management-info-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.user-management-info-avatar-recycler {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.user-management-info-avatar-collector {
+  background-color: #1f2937;
+  color: white;
+}
+
+.user-management-info-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.user-management-info-role {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.user-management-info-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.user-management-info-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-management-info-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.user-management-info-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.user-management-info-input-readonly {
+  background-color: #f9fafb;
+}
+
+.user-management-info-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+}
+
+.user-management-info-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.user-management-info-delete-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.user-management-info-delete-btn:hover {
+  background-color: #dc2626;
+}
+
+.user-management-info-save-btn {
+  flex: 1;
+  padding: 0.75rem;
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.user-management-info-save-btn:hover {
+  background-color: #15803d;
+}
+
+/* Responsivo */
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .user-management-header-search-box {
+    max-width: 400px;
+  }
+
+  .user-management-info-panel {
+    min-width: 280px;
+    max-width: 320px;
+  }
+}
+
+/* Tablets pequeñas */
+@media (max-width: 768px) {
+  .user-management-header {
+    padding: 0.75rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .user-management-header-top {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .user-management-header-title {
+    font-size: 1rem;
+    order: 2; 
+  }
+
+  .user-management-header-search-box {
+    width: 100%;
+    max-width: 100%;
+    order: 0;
+  }
+
+  .user-management-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    order: 1;
+  }
+
+  .user-management-content {
+    padding: 1rem;
+  }
+
+  .user-management-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .user-management-table-container {
+    width: 100%;
+  }
+
+  .user-management-info-panel {
+    min-width: 100%;
+    max-width: 100%;
+    order: 2;
+  }
+
+  .user-management-table {
+    min-width: 600px;
+  }
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+  .user-management-main {
+    max-width: 100vw;
+  }
+
+  .user-management-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .user-management-header-title {
+    font-size: 0.9rem;
+  }
+
+  .user-management-header-actions {
+    gap: 0.5rem;
+  }
+
+  .user-management-header-user-name {
+    display: none;
+  }
+
+  .user-management-header-type-select,
+  .user-management-header-create-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .user-management-content {
+    padding: 0.75rem;
+  }
+
+  .user-management-table-container {
+    padding: 1rem;
+  }
+
+  .user-management-table-scroll {
+    border-radius: 0.5rem;
+  }
+
+  .user-management-info-panel {
+    padding: 1rem;
+  }
+
+  .user-management-info-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 1.75rem;
+  }
+
+  .user-management-info-name {
+    font-size: 1.1rem;
+  }
+
+  .user-management-table {
+    min-width: 750px;
+  }
+
+  .user-management-table-head-cell,
+  .user-management-table-body-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Modal Create User Styles */
+.modalCreateUserOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalCreateUserContainer {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalCreateUserHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modalCreateUserTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.modalCreateUserCloseBtn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.modalCreateUserCloseBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modalCreateUserContent {
+  padding: 2rem;
+}
+
+.modalCreateUserFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  position: sticky;
+  bottom: 0;
+}
+
+.modalCreateUserCancelBtn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalCreateUserCancelBtn:hover {
+  background-color: #e5e7eb;
+}
+
+.modalCreateUserCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modalCreateUserSubmitBtn {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modalCreateUserSubmitBtn:hover {
+  background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+  box-shadow: 0 4px 8px rgba(21, 128, 61, 0.3);
+}
+
+.modalCreateUserSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Form styles within modal */
+.modalCreateUserFormGroup {
+  margin-bottom: 1.25rem;
+}
+
+.modalCreateUserLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #15803d;
+  margin-bottom: 0.5rem;
+}
+
+.modalCreateUserInput,
+.modalCreateUserSelect {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.modalCreateUserInput:focus,
+.modalCreateUserSelect:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
+}
+
+.modalCreateUserInput.modalCreateUserInputError {
+  border-color: #ef4444;
+}
+
+.modalCreateUserSelect {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.modalCreateUserErrorMessage {
+  display: block;
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.modalCreateUserInputDisabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.modalCreateUserHelpText {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.modalCreateUserAlert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.modalCreateUserAlertSuccess {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.modalCreateUserAlertError {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* Responsive modal */
+@media (max-width: 768px) {
+  .modalCreateUserContainer {
+    width: 95%;
+    margin: 1rem;
+    max-height: 95vh;
+  }
+
+  .modalCreateUserHeader {
+    padding: 1rem 1.5rem;
+  }
+
+  .modalCreateUserTitle {
+    font-size: 1.25rem;
+  }
+
+  .modalCreateUserContent {
+    padding: 1.5rem;
+  }
+
+  .modalCreateUserFooter {
+    padding: 1rem 1.5rem;
+    flex-direction: column-reverse;
+  }
+
+  .modalCreateUserCancelBtn,
+  .modalCreateUserSubmitBtn {
+    width: 100%;
+  }
+}

@@ -12,6 +12,8 @@ import FormComp from "./components/FormComps/FormComp";
 import AdminDashboard from "./components/AdminDashboardComp/Home";
 import PickupDetails from "./components/PickupDetailsComp/PickupDetails";
 import NotificationsPage from "./components/CommonComp/NotificationsPage";
+import UserManagement from "./components/UserManagementComp/UserManagement";
+import CollectorRequests from "./components/CollectorRequestsComp/CollectorRequests";
 
 import RecyclingPointsMap from "./components/CollectorMapComps/Map";
 
@@ -45,6 +47,8 @@ function App() {
         <Route path="/recycling-points" element={<RecyclingPointsMap />} />
         <Route path="/pickupDetails/:id" element={<PickupDetails />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/adminUserManagement" element={<UserManagement />} />
+        <Route path="/adminCollectorRequests" element={<CollectorRequests />} />
       </Routes>
     </Router>
   );

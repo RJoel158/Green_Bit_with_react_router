@@ -40,7 +40,45 @@ export const getAllWithPersona = async () => {
   );
   return rows;
 };
-
+/**
+ * Obtener todos los usuarios con su persona (si existe)
+ */
+export const getAllUsersWithPerson = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+          p.firstname, p.lastname, p.state AS personState
+     FROM users u
+     INNER JOIN person p ON p.userId = u.id
+     WHERE u.state != 0 AND u.state != 3`
+  );
+  return rows;
+};
+/**
+ * Obtener todos los usuarios recolector con su persona que tengan estado 3(solicitud pendiente).
+ */
+export const getCollectorsPendingWithPerson = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+          p.firstname, p.lastname, p.state AS personState
+     FROM users u
+     INNER JOIN person p ON p.userId = u.id
+     WHERE u.state = 3`
+  );
+  return rows;
+};
+/**
+ * Obtener todos los usuarios recolector con su institución que tengan estado 3(solicitud pendiente).
+ */
+export const getCollectorsPendingWithInstitution = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+          i.companyName, i.nit, i.state AS institutionState
+     FROM users u
+     INNER JOIN institution i ON i.userId = u.id
+     WHERE u.state = 3`
+  );
+  return rows;
+};
 export const getByIdWithPersona = async (id) => {
   const [rows] = await db.query(
     `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
@@ -178,7 +216,7 @@ export const createCollectorWithPersona = async (
   email,
   phone,
   roleId = 2, // recolector
-  state = 0   // pendiente
+  state = 3   // pendiente de aprobación
 ) => {
   const conn = await db.getConnection();
   try {
@@ -188,10 +226,11 @@ export const createCollectorWithPersona = async (
     const tempPassword = passwordGenerater(12);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone);
+    // Crear usuario con estado 3 (pendiente de aprobación)
+    const { userId } = await insertUserWithRetry(conn, hashedPassword, roleId, email, phone, state);
 
-    // Crear persona con state específico
-    const personId = await PersonModel.create(conn, firstname, lastname, userId, state);
+    // Crear persona con estado 1 (activo)
+    const personId = await PersonModel.create(conn, firstname, lastname, userId, 1);
 
     await conn.commit();
     return { userId, personId, password: tempPassword };
@@ -272,12 +311,249 @@ export const softDelete = async (id) => {
   return res.affectedRows > 0;
 };
 
+/**
+ * Rechazar usuario con persona
+ * Retorna los datos del usuario para enviar email
+ */
+export const rejectUserWithPersona = async (userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] rejectUserWithPersona - start", { userId });
+    await conn.beginTransaction();
+
+    // Obtener datos del usuario y persona antes de rechazar
+    const [rows] = await conn.query(
+      `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState,
+            p.firstname, p.lastname, p.state AS personState
+       FROM users u
+       LEFT JOIN person p ON p.userId = u.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      console.warn("[WARN] rejectUserWithPersona - user not found", { userId });
+      return null;
+    }
+
+    const userData = rows[0];
+
+    // Realizar soft delete
+    await conn.query("UPDATE users SET state = 0 WHERE id = ?", [userId]);
+    await conn.query("UPDATE person SET state = 0 WHERE userId = ?", [userId]);
+
+    await conn.commit();
+    console.log("[INFO] rejectUserWithPersona - committed", { userId });
+    
+    // Retornar datos para enviar email
+    return userData;
+  } catch (err) {
+    console.error("[ERROR] rejectUserWithPersona:", { userId, message: err.message, stack: err.stack });
+    try { await conn.rollback(); } catch (rbErr) { console.error("[ERROR] rejectUserWithPersona rollback:", rbErr); }
+    throw err;
+  } finally {
+    try { conn.release(); } catch (relErr) { console.error("[ERROR] rejectUserWithPersona release:", relErr); }
+  }
+};
+
+/**
+ * Aprobar usuario con persona
+ * Genera contraseña temporal, actualiza estado y retorna datos para enviar email
+ */
+export const approveUserWithPersona = async (userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] approveUserWithPersona - start", { userId });
+    await conn.beginTransaction();
+
+    // Obtener datos del usuario y persona antes de aprobar
+    const [rows] = await conn.query(
+      `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState,
+              p.firstname, p.lastname, p.state AS personState
+       FROM users u
+       LEFT JOIN person p ON p.userId = u.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      console.warn("[WARN] approveUserWithPersona - user not found", { userId });
+      return null;
+    }
+
+    const userData = rows[0];
+
+    // Generar contraseña temporal
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Actualizar usuario: contraseña y estado a 1 (activo, debe cambiar contraseña)
+    await conn.query("UPDATE users SET password = ?, state = 1 WHERE id = ?", [hashedPassword, userId]);
+
+    await conn.commit();
+    console.log("[INFO] approveUserWithPersona - committed", { userId });
+    
+    // Retornar datos para enviar email (incluyendo contraseña sin hash)
+    return {
+      ...userData,
+      tempPassword
+    };
+  } catch (err) {
+    console.error("[ERROR] approveUserWithPersona:", { userId, message: err.message, stack: err.stack });
+    try { await conn.rollback(); } catch (rbErr) { console.error("[ERROR] approveUserWithPersona rollback:", rbErr); }
+    throw err;
+  } finally {
+    try { conn.release(); } catch (relErr) { console.error("[ERROR] approveUserWithPersona release:", relErr); }
+  }
+};
+
+
 export const updatePasswordAndState = async (id, password) => {
   const [res] = await db.query("UPDATE users SET password = ?, state = 2 WHERE id = ?", [password, id]);
   return res.affectedRows > 0;
 };
 
+/**
+ * Actualizar el rol de un usuario por su ID
+ */
+export const updateUserRole = async (userId, roleId) => {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // Verificar que el rol existe
+    await ensureRoleExists(conn, roleId);
+
+    // Actualizar el rol del usuario
+    const [res] = await conn.query(
+      "UPDATE users SET roleId = ? WHERE id = ?",
+      [roleId, userId]
+    );
+
+    await conn.commit();
+    return res.affectedRows > 0;
+  } catch (error) {
+    await conn.rollback();
+    console.error("[ERROR] updateUserRole:", { userId, roleId, message: error.message });
+    throw error;
+  } finally {
+    conn.release();
+  }
+};
+
 // Institucion Model
+/**
+ * Obtener todas las instituciones (user + institution).
+ */
+export const getAllWithInstitution = async () => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+           i.companyName, i.nit, i.state AS institutionState
+     FROM users u
+     INNER JOIN institution i ON i.userId = u.id
+     WHERE u.state != 0 AND u.state != 3`
+  );
+  return rows;
+};
+/**
+ * Rechazar usuario con institución (obtiene datos antes de soft delete)
+ * Retorna los datos del usuario para enviar email
+ */
+export const rejectUserWithInstitution = async (userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] rejectUserWithInstitution - start", { userId });
+    await conn.beginTransaction();
+
+    // Obtener datos del usuario e institución antes de rechazar
+    const [rows] = await conn.query(
+      `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState,
+              i.companyName, i.nit, i.state AS institutionState
+       FROM users u
+       LEFT JOIN institution i ON i.userId = u.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      console.warn("[WARN] rejectUserWithInstitution - user not found", { userId });
+      return null;
+    }
+
+    const userData = rows[0];
+
+    // Realizar soft delete
+    await conn.query("UPDATE users SET state = 0 WHERE id = ?", [userId]);
+    await conn.query("UPDATE institution SET state = 0 WHERE userId = ?", [userId]);
+
+    await conn.commit();
+    console.log("[INFO] rejectUserWithInstitution - committed", { userId });
+    
+    // Retornar datos para enviar email
+    return userData;
+  } catch (err) {
+    console.error("[ERROR] rejectUserWithInstitution:", { userId, message: err.message, stack: err.stack });
+    try { await conn.rollback(); } catch (rbErr) { console.error("[ERROR] rejectUserWithInstitution rollback:", rbErr); }
+    throw err;
+  } finally {
+    try { conn.release(); } catch (relErr) { console.error("[ERROR] rejectUserWithInstitution release:", relErr); }
+  }
+};
+
+/**
+ * Aprobar usuario con institución
+ * Genera contraseña temporal, actualiza estado y retorna datos para enviar email
+ */
+export const approveUserWithInstitution = async (userId) => {
+  const conn = await db.getConnection();
+  try {
+    console.log("[INFO] approveUserWithInstitution - start", { userId });
+    await conn.beginTransaction();
+
+    // Obtener datos del usuario e institución antes de aprobar
+    const [rows] = await conn.query(
+      `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState,
+              i.companyName, i.nit, i.state AS institutionState
+       FROM users u
+       LEFT JOIN institution i ON i.userId = u.id
+       WHERE u.id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      await conn.rollback();
+      console.warn("[WARN] approveUserWithInstitution - user not found", { userId });
+      return null;
+    }
+
+    const userData = rows[0];
+
+    // Generar contraseña temporal
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Actualizar usuario: contraseña y estado a 1 (activo, debe cambiar contraseña)
+    await conn.query("UPDATE users SET password = ?, state = 1 WHERE id = ?", [hashedPassword, userId]);
+
+    await conn.commit();
+    console.log("[INFO] approveUserWithInstitution - committed", { userId });
+    
+    // Retornar datos para enviar email (incluyendo contraseña sin hash)
+    return {
+      ...userData,
+      tempPassword
+    };
+  } catch (err) {
+    console.error("[ERROR] approveUserWithInstitution:", { userId, message: err.message, stack: err.stack });
+    try { await conn.rollback(); } catch (rbErr) { console.error("[ERROR] approveUserWithInstitution rollback:", rbErr); }
+    throw err;
+  } finally {
+    try { conn.release(); } catch (relErr) { console.error("[ERROR] approveUserWithInstitution release:", relErr); }
+  }
+};
 
 /**
  * Crear user + institution con contraseña temporal.
@@ -287,15 +563,15 @@ export const createWithInstitution = async (companyName, nit, email, phone, role
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Crear usuario
+    // Crear usuario(estado 3 - solicitud pendiente)
     const [userRes] = await conn.query(
       `INSERT INTO users (email, phone, roleId, state)
-       VALUES (?, ?, ?, 1)`,
+       VALUES (?, ?, ?, 3)`,
       [ email, phone, roleId || null]
     );
     const userId = userRes.insertId;
 
-    // 2️⃣ Crear institución ligada a este userId
+    // Crear institución ligada a este userId
     const institutionId = await create(conn, companyName, nit, userId);
 
     await conn.commit();
@@ -335,7 +611,7 @@ export const updateWithInstitution = async (
   try {
     await conn.beginTransaction();
 
-    // 1️⃣ Actualizar usuario
+    // Actualizar usuario
     const [userRes] = await conn.query(
       `UPDATE users
        SET email = ?, phone = ?, role_id = ?, state = ?
@@ -343,7 +619,7 @@ export const updateWithInstitution = async (
       [email, phone, roleId || null, state, id]
     );
 
-    // 2️⃣ Actualizar institución ligada
+    // Actualizar institución ligada
     const [instRes] = await conn.query(
       `UPDATE institution
        SET companyName = ?, nit = ?
@@ -391,6 +667,7 @@ export const softDeleteWithInstitution = async (id) => {
     conn.release();
   }
 };
+
 /**
  * Resetea la contraseña del usuario a una temporal y cambia el estado a 1 (cambio pendiente)
  */
