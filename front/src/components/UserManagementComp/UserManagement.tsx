@@ -1,6 +1,5 @@
 // UserManagement.tsx
 import { useState, useEffect } from 'react';
-import Sidebar from '../AdminDashboardComp/Sidebar';
 import Header from './Header';
 import UserTable from './UserTable';
 import UserInfoPanel from './UserInfoPanel';
@@ -144,7 +143,6 @@ export default function UserManagement() {
 
   return (
     <div className="user-management-dashboard">
-      <Sidebar />
       <div className="user-management-main">
         <Header 
           userType={userType}
@@ -183,6 +181,7 @@ export default function UserManagement() {
               <UserInfoPanel 
                 user={selectedUser}
                 userType={userType}
+                onUserUpdated={() => fetchUsers(userType)}
               />
             </div>
           )}

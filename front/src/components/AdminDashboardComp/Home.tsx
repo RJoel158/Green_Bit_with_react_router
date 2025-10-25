@@ -8,6 +8,8 @@ import TopRecyclers from './TopRecyclers';
 import TopCollectors from './TopCollectors';
 import MaterialesAdmin from './MaterialesAdmin';
 import AnnouncementsAdmin from './AnnouncementsAdmin';
+import UserManagement from '../UserManagementComp/UserManagement';
+import CollectorRequests from '../CollectorRequestsComp/CollectorRequests';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
@@ -38,6 +40,10 @@ export default function AdminDashboard() {
         return <MaterialesAdmin />;
       case 'anuncios':
         return <AnnouncementsAdmin />;
+      case 'usuarios':
+        return <UserManagement />;
+      case 'accesos':
+        return <CollectorRequests />;
       default:
         return (
           <div className="dashboard-content">

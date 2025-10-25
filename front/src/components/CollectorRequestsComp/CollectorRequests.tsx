@@ -1,6 +1,5 @@
 // CollectorRequests.tsx
 import { useState, useEffect } from 'react';
-import Sidebar from '../AdminDashboardComp/Sidebar';
 import Header from './Header';
 import RequestsTable from './RequestsTable';
 import SuccessModal from '../CommonComp/SuccesModal';
@@ -41,10 +40,12 @@ export default function CollectorRequests() {
   const [requests, setRequests] = useState<CollectorRequest[]>([]);
   const [requestType, setRequestType] = useState<RequestType>('Persona');
   const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false); // Estado para cuando se aprueba/rechaza
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successAction, setSuccessAction] = useState<'approved' | 'rejected'>('approved');
+  const [processingAction, setProcessingAction] = useState<'approving' | 'rejecting'>('approving'); // Para el mensaje de loading
 
   // Función para obtener solicitudes según el tipo
   const fetchRequests = async (type: RequestType) => {
@@ -122,6 +123,8 @@ export default function CollectorRequests() {
   };
 
   const handleApproveRequest = async (userId: number) => {
+    setProcessingAction('approving'); // Establecer acción antes de procesar
+    setProcessing(true); // Activar indicador de carga
     try {
       const endpoint = requestType === 'Persona' 
         ? `http://localhost:3000/api/users/approve/${userId}`
@@ -146,10 +149,14 @@ export default function CollectorRequests() {
     } catch (err) {
       console.error('Error al aprobar solicitud:', err);
       setError('Error de conexión al aprobar la solicitud');
+    } finally {
+      setProcessing(false); // Desactivar indicador de carga
     }
   };
 
   const handleRejectRequest = async (userId: number) => {
+    setProcessingAction('rejecting'); // Establecer acción antes de procesar
+    setProcessing(true); // Activar indicador de carga
     try {
       // Determinar el endpoint según el tipo de solicitud
       const endpoint = requestType === 'Persona'
@@ -175,7 +182,15 @@ export default function CollectorRequests() {
     } catch (err) {
       console.error('Error al rechazar solicitud:', err);
       setError('Error de conexión al rechazar la solicitud');
+    } finally {
+      setProcessing(false); // Desactivar indicador de carga
     }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    // Recargar las solicitudes después de cerrar el modal
+    fetchRequests(requestType);
   };
 
   return (
@@ -188,12 +203,56 @@ export default function CollectorRequests() {
               ? `La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido aprobada exitosamente. Las credenciales han sido enviadas por email.`
               : `La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido rechazada exitosamente.`
           }
-          redirectUrl="/adminCollectorRequests"
+          onClose={handleCloseSuccessModal}
         />
+      )}
+
+      {processing && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            border: '5px solid #f3f3f3',
+            borderTop: '5px solid #4a7c59',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <p style={{
+            color: 'white',
+            marginTop: '20px',
+            fontSize: '18px',
+            fontWeight: '600',
+            textAlign: 'center'
+          }}>
+            {processingAction === 'approving' ? 'Aprobando solicitud...' : 'Rechazando solicitud...'}
+            <br />
+            <span style={{ fontSize: '14px', fontWeight: '400' }}>
+              Enviando correo electrónico
+            </span>
+          </p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
       )}
       
       <div className="collector-requests-dashboard">
-      <Sidebar />
       <div className="collector-requests-main">
         <Header 
           requestType={requestType}

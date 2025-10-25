@@ -110,14 +110,9 @@ export default function CreateUserModal({
 
       setLoading(true);
       try {
-        // Seleccionar endpoint según el rol:
-        // roleId = 2 (Recolector): /api/users/collector -> estado 3, sin correo
-        // roleId = 3 (Reciclador): /api/users -> estado 1, envía correo
-        const endpoint = personForm.roleId === 2 
-          ? 'http://localhost:3000/api/users/collector'
-          : 'http://localhost:3000/api/users';
-
-        const res = await fetch(endpoint, {
+        // Admin crea usuarios ya aprobados (estado 1) con correo de credenciales
+        // Todos usan el mismo endpoint /api/users
+        const res = await fetch('http://localhost:3000/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -131,14 +126,10 @@ export default function CreateUserModal({
 
         const data = await res.json();
         if (data.success) {
-          const title = personForm.roleId === 2 
-            ? '¡Recolector Registrado!'
-            : '¡Usuario Creado!';
-          const message = personForm.roleId === 2 
-            ? 'Recolector registrado exitosamente. Solicitud pendiente de aprobación.'
-            : 'Usuario creado exitosamente. Se envió un correo con las credenciales.';
-          
-          setSuccessMessage({ title, message });
+          setSuccessMessage({
+            title: '¡Usuario Creado!',
+            message: 'Usuario creado exitosamente. Se envió un correo con las credenciales.'
+          });
           setShowSuccessModal(true);
         } else {
           setMensaje(data.error || 'Error al crear usuario');
@@ -165,9 +156,9 @@ export default function CreateUserModal({
 
       setLoading(true);
       try {
-        // Instituciones siempre roleId = 2 (Recolector institución)
-        // /api/users/institution -> estado 3, sin correo hasta aprobación
-        const res = await fetch('http://localhost:3000/api/users/institution', {
+        // Admin crea instituciones ya aprobadas (estado 1) con correo de credenciales
+        // Usa el endpoint /api/users/institution-admin (nuevo endpoint que aprobaremos directamente)
+        const res = await fetch('http://localhost:3000/api/users/institution-admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -182,8 +173,8 @@ export default function CreateUserModal({
         const data = await res.json();
         if (data.success) {
           setSuccessMessage({
-            title: '¡Institución Registrada!',
-            message: 'Institución creada exitosamente. Solicitud pendiente de aprobación.'
+            title: '¡Institución Creada!',
+            message: 'Institución creada exitosamente. Se envió un correo con las credenciales.'
           });
           setShowSuccessModal(true);
         } else {
@@ -216,7 +207,18 @@ export default function CreateUserModal({
       <SuccessModal
         title={successMessage.title}
         message={successMessage.message}
-        redirectUrl="/adminUserManagement"
+        onClose={() => {
+          // Limpiar formularios
+          setPersonForm({ nombres: '', apellidos: '', email: '', phone: '', roleId: 2 });
+          setInstitutionForm({ companyName: '', nit: '', email: '', phone: '', roleId: 2 });
+          setPersonErrors({});
+          setInstitutionErrors({});
+          setMensaje('');
+          setUserType('persona');
+          setShowSuccessModal(false);
+          onUserCreated(); // Notificar que se creó el usuario
+          onClose(); // Cerrar el modal principal
+        }}
       />
     );
   }

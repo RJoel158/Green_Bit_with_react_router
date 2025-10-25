@@ -328,14 +328,15 @@ export const createUserWithInstitution = async (req, res) => {
 
     const roleIdParsed = role_id !== undefined ? Number(role_id) : 2; // default: recolector
 
-    // El modelo debe crear el usuario con password: null y state: 0
+    // El modelo debe crear el usuario con password: null y state: 3 (pendiente)
     const result = await UserModel.createWithInstitution(
       companyName,
       nit,
       email,
       phone,
       roleIdParsed,
-      0 // state pendiente
+      3, // state pendiente
+      null // sin contraseña
     );
 
     res.status(201).json({
@@ -349,6 +350,50 @@ export const createUserWithInstitution = async (req, res) => {
   } catch (err) {
     console.error("[ERROR] createUserWithInstitution:", { body: req.body, message: err.message });
     res.status(500).json({ success: false, error: "Error al registrar usuario con institución" });
+  }
+};
+
+/** POST /users/institution-admin -> crea user + institution aprobado por admin con contraseña */
+export const createUserWithInstitutionByAdmin = async (req, res) => {
+  try {
+    const { companyName, nit, email, phone, role_id } = req.body;
+    if (!companyName || !nit || !email || !phone) {
+      return res.status(400).json({
+        success: false,
+        error: "Campos requeridos: companyName, nit, email, phone",
+      });
+    }
+
+    const roleIdParsed = role_id !== undefined ? Number(role_id) : 2; // default: recolector
+
+    // Generar contraseña temporal
+    const tempPassword = Math.random().toString(36).slice(-8);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Crear usuario con estado 1 (aprobado)
+    const result = await UserModel.createWithInstitution(
+      companyName,
+      nit,
+      email,
+      phone,
+      roleIdParsed,
+      1, // state aprobado
+      hashedPassword
+    );
+
+    // Enviar correo con credenciales
+    await sendCredentialsEmail(email, companyName, email, tempPassword);
+
+    res.status(201).json({
+      success: true,
+      id: result.userId,
+      institutionId: result.institutionId,
+      message: "Institución creada y correo enviado"
+    });
+
+  } catch (err) {
+    console.error("[ERROR] createUserWithInstitutionByAdmin:", { body: req.body, message: err.message });
+    res.status(500).json({ success: false, error: "Error al crear institución" });
   }
 };
 

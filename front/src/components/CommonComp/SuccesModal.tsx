@@ -5,10 +5,19 @@ import emailLogo from "../../assets/icons/email-logo.svg";
 interface SuccessModalProps {
   title: string;
   message: string;
-  redirectUrl: string; //Revisar para el cambio entre ventanas
+  redirectUrl?: string; // Ahora opcional
+  onClose?: () => void; // Callback opcional para cerrar sin redireccionar
 }
 
-const SuccessModal: React.FC<SuccessModalProps> = ({ title, message, redirectUrl }) => {
+const SuccessModal: React.FC<SuccessModalProps> = ({ title, message, redirectUrl, onClose }) => {
+  const handleClick = () => {
+    if (onClose) {
+      onClose(); // Si hay callback, usarlo
+    } else if (redirectUrl) {
+      window.location.href = redirectUrl; // Si no, usar redirect
+    }
+  };
+
   return (
     <div className="modal-overlay d-flex justify-content-center align-items-center">
       <div className="modal-box p-4 text-center">
@@ -18,7 +27,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ title, message, redirectUrl
         <div className="d-flex justify-content-end">
           <button
             className="btn modal-button"
-            onClick={() => (window.location.href = redirectUrl)}
+            onClick={handleClick}
           >
             Aceptar
           </button>

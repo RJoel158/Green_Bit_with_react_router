@@ -20,15 +20,17 @@ interface User {
 
 interface UserInfoPanelProps {
   user: User | null;
-  userType?: 'Persona' | 'Empresa'; 
+  userType?: 'Persona' | 'Empresa';
+  onUserUpdated?: () => void; // Callback para notificar cambios
 }
 
-export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
+export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInfoPanelProps) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>('');
+  const [processing, setProcessing] = useState(false); // Estado de procesamiento
 
   const handleSaveClick = () => {
     setShowSaveModal(true);
@@ -57,6 +59,9 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
       return;
     }
 
+    setShowSaveModal(false); // Cerrar modal de confirmación
+    setProcessing(true); // Activar indicador de procesamiento
+
     try {
       const response = await fetch(`http://localhost:3000/api/users/${user.userId}/role`, {
         method: 'PUT',
@@ -70,17 +75,20 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
 
       if (data.success) {
         console.log('Rol actualizado exitosamente');
-        setShowSaveModal(false);
         setShowSuccessModal(true);
+        // Notificar al padre para recargar los datos
+        if (onUserUpdated) {
+          onUserUpdated();
+        }
       } else {
         console.error('Error al actualizar el rol:', data.error);
         alert('Error al actualizar el rol: ' + data.error);
-        setShowSaveModal(false);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
       alert('Error de conexión al actualizar el rol');
-      setShowSaveModal(false);
+    } finally {
+      setProcessing(false); // Desactivar indicador
     }
   };
 
@@ -101,6 +109,9 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
 
     console.log(`[DELETE] Tipo: ${isInstitution ? 'Empresa' : 'Persona'}, Endpoint: ${endpoint}`);
 
+    setShowDeleteModal(false); // Cerrar modal de confirmación
+    setProcessing(true); // Activar indicador de procesamiento
+
     try {
       const response = await fetch(endpoint, {
         method: 'DELETE',
@@ -110,17 +121,20 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
 
       if (data.success) {
         console.log('Usuario eliminado exitosamente');
-        setShowDeleteModal(false);
         setShowDeleteSuccessModal(true);
+        // Notificar al padre para recargar los datos
+        if (onUserUpdated) {
+          onUserUpdated();
+        }
       } else {
         console.error('Error al eliminar el usuario:', data.error);
         alert('Error al eliminar el usuario: ' + data.error);
-        setShowDeleteModal(false);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
       alert('Error de conexión al eliminar el usuario');
-      setShowDeleteModal(false);
+    } finally {
+      setProcessing(false); // Desactivar indicador
     }
   };
 
@@ -148,6 +162,55 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
 
   return (
     <div className="user-management-info-panel">
+      {/* Overlay de procesamiento */}
+      {processing && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(5px)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              width: '60px',
+              height: '60px',
+              border: '4px solid rgba(255, 255, 255, 0.3)',
+              borderTop: '4px solid #fff',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }}
+          />
+          <p
+            style={{
+              marginTop: '20px',
+              color: '#fff',
+              fontSize: '18px',
+              fontWeight: 'bold',
+            }}
+          >
+            Procesando...
+          </p>
+          <style>
+            {`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}
+          </style>
+        </div>
+      )}
+
       <div className="user-management-info-header">
         <h3 className="user-management-info-title">{isInstitution ? 'Empresa' : 'Usuario'}</h3>
         <div 
@@ -258,7 +321,11 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
         <SuccessModal
           title="¡Rol actualizado!"
           message="El rol del usuario se ha actualizado correctamente"
-          redirectUrl={window.location.href}
+          onClose={() => {
+            setShowSuccessModal(false);
+            // No hacer reload, solo cerrar el modal
+            // El padre (UserManagement) debería recargar los datos
+          }}
         />
       )}
 
@@ -266,7 +333,10 @@ export default function UserInfoPanel({ user, userType }: UserInfoPanelProps) {
         <SuccessModal
           title="¡Usuario eliminado!"
           message="El usuario ha sido eliminado correctamente"
-          redirectUrl={window.location.href}
+          onClose={() => {
+            setShowDeleteSuccessModal(false);
+            // No hacer reload, solo cerrar el modal
+          }}
         />
       )}
     </div>

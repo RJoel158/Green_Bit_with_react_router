@@ -15,6 +15,7 @@ import {
   getUsersWithInstitution,
   getUserWithInstitutionById,
   createUserWithInstitution,
+  createUserWithInstitutionByAdmin,
   updateUserWithInstitution,
   deleteUserWithInstitution,
 
@@ -40,6 +41,7 @@ router.get("/withInstitution", getUsersWithInstitution);
 router.get("/collectors/pending/institution", getCollectorsPendingWithInstitution);
 router.get("/withInstitution/:id", getUserWithInstitutionById);
 router.post('/institution', createUserWithInstitution);
+router.post('/institution-admin', createUserWithInstitutionByAdmin);
 router.put("/withInstitution/:id", updateUserWithInstitution);
 router.delete("/institution/:id", deleteUserWithInstitution);
 router.post("/institution/reject/:id", rejectInstitution);

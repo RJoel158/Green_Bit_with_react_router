@@ -49,7 +49,7 @@ export const getAllUsersWithPerson = async () => {
           p.firstname, p.lastname, p.state AS personState
      FROM users u
      INNER JOIN person p ON p.userId = u.id
-     WHERE u.state != 0 AND u.state != 3`
+     WHERE u.state != 0`
   );
   return rows;
 };
@@ -453,7 +453,7 @@ export const getAllWithInstitution = async () => {
            i.companyName, i.nit, i.state AS institutionState
      FROM users u
      INNER JOIN institution i ON i.userId = u.id
-     WHERE u.state != 0 AND u.state != 3`
+     WHERE u.state != 0`
   );
   return rows;
 };
@@ -557,17 +557,19 @@ export const approveUserWithInstitution = async (userId) => {
 
 /**
  * Crear user + institution con contraseña temporal.
+ * @param {number} state - Estado del usuario (por defecto 3 = pendiente)
+ * @param {string|null} password - Contraseña hasheada (opcional, por defecto null)
  */
-export const createWithInstitution = async (companyName, nit, email, phone, roleId) => {
+export const createWithInstitution = async (companyName, nit, email, phone, roleId, state = 3, password = null) => {
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
     // Crear usuario(estado 3 - solicitud pendiente)
     const [userRes] = await conn.query(
-      `INSERT INTO users (email, phone, roleId, state)
-       VALUES (?, ?, ?, 3)`,
-      [ email, phone, roleId || null]
+      `INSERT INTO users (email, phone, roleId, state, password)
+       VALUES (?, ?, ?, ?, ?)`,
+      [ email, phone, roleId || null, state, password]
     );
     const userId = userRes.insertId;
 
