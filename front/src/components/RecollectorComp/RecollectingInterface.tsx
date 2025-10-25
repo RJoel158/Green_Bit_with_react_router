@@ -4,6 +4,7 @@ import Header from "../RecyclerComp/headerRecycler";
 import { useNavigate } from "react-router-dom";
 import RequestAndAppoint from "../RecyclerComp/request_&_appoint";
 import ChangePasswordModal from "../PasswordComp/ChangePasswordModal";
+import AnnouncementBanner from "../CommonComp/AnnouncementBanner";
 
 interface Recycler {
   id: number;
@@ -72,8 +73,8 @@ const RecollectingInterface: React.FC = () => {
         />
       )}
       <div className="main-content">
-        {/* Banner Izquierdo */}
-        <div className="banner-left"></div>
+        {/* Banner Izquierdo con Anuncios */}
+        <AnnouncementBanner role="recolector" position="left" />
 
         {/* Sección Reciclaje */}
         <div className="recycling-section">
@@ -104,8 +105,8 @@ const RecollectingInterface: React.FC = () => {
           </div>
         </div>
 
-        {/* Banner Derecho */}
-        <div className="banner-right"></div>
+        {/* Banner Derecho con Anuncios */}
+        <AnnouncementBanner role="recolector" position="right" />
       </div>
        <RequestAndAppoint user={user} />
     </div>

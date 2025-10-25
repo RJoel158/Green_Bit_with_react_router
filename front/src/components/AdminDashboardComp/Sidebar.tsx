@@ -1,16 +1,19 @@
-import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import logo from '../../assets/logo.png'
 
-export default function Sidebar() {
-  const navigate = useNavigate();
-  
+interface SidebarProps {
+  onMenuSelect: (menuId: string) => void;
+  activeMenu: string;
+}
+
+export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
   const menuItems = [
-    { id: 'control', label: 'Panel de Control', icon: '📊', path: '/adminDashboard' },
-    { id: 'reportes', label: 'Reportes', icon: '📈', path: '/reportes' },
-    { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥', path: '/adminUserManagement' },
-    { id: 'anuncios', label: 'Anuncios', icon: '📢', path: '/anuncios' },
-    { id: 'acciones', label: 'Accesos', icon: '⚡', path: '/adminCollectorRequests' }
+    { id: 'control', label: 'Panel de Control', icon: '📊' },
+    { id: 'reportes', label: 'Reportes', icon: '📈' },
+    { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥' },
+    { id: 'materiales', label: 'Materiales', icon: '♻️' },
+    { id: 'anuncios', label: 'Anuncios', icon: '📢' },
+    { id: 'accesos', label: 'Accesos', icon: '⚡' }
   ];
 
   return (
@@ -29,8 +32,8 @@ export default function Sidebar() {
           {menuItems.map(item => (
             <button
               key={item.id}
-              onClick={() => navigate(item.path)}
-              className="sidebar-button"
+              onClick={() => onMenuSelect(item.id)}
+              className={`sidebar-button ${activeMenu === item.id ? 'active' : ''}`}
             >
               <span className="sidebar-button-icon">{item.icon}</span>
               <span>{item.label}</span>
