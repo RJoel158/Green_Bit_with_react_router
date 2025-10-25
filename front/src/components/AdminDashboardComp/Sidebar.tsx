@@ -1,4 +1,5 @@
 import './AdminDashboard.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import logo from '../../assets/logo.png'
 
 interface SidebarProps {
@@ -8,12 +9,12 @@ interface SidebarProps {
 
 export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
   const menuItems = [
-    { id: 'control', label: 'Panel de Control', icon: '📊' },
-    { id: 'reportes', label: 'Reportes', icon: '📈' },
-    { id: 'usuarios', label: 'Administrar Usuarios', icon: '👥' },
-    { id: 'materiales', label: 'Materiales', icon: '♻️' },
-    { id: 'anuncios', label: 'Anuncios', icon: '📢' },
-    { id: 'accesos', label: 'Accesos', icon: '⚡' }
+    { id: 'control', label: 'Panel de Control', icon: 'bi-grid-fill' },
+    { id: 'reportes', label: 'Reportes', icon: 'bi-graph-up' },
+    { id: 'usuarios', label: 'Administrar Usuarios', icon: 'bi-people-fill' },
+    { id: 'materiales', label: 'Materiales', icon: 'bi-recycle' },
+    { id: 'anuncios', label: 'Anuncios', icon: 'bi-megaphone-fill' },
+    { id: 'accesos', label: 'Accesos', icon: 'bi-person-check-fill' }
   ];
 
   return (
@@ -35,7 +36,7 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
               onClick={() => onMenuSelect(item.id)}
               className={`sidebar-button ${activeMenu === item.id ? 'active' : ''}`}
             >
-              <span className="sidebar-button-icon">{item.icon}</span>
+              <i className={`bi ${item.icon} sidebar-button-icon`}></i>
               <span>{item.label}</span>
             </button>
           ))}
@@ -47,11 +48,11 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
         <h3 className="sidebar-section-title">OTROS</h3>
         <nav className="sidebar-nav">
           <button className="sidebar-button">
-            <span className="sidebar-button-icon">⚙️</span>
+            <i className="bi bi-gear-fill sidebar-button-icon"></i>
             <span>Configuraciones</span>
           </button>
           <button className="sidebar-button">
-            <span className="sidebar-button-icon">❓</span>
+            <i className="bi bi-question-circle-fill sidebar-button-icon"></i>
             <span>Ayuda</span>
           </button>
         </nav>
