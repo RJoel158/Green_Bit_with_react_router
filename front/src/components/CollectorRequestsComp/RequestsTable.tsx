@@ -1,5 +1,7 @@
 // RequestsTable.tsx
 import { useState } from 'react';
+import SortableTable from '../common/SortableTable';
+import type { ColumnDef } from '../common/SortableTable';
 import CheckModal from '../CommonComp/CheckModal';
 import './CollectorRequests.css';
 
@@ -26,15 +28,8 @@ export default function RequestsTable({
   onApprove,
   onReject 
 }: RequestsTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const itemsPerPage = 10;
-  
-  const totalPages = Math.ceil(requests.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRequests = requests.slice(startIndex, endIndex);
 
   const handleRejectClick = (userId: number) => {
     setSelectedUserId(userId);
@@ -54,6 +49,131 @@ export default function RequestsTable({
     setSelectedUserId(null);
   };
 
+  // Definir columnas según el tipo de solicitud
+  const personColumns: ColumnDef<Request>[] = [
+    {
+      key: 'fullName',
+      label: 'Nombre Completo',
+      sortable: false,
+      render: (request) => (
+        <div className="collector-requests-table-user-cell">
+          <div className="collector-requests-table-avatar">
+            {request.fullName.charAt(0)}
+          </div>
+          {request.fullName}
+        </div>
+      ),
+    },
+    {
+      key: 'email',
+      label: 'Correo electrónico',
+      sortable: false,
+    },
+    {
+      key: 'phone',
+      label: 'Teléfono',
+      sortable: false,
+    },
+    {
+      key: 'registrationDate',
+      label: 'Fecha de registro',
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      sortable: false,
+      render: (request) => (
+        <div className="collector-requests-table-actions">
+          <button 
+            className="collector-requests-table-approve-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onApprove(request.userId);
+            }}
+          >
+            ✓ Aprobar
+          </button>
+          <button 
+            className="collector-requests-table-reject-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRejectClick(request.userId);
+            }}
+          >
+            ✗ Rechazar
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const institutionColumns: ColumnDef<Request>[] = [
+    {
+      key: 'companyName',
+      label: 'Nombre de Empresa',
+      sortable: false,
+      render: (request) => (
+        <div className="collector-requests-table-user-cell">
+          <div className="collector-requests-table-avatar">
+            {request.companyName?.charAt(0) || 'E'}
+          </div>
+          {request.companyName || request.fullName}
+        </div>
+      ),
+    },
+    {
+      key: 'nit',
+      label: 'NIT',
+      sortable: false,
+      render: (request) => request.nit || 'N/A',
+    },
+    {
+      key: 'email',
+      label: 'Correo electrónico',
+      sortable: false,
+    },
+    {
+      key: 'phone',
+      label: 'Teléfono',
+      sortable: false,
+    },
+    {
+      key: 'registrationDate',
+      label: 'Fecha de registro',
+      sortable: true,
+    },
+    {
+      key: 'actions',
+      label: 'Acciones',
+      sortable: false,
+      render: (request) => (
+        <div className="collector-requests-table-actions">
+          <button 
+            className="collector-requests-table-approve-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onApprove(request.userId);
+            }}
+          >
+            ✓ Aprobar
+          </button>
+          <button 
+            className="collector-requests-table-reject-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRejectClick(request.userId);
+            }}
+          >
+            ✗ Rechazar
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  const columns = requestType === 'Persona' ? personColumns : institutionColumns;
+
   return (
     <>
       {showRejectModal && (
@@ -66,123 +186,14 @@ export default function RequestsTable({
       )}
       
       <div className="collector-requests-table-container">
-      <div className="collector-requests-table-scroll">
-        <table className="collector-requests-table">
-          <thead>
-            <tr className="collector-requests-table-head-row">
-              {requestType === 'Persona' ? (
-                <>
-                  <th className="collector-requests-table-head-cell">Nombre Completo</th>
-                  <th className="collector-requests-table-head-cell">Correo electrónico</th>
-                  <th className="collector-requests-table-head-cell">Teléfono</th>
-                  <th className="collector-requests-table-head-cell">Fecha de registro</th>
-                  <th className="collector-requests-table-head-cell">Acciones</th>
-                </>
-              ) : (
-                <>
-                  <th className="collector-requests-table-head-cell">Nombre de Empresa</th>
-                  <th className="collector-requests-table-head-cell">NIT</th>
-                  <th className="collector-requests-table-head-cell">Correo electrónico</th>
-                  <th className="collector-requests-table-head-cell">Teléfono</th>
-                  <th className="collector-requests-table-head-cell">Fecha de registro</th>
-                  <th className="collector-requests-table-head-cell">Acciones</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {currentRequests.map((request) => (
-              <tr 
-                key={request.userId}
-                data-user-id={request.userId}
-                className="collector-requests-table-body-row"
-              >
-                {requestType === 'Persona' ? (
-                  <>
-                    <td className="collector-requests-table-body-cell">
-                      <div className="collector-requests-table-user-cell">
-                        <div className="collector-requests-table-avatar">
-                          {request.fullName.charAt(0)}
-                        </div>
-                        {request.fullName}
-                      </div>
-                    </td>
-                    <td className="collector-requests-table-body-cell">{request.email}</td>
-                    <td className="collector-requests-table-body-cell">{request.phone}</td>
-                    <td className="collector-requests-table-body-cell">{request.registrationDate}</td>
-                    <td className="collector-requests-table-body-cell">
-                      <div className="collector-requests-table-actions">
-                        <button 
-                          className="collector-requests-table-approve-btn"
-                          onClick={() => onApprove(request.userId)}
-                        >
-                          ✓ Aprobar
-                        </button>
-                        <button 
-                          className="collector-requests-table-reject-btn"
-                          onClick={() => handleRejectClick(request.userId)}
-                        >
-                          ✗ Rechazar
-                        </button>
-                      </div>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="collector-requests-table-body-cell">
-                      <div className="collector-requests-table-user-cell">
-                        <div className="collector-requests-table-avatar">
-                          {request.companyName?.charAt(0) || 'E'}
-                        </div>
-                        {request.companyName || request.fullName}
-                      </div>
-                    </td>
-                    <td className="collector-requests-table-body-cell">{request.nit || 'N/A'}</td>
-                    <td className="collector-requests-table-body-cell">{request.email}</td>
-                    <td className="collector-requests-table-body-cell">{request.phone}</td>
-                    <td className="collector-requests-table-body-cell">{request.registrationDate}</td>
-                    <td className="collector-requests-table-body-cell">
-                      <div className="collector-requests-table-actions">
-                        <button 
-                          className="collector-requests-table-approve-btn"
-                          onClick={() => onApprove(request.userId)}
-                        >
-                          ✓ Aprobar
-                        </button>
-                        <button 
-                          className="collector-requests-table-reject-btn"
-                          onClick={() => handleRejectClick(request.userId)}
-                        >
-                          ✗ Rechazar
-                        </button>
-                      </div>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <SortableTable
+          data={requests}
+          columns={columns}
+          itemsPerPage={10}
+          emptyMessage="No hay solicitudes pendientes"
+          getRowKey={(request) => request.userId}
+        />
       </div>
-      
-      <div className="collector-requests-table-pagination">
-        <button 
-          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-          className="collector-requests-table-pagination-btn"
-        >
-          ◀
-        </button>
-        <span className="collector-requests-table-pagination-page">{currentPage}</span>
-        <button 
-          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
-          className="collector-requests-table-pagination-btn"
-        >
-          ▶
-        </button>
-      </div>
-    </div>
     </>
   );
 }

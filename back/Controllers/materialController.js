@@ -10,7 +10,7 @@ export const getMaterials = async (req, res) => {
     console.log("[INFO] getMaterials controller called");
     
     const [materials] = await db.query(`
-      SELECT id, name, description 
+      SELECT id, name, description, state, createdDate
       FROM material
       WHERE state = 1 
       ORDER BY name ASC

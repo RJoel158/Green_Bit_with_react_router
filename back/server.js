@@ -4,6 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import userRoutes from './Routes/userRoutes.js';
 import materialRoutes from './Routes/materialRoutes.js';
 import requestRoutes from './Routes/requestRoutes.js';
@@ -17,6 +20,30 @@ import { checkConnection } from './Config/DBConnect.js';
 
 // Cargar variables de entorno
 dotenv.config();
+
+// Obtener __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Crear directorios necesarios para uploads
+const ensureUploadDirectories = () => {
+  const uploadDirs = [
+    path.join(__dirname, 'uploads'),
+    path.join(__dirname, 'uploads/temp'),
+    path.join(__dirname, 'uploads/images'),
+    path.join(__dirname, 'uploads/announcements')
+  ];
+
+  uploadDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`📁 Directorio creado: ${dir}`);
+    }
+  });
+};
+
+// Crear directorios al iniciar
+ensureUploadDirectories();
 
 // Debug: Verificar variables de entorno de BD
 console.log('🔍 Variables de entorno de BD:');

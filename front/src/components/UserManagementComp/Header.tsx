@@ -9,6 +9,8 @@ interface HeaderProps {
   onCreateUser: () => void;
   searchQuery: string;
   onSearch: (query: string) => void;
+  roleFilter: string;
+  onRoleFilterChange: (role: string) => void;
 }
 
 interface User {
@@ -28,7 +30,9 @@ export default function Header({
   onUserTypeChange, 
   onCreateUser,
   searchQuery,
-  onSearch 
+  onSearch,
+  roleFilter,
+  onRoleFilterChange
 }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -48,7 +52,6 @@ export default function Header({
     <div className="user-management-header">
       <div className="user-management-header-top">
         <div className="user-management-header-search-box">
-
           <input 
             type="text" 
             placeholder="Buscar por nombre o correo" 
@@ -58,6 +61,26 @@ export default function Header({
           />
         </div>
         <div className="user-management-header-actions">
+          <select 
+            className="user-management-header-type-select"
+            value={roleFilter}
+            onChange={(e) => onRoleFilterChange(e.target.value)}
+            style={{
+              marginRight: '0.5rem',
+              padding: '0.5rem 1rem',
+              border: '2px solid #B0EDCC',
+              borderRadius: '0.5rem',
+              backgroundColor: '#fff',
+              color: '#149D52',
+              fontWeight: 500,
+              cursor: 'pointer',
+            }}
+          >
+            <option value="Todos">Todos los roles</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Recolector">Recolector</option>
+            <option value="Reciclador">Reciclador</option>
+          </select>
           <select 
             className="user-management-header-type-select"
             value={userType}

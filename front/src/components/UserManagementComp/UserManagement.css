@@ -285,6 +285,29 @@ body {
   text-align: left;
   font-size: 0.875rem;
   white-space: nowrap;
+  position: relative;
+}
+
+.user-management-table-head-cell.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.user-management-table-head-cell.sortable:hover {
+  background-color: #9AE4BD;
+}
+
+.sort-icon {
+  font-size: 0.75rem;
+  color: #149D52;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.sort-icon.active {
+  opacity: 1;
+  font-weight: bold;
 }
 
 .user-management-table-head-cell:first-child {

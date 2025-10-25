@@ -1,5 +1,5 @@
 // UserManagement.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from './Header';
 import UserTable from './UserTable';
 import UserInfoPanel from './UserInfoPanel';
@@ -47,6 +47,7 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<string>('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mapeo de roleId a nombre de rol
@@ -113,27 +114,40 @@ export default function UserManagement() {
     });
   };
 
-  // Filtrar usuarios según la búsqueda
-  const filterUsers = (usersToFilter: TableUser[]): TableUser[] => {
-    if (!searchQuery.trim()) {
-      return usersToFilter;
+  // Filtrar usuarios según la búsqueda y el rol usando useMemo
+  const filteredUsers = useMemo(() => {
+    let filtered = formatUsersForTable();
+
+    // Filtrar por búsqueda
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(user => 
+        user.fullName.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
     }
 
-    const query = searchQuery.toLowerCase().trim();
-    return usersToFilter.filter(user => 
-      user.fullName.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
-    );
-  };
+    // Filtrar por rol
+    if (roleFilter !== 'Todos') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    return filtered;
+  }, [users, searchQuery, roleFilter, userType]);
 
   const handleUserTypeChange = (type: UserType) => {
     setUserType(type);
     setSelectedUser(null); // Limpiar selección al cambiar tipo
     setSearchQuery(''); // Limpiar búsqueda al cambiar tipo
+    setRoleFilter('Todos'); // Limpiar filtro de rol al cambiar tipo
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  const handleRoleFilterChange = (role: string) => {
+    setRoleFilter(role);
   };
 
   const handleUserCreated = () => {
@@ -150,6 +164,8 @@ export default function UserManagement() {
           onCreateUser={() => setIsModalOpen(true)}
           searchQuery={searchQuery}
           onSearch={handleSearch}
+          roleFilter={roleFilter}
+          onRoleFilterChange={handleRoleFilterChange}
         />
         <div className="user-management-content">
           {loading && (
@@ -174,7 +190,8 @@ export default function UserManagement() {
           {!loading && !error && (
             <div className="user-management-layout">
               <UserTable 
-                users={filterUsers(formatUsersForTable())} 
+                key={`users-${searchQuery}-${roleFilter}`}
+                users={filteredUsers} 
                 onSelectUser={setSelectedUser}
                 userType={userType}
               />
