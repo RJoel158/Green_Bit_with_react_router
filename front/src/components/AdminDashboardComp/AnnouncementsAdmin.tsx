@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import {
   getAllAnnouncements,
   getAnnouncementById,
@@ -8,6 +8,7 @@ import {
   deleteAnnouncement
 } from '../../services/announcementService.ts';
 import { uploadAnnouncementImage } from '../../services/uploadService.ts';
+import CommonHeader from '../CommonComp/CommonHeader';
 
 interface Announcement {
   id: number;
@@ -330,80 +331,14 @@ const AnnouncementsAdmin: React.FC = () => {
       height: '100vh'
     }}>
       {/* Header */}
-      <div style={{
-        backgroundColor: '#dcfce7',
-        borderBottom: '1px solid #e5e7eb',
-        padding: '1rem 2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0
-      }}>
-        <h1 style={{
-          fontSize: '1.75rem',
-          fontWeight: '700',
-          color: '#149D52',
-          margin: 0
-        }}>
-          Anuncios
-        </h1>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flex: 1, justifyContent: 'flex-end' }}>
-          <div style={{ position: 'relative' }}>
-            <Search style={{
-              position: 'absolute',
-              left: '0.75rem',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#9ca3af',
-              width: '18px',
-              height: '18px'
-            }} />
-            <input 
-              type="text" 
-              placeholder="Buscar anuncio..." 
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              style={{
-                padding: '0.625rem 1rem 0.625rem 2.5rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                fontSize: '0.9rem',
-                width: '20rem',
-                outline: 'none',
-                backgroundColor: 'white',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
-              }}
-            />
-          </div>
-          
-          <button style={{
-            position: 'relative',
-            padding: '0.5rem',
-            border: 'none',
-            background: 'transparent',
-            fontSize: '1.5rem',
-            cursor: 'pointer',
-            borderRadius: '0.5rem'
-          }}>
-            🔔
-          </button>
-          
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            fontSize: '1.2rem'
-          }}>
-            👤
-          </div>
-        </div>
-      </div>
+      <CommonHeader
+        title="Anuncios"
+        searchPlaceholder="Buscar anuncio..."
+        searchQuery={searchTerm}
+        onSearch={handleSearch}
+        onCreateNew={handleOpenModal}
+        createButtonText="+ Crear anuncio"
+      />
 
       {/* Error Banner */}
       {error && (
@@ -483,32 +418,6 @@ const AnnouncementsAdmin: React.FC = () => {
                 }}>
                   Lista de Anuncios ({filteredAnnouncements.length})
                 </h2>
-                <button 
-                  onClick={handleOpenModal}
-                  style={{
-                    backgroundColor: '#149D52',
-                    color: 'white',
-                    padding: '0.625rem 1.25rem',
-                    borderRadius: '0.5rem',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    cursor: 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: '500',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0d7d3a';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#149D52';
-                  }}
-                >
-                  <Plus size={18} />
-                  Crear anuncio
-                </button>
               </div>
 
               <div style={{
