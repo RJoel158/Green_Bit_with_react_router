@@ -14,8 +14,8 @@ import PickupDetails from "./components/PickupDetailsComp/PickupDetails";
 import NotificationsPage from "./components/CommonComp/NotificationsPage";
 import UserManagement from "./components/UserManagementComp/UserManagement";
 import CollectorRequests from "./components/CollectorRequestsComp/CollectorRequests";
-
 import RecyclingPointsMap from "./components/CollectorMapComps/Map";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 //CAMBIOS EFECTUADOS EN PANTALLAS DE INICIOO
 
@@ -34,21 +34,100 @@ function App() {
     <Router>
       <ScrollToTop />
       <Routes>
+        {/* Rutas públicas */}
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/recicladorIndex" element={<RecicladorIndex />} />
-        <Route path="/recolectorIndex" element={<RecolectorIndex />} />
         <Route path="/registerCollector" element={<ResgisterCollector/>} />
         <Route path="/registerInstitution" element={<RegisterInstitution/>} />
-        <Route path="/userInfo" element={<UserInfo />} />
-        <Route path="/recycle-form" element={<FormComp />} />
-        <Route path="/adminDashboard" element={<AdminDashboard />} />
-        <Route path="/recycling-points" element={<RecyclingPointsMap />} />
-        <Route path="/pickupDetails/:id" element={<PickupDetails />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/adminUserManagement" element={<UserManagement />} />
-        <Route path="/adminCollectorRequests" element={<CollectorRequests />} />
+        
+        {/* Rutas protegidas - Solo Reciclador (roleId: 3) */}
+        <Route 
+          path="/recicladorIndex" 
+          element={
+            <ProtectedRoute allowedRoles={[3]}>
+              <RecicladorIndex />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/recycle-form" 
+          element={
+            <ProtectedRoute allowedRoles={[3]}>
+              <FormComp />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rutas protegidas - Solo Recolector (roleId: 2) */}
+        <Route 
+          path="/recolectorIndex" 
+          element={
+            <ProtectedRoute allowedRoles={[2]}>
+              <RecolectorIndex />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/recycling-points" 
+          element={
+            <ProtectedRoute allowedRoles={[2]}>
+              <RecyclingPointsMap />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rutas protegidas - Solo Administrador (roleId: 1) */}
+        <Route 
+          path="/adminDashboard" 
+          element={
+            <ProtectedRoute allowedRoles={[1]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/adminUserManagement" 
+          element={
+            <ProtectedRoute allowedRoles={[1]}>
+              <UserManagement />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/adminCollectorRequests" 
+          element={
+            <ProtectedRoute allowedRoles={[1]}>
+              <CollectorRequests />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rutas protegidas - Todos los roles autenticados (1, 2, 3) */}
+        <Route 
+          path="/userInfo" 
+          element={
+            <ProtectedRoute allowedRoles={[1, 2, 3]}>
+              <UserInfo />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/pickupDetails/:id" 
+          element={
+            <ProtectedRoute allowedRoles={[1, 2, 3]}>
+              <PickupDetails />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/notifications" 
+          element={
+            <ProtectedRoute allowedRoles={[1, 2, 3]}>
+              <NotificationsPage />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </Router>
   );
