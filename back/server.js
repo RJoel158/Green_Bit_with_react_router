@@ -15,6 +15,7 @@ import notificationRoutes from './Routes/notificationRoutes.js';
 import scoreRoutes from './Routes/scoreRoutes.js';
 import announcementRoutes from './Routes/announcementRoutes.js';
 import uploadRoutes from './Routes/uploadRoutes.js';
+import reportRoutes from './Routes/reportRoutes.js';
 import { verifyEmailConnection } from './Services/emailService.js';
 import { checkConnection } from './Config/DBConnect.js';
 
@@ -91,6 +92,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/scores", scoreRoutes);
 app.use("/api/announcement", announcementRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {
