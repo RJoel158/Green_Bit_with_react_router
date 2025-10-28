@@ -64,9 +64,9 @@ const Register: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nombres: form.nombres,
-          apellidos: form.apellidos,
-          email: form.email,
+          nombres: Validator.normalizeName(form.nombres),
+          apellidos: Validator.normalizeName(form.apellidos),
+          email: form.email.toLowerCase(),
           phone: form.phone,
           role_id: 2, // recolector
           // state: 1, // pendiente (opcional)
