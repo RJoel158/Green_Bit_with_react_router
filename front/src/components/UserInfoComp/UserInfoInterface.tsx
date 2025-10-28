@@ -6,13 +6,17 @@ import { useNavigate } from "react-router-dom";
 //Estructura del usuario
 interface User {
   userId: number;
-  firstname: string;
-  lastname: string;
   email: string;
   phone: string;
   registerDate: string;
   avatar?: string;
   totalPoints?: number;
+  // Campos de Persona
+  firstname?: string;
+  lastname?: string;
+  // Campos de Institución
+  companyName?: string;
+  nit?: string;
 }
 
 const UserInfo: React.FC = () => {
@@ -33,15 +37,31 @@ const UserInfo: React.FC = () => {
       const parsedUser = JSON.parse(userStr);
       setRole(parsedUser.role);
       const userId = parsedUser.id;
-      // Fetch para obtener los datos completos del usuario desde la API
+      
+      // Buscar id como persona
       fetch(`http://localhost:3000/api/users/${userId}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.success) setUser(data.user);
+          if (data.success && data.user) {
+            // Si firstname y lastname no son null, es persona
+            if (data.user.firstname !== null && data.user.lastname !== null) {
+              setUser(data.user);
+            } else {
+              // firstname y lastname son null, intentar como institución
+              fetch(`http://localhost:3000/api/users/withInstitution/${userId}`)
+                .then((res) => res.json())
+                .then((institutionData) => {
+                  if (institutionData.success && institutionData.user) {
+                    setUser(institutionData.user);
+                  }
+                })
+                .catch((err) => console.error('Error al obtener institución:', err));
+            }
+          }
         })
-        .catch((err) => console.error(err));
+        .catch((err) => console.error('Error al obtener usuario:', err));
     }
-  }, []);
+  }, [navigate]);
 
   const handleBack = () => {
     window.history.back();
@@ -51,6 +71,15 @@ const UserInfo: React.FC = () => {
     window.location.replace("/login");// reemplaza la URL y evita volver atrás
   };
 
+  // Establecer si es institución o persona para mostrar nombre adecuado
+  const isInstitution = !!(user?.companyName || user?.nit);
+  
+  const displayName = isInstitution 
+    ? (user?.companyName || 'Empresa')
+    : user?.firstname && user?.lastname 
+      ? `${user.firstname} ${user.lastname}`.trim()
+      : 'Nombre completo';
+
   return (
     <div className="user-info-container">
       <HeaderUserInfo />
@@ -58,7 +87,7 @@ const UserInfo: React.FC = () => {
       <div className="user-info-wrapper">
         <div className="user-info-card">
           <h2 className="user-title">
-            {user ? `${user.firstname} ${user.lastname}` : "Nombre completo"}
+            {displayName}
           </h2>
 
           <div className="user-avatar-large mx-auto">
@@ -73,6 +102,18 @@ const UserInfo: React.FC = () => {
           </div>
 
           <div className="user-form">
+            {isInstitution && user?.nit && (
+              <div className="form-group">
+                <label>NIT:</label>
+                <input
+                  type="text"
+                  className="form-control form-input"
+                  value={user.nit}
+                  readOnly
+                />
+              </div>
+            )}
+
             <div className="form-group">
               <label>Número de Referencia:</label>
               <input

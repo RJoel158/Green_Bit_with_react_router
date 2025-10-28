@@ -64,7 +64,7 @@ const Login: React.FC = () => {
       }
 
       // Login exitoso
-      setMensaje("✅ Bienvenido, " + data.user.username);
+      setMensaje("✅ Bienvenido, " + data.user.email);
       //Guardado de sesión
       localStorage.setItem("user", JSON.stringify(data.user));
       //Limpieza del formulario y erores

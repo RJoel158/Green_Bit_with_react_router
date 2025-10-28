@@ -91,6 +91,8 @@ export const getByIdWithPersona = async (id) => {
   return rows[0] || null;
 };
 
+
+
 export const getById = async (id) => {
   const [rows] = await db.query(
     `SELECT u.id, u.email, u.phone, u.password, r.name AS role, u.state
@@ -501,6 +503,21 @@ export const rejectUserWithInstitution = async (userId) => {
   } finally {
     try { conn.release(); } catch (relErr) { console.error("[ERROR] rejectUserWithInstitution release:", relErr); }
   }
+};
+
+/**
+ * Obtener usuario con institución por ID
+ */
+export const getInstitutionById = async (id) => {
+  const [rows] = await db.query(
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+            i.companyName, i.nit, i.state AS institutionState
+     FROM users u
+     INNER JOIN institution i ON i.userId = u.id
+     WHERE u.id = ?`,
+    [id]
+  );
+  return rows[0] || null;
 };
 
 /**
