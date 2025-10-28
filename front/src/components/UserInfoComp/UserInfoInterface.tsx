@@ -23,6 +23,7 @@ const UserInfo: React.FC = () => {
   //Guardar información de usuario y rol
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate=useNavigate();
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const UserInfo: React.FC = () => {
             // Si firstname y lastname no son null, es persona
             if (data.user.firstname !== null && data.user.lastname !== null) {
               setUser(data.user);
+              setLoading(false);
             } else {
               // firstname y lastname son null, intentar como institución
               fetch(`http://localhost:3000/api/users/withInstitution/${userId}`)
@@ -54,12 +56,21 @@ const UserInfo: React.FC = () => {
                   if (institutionData.success && institutionData.user) {
                     setUser(institutionData.user);
                   }
+                  setLoading(false);
                 })
-                .catch((err) => console.error('Error al obtener institución:', err));
+                .catch((err) => {
+                  console.error('Error al obtener institución:', err);
+                  setLoading(false);
+                });
             }
+          } else {
+            setLoading(false);
           }
         })
-        .catch((err) => console.error('Error al obtener usuario:', err));
+        .catch((err) => {
+          console.error('Error al obtener usuario:', err);
+          setLoading(false);
+        });
     }
   }, [navigate]);
 
@@ -79,6 +90,25 @@ const UserInfo: React.FC = () => {
     : user?.firstname && user?.lastname 
       ? `${user.firstname} ${user.lastname}`.trim()
       : 'Nombre completo';
+
+  // Mostrar loading mientras se cargan los datos
+  if (loading) {
+    return (
+      <div className="user-info-container">
+        <HeaderUserInfo />
+        <div className="user-info-wrapper">
+          <div className="user-info-card">
+            <div className="loading-container">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="loading-text">Cargando información...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="user-info-container">
