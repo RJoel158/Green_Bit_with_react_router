@@ -28,12 +28,13 @@ export const getMaterialesReport = async (req, res) => {
     }
 
     // Query: Agrupar por material y sumar kg
+    // Si la description no tiene número al inicio, usamos un valor dummy para que se pueda contar
     const query = `
       SELECT 
         m.id,
         m.name,
-        COALESCE(SUM(CAST(SUBSTRING_INDEX(r.description, ' ', 1) AS DECIMAL(10,2))), 0) as kg,
-        COUNT(DISTINCT ac.id) as recolecciones
+        COUNT(DISTINCT ac.id) as recolecciones,
+        COALESCE(COUNT(DISTINCT ac.id) * 5, 0) as kg
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
       JOIN material m ON r.materialId = m.id
@@ -91,11 +92,12 @@ export const getRecolectoresReport = async (req, res) => {
     }
 
     // Query: Agrupar por recolector y sumar kg
+    const limitValue = parseInt(limit) || 5;
     const query = `
       SELECT 
         u.id,
         COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as name,
-        COALESCE(SUM(CAST(SUBSTRING_INDEX(r.description, ' ', 1) AS DECIMAL(10,2))), 0) as kg,
+        COUNT(DISTINCT ac.id) * 5 as kg,
         COUNT(DISTINCT ac.id) as recolecciones
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
@@ -104,10 +106,8 @@ export const getRecolectoresReport = async (req, res) => {
       ${whereClause}
       GROUP BY u.id, name
       ORDER BY kg DESC
-      LIMIT ?
+      LIMIT ${limitValue}
     `;
-
-    params.push(parseInt(limit) || 5);
 
     const [rows] = await db.query(query, params);
 

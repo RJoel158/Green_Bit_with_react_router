@@ -5,8 +5,8 @@ import * as reportService from '../../services/reportService';
 
 export default function ReportesAdmin() {
   const [selectedReport, setSelectedReport] = useState('materiales');
-  const [dateFrom, setDateFrom] = useState('2025-12-01');
-  const [dateTo, setDateTo] = useState('2025-12-06');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -210,6 +210,29 @@ export default function ReportesAdmin() {
 
   // Renderizar gráfico según el tipo de reporte
   const renderChart = () => {
+    const currentData = {
+      'materiales': materialesData,
+      'recolectores': recolectoresData,
+      'citas': citasData,
+      'puntuaciones': puntuacionesData
+    }[selectedReport] || [];
+
+    if (currentData.length === 0) {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '280px',
+          color: '#9ca3af',
+          fontSize: '1.1rem',
+          fontWeight: '500'
+        }}>
+          📊 Sin datos disponibles para mostrar
+        </div>
+      );
+    }
+
     switch (selectedReport) {
       case 'materiales':
         return (
