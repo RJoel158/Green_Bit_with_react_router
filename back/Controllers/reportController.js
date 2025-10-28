@@ -4,7 +4,7 @@
 import db from '../Config/DBConnect.js';
 
 /**
- * Reporte de Materiales - Cantidad de kg reciclados por tipo de material
+ * Reporte de Materiales - Cantidad de solicitudes recicladas por tipo de material
  * GET /api/reports/materiales?dateFrom=2025-01-01&dateTo=2025-12-31
  */
 export const getMaterialesReport = async (req, res) => {
@@ -14,7 +14,7 @@ export const getMaterialesReport = async (req, res) => {
     console.log('[INFO] reportController.getMaterialesReport - Parameters:', { dateFrom, dateTo });
 
     // Construir la cláusula WHERE dinámicamente
-    let whereClause = 'WHERE ac.state = 4'; // COMPLETED = 4
+    let whereClause = 'WHERE ac.state IN (0, 1, 3, 4)'; // Todos los estados completados/activos
     const params = [];
 
     if (dateFrom) {
@@ -27,35 +27,33 @@ export const getMaterialesReport = async (req, res) => {
       params.push(dateTo);
     }
 
-    // Query: Agrupar por material y sumar kg
-    // Si la description no tiene número al inicio, usamos un valor dummy para que se pueda contar
+    // Query: Agrupar por material y contar solicitudes
     const query = `
       SELECT 
         m.id,
         m.name,
-        COUNT(DISTINCT ac.id) as recolecciones,
-        COALESCE(COUNT(DISTINCT ac.id) * 5, 0) as kg
+        COUNT(DISTINCT r.id) as recolecciones
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
       JOIN material m ON r.materialId = m.id
       ${whereClause}
       GROUP BY m.id, m.name
-      ORDER BY kg DESC
+      ORDER BY recolecciones DESC
     `;
 
     const [rows] = await db.query(query, params);
 
     console.log('[INFO] reportController.getMaterialesReport - Found', rows.length, 'materials');
 
-    // Calcular total de kg para porcentajes
-    const totalKg = rows.reduce((sum, row) => sum + parseFloat(row.kg || 0), 0);
+    // Calcular total para porcentajes
+    const total = rows.reduce((sum, row) => sum + (row.recolecciones || 0), 0);
 
     // Transformar datos al formato esperado por el frontend
     const materialesData = rows.map((row, index) => ({
       id: row.id,
       name: row.name,
-      kg: parseFloat(row.kg || 0),
-      percentage: totalKg > 0 ? parseFloat(((row.kg / totalKg) * 100).toFixed(2)) : 0,
+      kg: row.recolecciones || 0, // Usar cantidad de solicitudes como "kg"
+      percentage: total > 0 ? parseFloat(((row.recolecciones / total) * 100).toFixed(2)) : 0,
       color: getColorByIndex(index),
       recolecciones: row.recolecciones
     }));
@@ -78,7 +76,7 @@ export const getRecolectoresReport = async (req, res) => {
     console.log('[INFO] reportController.getRecolectoresReport - Parameters:', { dateFrom, dateTo, limit });
 
     // Construir la cláusula WHERE dinámicamente
-    let whereClause = 'WHERE ac.state = 4'; // COMPLETED = 4
+    let whereClause = 'WHERE ac.state IN (0, 1, 3, 4)'; // Todos los estados activos/completados
     const params = [];
 
     if (dateFrom) {
@@ -91,14 +89,13 @@ export const getRecolectoresReport = async (req, res) => {
       params.push(dateTo);
     }
 
-    // Query: Agrupar por recolector y sumar kg
+    // Query: Agrupar por recolector y contar citas
     const limitValue = parseInt(limit) || 5;
     const query = `
       SELECT 
         u.id,
         COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as name,
-        COUNT(DISTINCT ac.id) * 5 as kg,
-        COUNT(DISTINCT ac.id) as recolecciones
+        COUNT(DISTINCT ac.id) as kg
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
       JOIN users u ON ac.collectorId = u.id
@@ -113,17 +110,17 @@ export const getRecolectoresReport = async (req, res) => {
 
     console.log('[INFO] reportController.getRecolectoresReport - Found', rows.length, 'collectors');
 
-    // Calcular total de kg para porcentajes
-    const totalKg = rows.reduce((sum, row) => sum + parseFloat(row.kg || 0), 0);
+    // Calcular total para porcentajes
+    const total = rows.reduce((sum, row) => sum + (row.kg || 0), 0);
 
     // Transformar datos al formato esperado por el frontend
     const recolectoresData = rows.map((row, index) => ({
       rank: index + 1,
       id: row.id,
       name: row.name,
-      kg: parseFloat(row.kg || 0),
-      percentage: totalKg > 0 ? parseFloat(((row.kg / totalKg) * 100).toFixed(2)) : 0,
-      recolecciones: row.recolecciones
+      kg: row.kg || 0,
+      percentage: total > 0 ? parseFloat(((row.kg / total) * 100).toFixed(2)) : 0,
+      recolecciones: row.kg
     }));
 
     res.json(recolectoresData);
