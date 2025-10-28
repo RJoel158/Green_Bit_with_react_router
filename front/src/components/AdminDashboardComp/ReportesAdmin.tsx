@@ -1,742 +1,516 @@
-import { useState, useEffect } from 'react';
-import { Download } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import CommonHeader from '../CommonComp/CommonHeader';
 import * as reportService from '../../services/reportService';
 
 export default function ReportesAdmin() {
-  const [selectedReport, setSelectedReport] = useState('materiales');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Estados para datos dinámicos
   const [materialesData, setMaterialesData] = useState<any[]>([]);
-  const [recolectoresData, setRecolectoresData] = useState<any[]>([]);
-  const [citasData, setCitasData] = useState<any[]>([]);
-  const [puntuacionesData, setPuntuacionesData] = useState<any[]>([]);
+  const [scoresData, setScoresData] = useState<any | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<'materiales' | 'scores'>('materiales');
+  const reportRef = useRef<HTMLDivElement>(null);
 
-  // Tipos de reportes disponibles
-  const reportTypes = [
-    { id: 'materiales', label: '📦 Materiales', icon: '📦' },
-    { id: 'recolectores', label: '🏆 Recolectores Top', icon: '🏆' },
-    { id: 'citas', label: '📈 Citas/Solicitudes', icon: '📈' },
-    { id: 'puntuaciones', label: '⭐ Puntuaciones', icon: '⭐' }
-  ];
-
-  /**
-   * Cargar datos del reporte seleccionado
-   */
+  // Obtener userId y rol del usuario autenticado
   useEffect(() => {
-    loadReportData();
-  }, [selectedReport, dateFrom, dateTo]);
+    const userString = localStorage.getItem('user');
+    if (userString) {
+      try {
+        const currentUser = JSON.parse(userString);
+        setUserId(currentUser.id);
+        setIsAdmin(currentUser.role === 'admin');
+        console.log('[DEBUG] Usuario:', { id: currentUser.id, role: currentUser.role, isAdmin: currentUser.role === 'admin' });
+      } catch (err) {
+        console.error('Error al parsear usuario:', err);
+      }
+    }
+  }, []);
 
-  /**
-   * Cargar datos según el reporte seleccionado
-   */
-  const loadReportData = async () => {
+  useEffect(() => {
+    if (userId !== null) {
+      loadData();
+    }
+  }, [dateFrom, dateTo, userId, activeTab]);
+
+  const loadData = async () => {
     try {
       setLoading(true);
       setError(null);
+      const userIdToFilter = isAdmin ? undefined : userId || undefined;
 
-      console.log(`📊 Cargando reporte: ${selectedReport}`);
-
-      switch (selectedReport) {
-        case 'materiales':
-          const materiales = await reportService.getMaterialesReport(dateFrom, dateTo);
-          setMaterialesData(materiales);
-          break;
-
-        case 'recolectores':
-          const recolectores = await reportService.getRecolectoresReport(dateFrom, dateTo, 5);
-          setRecolectoresData(recolectores);
-          break;
-
-        case 'citas':
-          const citas = await reportService.getCitasReport(dateFrom, dateTo);
-          setCitasData(citas);
-          break;
-
-        case 'puntuaciones':
-          const puntuaciones = await reportService.getPuntuacionesReport(dateFrom, dateTo);
-          setPuntuacionesData(puntuaciones);
-          break;
-
-        default:
-          break;
+      if (activeTab === 'materiales') {
+        const data = await reportService.getMaterialesReport(dateFrom, dateTo, userIdToFilter);
+        setMaterialesData(data);
+        console.log('[DEBUG] Materiales cargados:', { count: data.length });
+      } else if (activeTab === 'scores') {
+        const data = await reportService.getScoresReport(userIdToFilter);
+        setScoresData(data);
+        console.log('[DEBUG] Scores cargados:', data);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al cargar el reporte';
-      setError(message);
-      console.error('❌ Error cargando reporte:', err);
+      const msg = err instanceof Error ? err.message : 'Error al cargar';
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Descargar reporte en PDF
-   */
-  const handleDownloadPDF = async () => {
+  // ============ DESCARGAR PDF ============
+  const downloadPDF = async () => {
+    if (!reportRef.current) return;
+    
     try {
-      setLoading(true);
-      await reportService.downloadReportPDF(selectedReport, dateFrom, dateTo);
-      alert('✅ Reporte descargado exitosamente');
+      // Dinámicamente importar html2canvas
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).jsPDF;
+
+      const canvas = await html2canvas(reportRef.current, {
+        backgroundColor: '#FAF8F1',
+        scale: 2,
+        logging: false,
+        useCORS: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Reporte_${activeTab === 'materiales' ? 'Materiales' : 'Calificaciones'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(fileName);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al descargar reporte';
-      alert(`❌ Error: ${message}`);
-    } finally {
-      setLoading(false);
+      console.error('Error al descargar PDF:', err);
     }
   };
 
-  // Gráfico Donut
-  const renderDonutChart = (data: any[]) => {
-    if (!data || data.length === 0) return null;
+  // ============ GRÁFICO DONUT MEJORADO CON LEYENDA ============
+  const renderDonut = () => {
+    if (!materialesData?.length) return null;
+    
+    const centerX = 140;
+    const centerY = 140;
+    const radius = 90;
+    let startAngle = -Math.PI / 2;
 
-    let currentOffset = 0;
-    const circles = data.map((item: any) => {
-      const circumference = 2 * Math.PI * 90;
-      const strokeDasharray = (item.percentage / 100) * circumference;
-      const strokeDashoffset = currentOffset;
-      currentOffset -= strokeDasharray;
+    return materialesData.map((item: any) => {
+      const sliceAngle = (item.percentage / 100) * 2 * Math.PI;
+      const endAngle = startAngle + sliceAngle;
+
+      const x1 = centerX + radius * Math.cos(startAngle);
+      const y1 = centerY + radius * Math.sin(startAngle);
+      const x2 = centerX + radius * Math.cos(endAngle);
+      const y2 = centerY + radius * Math.sin(endAngle);
+
+      const largeArc = sliceAngle > Math.PI ? 1 : 0;
+
+      const pathData = `
+        M ${centerX} ${centerY}
+        L ${x1} ${y1}
+        A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}
+        Z
+      `;
+
+      startAngle = endAngle;
 
       return (
-        <circle
+        <path
           key={item.name}
-          cx="140"
-          cy="140"
-          r="90"
-          fill="none"
-          stroke={item.color || '#10b981'}
-          strokeWidth="60"
-          strokeDasharray={strokeDasharray}
-          strokeDashoffset={strokeDashoffset}
-          transform="rotate(-90 140 140)"
+          d={pathData}
+          fill={item.color || '#10b981'}
+          stroke="white"
+          strokeWidth="2"
+          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
         />
       );
     });
-
-    return circles;
   };
 
-  // Gráfico Pirámide
-  const renderPyramid = (data: any[]) => {
-    if (!data || data.length === 0) return null;
+  // ============ GRÁFICO DE BARRAS PARA SCORES ============
+  const renderScoresChart = () => {
+    if (!scoresData) return null;
 
-    const maxWidth = 300;
-    const heights = data.map((item: any) => {
-      return {
-        ...item,
-        width: (item.percentage / 100) * maxWidth
-      };
-    });
+    const maxScore = 5;
+    const chartWidth = 500;
+    const chartHeight = 300;
+    const barWidth = 50;
+    const barSpacing = 80;
+    const startX = 50;
+    const startY = 250;
 
-    return heights.map((item: any, idx: number) => {
-      const yPosition = idx * 50 + 30;
-      const xCenter = 150;
-      return (
-        <g key={item.name || idx}>
-          <rect
-            x={xCenter - item.width / 2}
-            y={yPosition}
-            width={item.width}
-            height="45"
-            fill={['#149D52', '#0d7d3a', '#dcfce7', '#a7f3d0', '#e8f5e9'][idx % 5]}
-            opacity="0.8"
-          />
-          <text
-            x={xCenter}
-            y={yPosition + 28}
-            textAnchor="middle"
-            fontSize="12"
-            fontWeight="600"
-            fill="#111827"
-          >
-            {item.name} ({item.percentage}%)
-          </text>
-        </g>
-      );
-    });
+    const counts = [1, 2, 3, 4, 5].map(score => scoresData[`count_${score}`] || 0);
+    const maxCount = Math.max(...counts, 1);
+
+    return (
+      <svg width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+        {/* Ejes */}
+        <line x1="40" y1="20" x2="40" y2={startY} stroke="#d1d5db" strokeWidth="2" />
+        <line x1="40" y1={startY} x2={chartWidth} y2={startY} stroke="#d1d5db" strokeWidth="2" />
+
+        {/* Grid horizontal */}
+        {[1, 2, 3, 4, 5].map((score) => {
+          const y = startY - (score / maxScore) * 200;
+          return (
+            <g key={`grid-${score}`}>
+              <line x1="35" y1={y} x2={chartWidth - 10} y2={y} stroke="#f3f4f6" strokeWidth="1" />
+              <text x="10" y={y + 5} fontSize="12" textAnchor="end" fill="#9ca3af">
+                {score}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Barras */}
+        {[1, 2, 3, 4, 5].map((score) => {
+          const count = scoresData[`count_${score}`] || 0;
+          const height = maxCount > 0 ? (count / maxCount) * 200 : 0;
+          const x = startX + score * barSpacing;
+          const y = startY - height;
+          const color = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'][score - 1];
+
+          return (
+            <g key={`bar-${score}`}>
+              <rect x={x - barWidth / 2} y={y} width={barWidth} height={height} fill={color} rx="4" />
+              <text x={x} y={startY + 20} fontSize="14" fontWeight="bold" textAnchor="middle" fill="#374151">
+                ⭐{score}
+              </text>
+              <text x={x} y={y - 5} fontSize="12" fontWeight="bold" textAnchor="middle" fill="#374151">
+                {count}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
   };
 
-  // Gráfico Barras
-  const renderBarChart = (data: any[]) => {
-    if (!data || data.length === 0) return null;
-
-    const maxValue = Math.max(...data.map((d: any) => (d.completed || 0) + (d.pending || 0) + (d.cancelled || 0)));
-    return data.map((item: any, idx: number) => {
-      const completedHeight = ((item.completed || 0) / maxValue) * 150;
-      const pendingHeight = ((item.pending || 0) / maxValue) * 150;
-      const cancelledHeight = ((item.cancelled || 0) / maxValue) * 150;
-
-      return (
-        <g key={item.day || idx}>
-          <rect
-            x={50 + idx * 35}
-            y={180 - completedHeight}
-            width="8"
-            height={completedHeight}
-            fill="#22c55e"
-          />
-          <rect
-            x={60 + idx * 35}
-            y={180 - completedHeight - pendingHeight}
-            width="8"
-            height={pendingHeight}
-            fill="#fbbf24"
-          />
-          <rect
-            x={70 + idx * 35}
-            y={180 - completedHeight - pendingHeight - cancelledHeight}
-            width="8"
-            height={cancelledHeight}
-            fill="#ef4444"
-          />
-          <text
-            x={60 + idx * 35}
-            y="200"
-            textAnchor="middle"
-            fontSize="12"
-            fill="#6b7280"
-          >
-            {item.day || `D${idx + 1}`}
-          </text>
-        </g>
-      );
-    });
-  };
-
-  // Renderizar gráfico según el tipo de reporte
-  const renderChart = () => {
-    const currentData = {
-      'materiales': materialesData,
-      'recolectores': recolectoresData,
-      'citas': citasData,
-      'puntuaciones': puntuacionesData
-    }[selectedReport] || [];
-
-    if (currentData.length === 0) {
-      return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '280px',
-          color: '#9ca3af',
-          fontSize: '1.1rem',
-          fontWeight: '500'
-        }}>
-          📊 Sin datos disponibles para mostrar
-        </div>
-      );
-    }
-
-    switch (selectedReport) {
-      case 'materiales':
-        return (
-          <svg width="280" height="280" viewBox="0 0 280 280" style={{ margin: '0 auto', display: 'block' }}>
-            {renderDonutChart(materialesData)}
-          </svg>
-        );
-      case 'recolectores':
-        return (
-          <svg width="400" height="320" viewBox="0 0 400 320" style={{ margin: '0 auto', display: 'block' }}>
-            {renderPyramid(recolectoresData)}
-          </svg>
-        );
-      case 'citas':
-        return (
-          <svg width="700" height="250" viewBox="0 0 700 250" style={{ margin: '0 auto', display: 'block' }}>
-            <line x1="40" y1="180" x2="650" y2="180" stroke="#e5e7eb" strokeWidth="1" />
-            {renderBarChart(citasData)}
-          </svg>
-        );
-      case 'puntuaciones':
-        return (
-          <svg width="280" height="280" viewBox="0 0 280 280" style={{ margin: '0 auto', display: 'block' }}>
-            {renderDonutChart(puntuacionesData)}
-          </svg>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Renderizar tabla según el tipo de reporte
-  const renderTable = () => {
-    switch (selectedReport) {
-      case 'materiales':
-        return (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#dcfce7', borderBottom: '2px solid #149D52' }}>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Material</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Kg</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materialesData.length > 0 ? (
-                materialesData.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: idx % 2 === 0 ? '#FAF8F1' : 'white' }}>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#374151', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: item.color || '#10b981' }}></div>
-                      {item.name}
-                    </td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right' }}>{(item.kg || 0).toLocaleString()}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right', fontWeight: '600' }}>{item.percentage || 0}%</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Sin datos disponibles</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        );
-
-      case 'recolectores':
-        return (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#dcfce7', borderBottom: '2px solid #149D52' }}>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Rank</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Recolector</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Kg</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recolectoresData.length > 0 ? (
-                recolectoresData.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: idx % 2 === 0 ? '#FAF8F1' : 'white' }}>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>🥇 #{item.rank || idx + 1}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#374151', fontWeight: '500' }}>{item.name}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right' }}>{(item.kg || 0).toLocaleString()}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right', fontWeight: '600' }}>{item.percentage || 0}%</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Sin datos disponibles</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        );
-
-      case 'citas':
-        return (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#dcfce7', borderBottom: '2px solid #149D52' }}>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Día</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>✅ Completadas</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>⏳ Pendientes</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>❌ Canceladas</th>
-              </tr>
-            </thead>
-            <tbody>
-              {citasData.length > 0 ? (
-                citasData.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: idx % 2 === 0 ? '#FAF8F1' : 'white' }}>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#374151', fontWeight: '500' }}>{item.day}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#22c55e', textAlign: 'right', fontWeight: '600' }}>{item.completed || 0}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#fbbf24', textAlign: 'right', fontWeight: '600' }}>{item.pending || 0}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#ef4444', textAlign: 'right', fontWeight: '600' }}>{item.cancelled || 0}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Sin datos disponibles</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        );
-
-      case 'puntuaciones':
-        return (
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#dcfce7', borderBottom: '2px solid #149D52' }}>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'left', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Clasificación</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>Cantidad</th>
-                <th style={{ padding: '0.875rem 1.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: '600', color: '#149D52' }}>%</th>
-              </tr>
-            </thead>
-            <tbody>
-              {puntuacionesData.length > 0 ? (
-                puntuacionesData.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: idx % 2 === 0 ? '#FAF8F1' : 'white' }}>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#374151', fontWeight: '500' }}>{item.label} ({item.stars}⭐)</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right' }}>{item.count || 0}</td>
-                    <td style={{ padding: '0.875rem 1.5rem', fontSize: '0.9rem', color: '#6b7280', textAlign: 'right', fontWeight: '600' }}>{item.percentage || 0}%</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af' }}>Sin datos disponibles</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  // Obtener título del reporte actual
-  const getReportTitle = () => {
-    const report = reportTypes.find(r => r.id === selectedReport);
-    return report?.label || 'Reportes';
-  };
-
-  // Calcular resumen según reporte
-  const getReportSummary = () => {
-    switch (selectedReport) {
-      case 'materiales':
-        const totalKgMat = materialesData.reduce((sum, item) => sum + (item.kg || 0), 0);
-        return {
-          stat1: { label: 'Total Reciclado', value: `${totalKgMat.toLocaleString()} kg`, color: '#149D52' },
-          stat2: { label: 'Materiales Únicos', value: materialesData.length, color: '#10b981' }
-        };
-
-      case 'recolectores':
-        const leader = recolectoresData[0];
-        return {
-          stat1: { label: 'Líder', value: leader?.name || 'N/A', color: '#149D52' },
-          stat2: { label: 'Kg Recolectados', value: `${(leader?.kg || 0).toLocaleString()} kg`, color: '#10b981' }
-        };
-
-      case 'citas':
-        const completedCitas = citasData.reduce((sum, item) => sum + (item.completed || 0), 0);
-        const pendingCitas = citasData.reduce((sum, item) => sum + (item.pending || 0), 0);
-        return {
-          stat1: { label: 'Completadas', value: completedCitas, color: '#22c55e' },
-          stat2: { label: 'Pendientes', value: pendingCitas, color: '#fbbf24' }
-        };
-
-      case 'puntuaciones':
-        const avgScore = puntuacionesData.length > 0
-          ? (puntuacionesData.reduce((sum, item) => sum + (item.stars * item.count), 0) / 
-             puntuacionesData.reduce((sum, item) => sum + item.count, 0)).toFixed(1)
-          : 0;
-        const totalRatings = puntuacionesData.reduce((sum, item) => sum + (item.count || 0), 0);
-        return {
-          stat1: { label: 'Promedio', value: `${avgScore} ⭐`, color: '#149D52' },
-          stat2: { label: 'Total Evaluaciones', value: totalRatings, color: '#10b981' }
-        };
-
-      default:
-        return null;
-    }
-  };
-
-  const summary = getReportSummary();
+  const total = materialesData.reduce((s: number, i: any) => s + (i.kg || 0), 0);
+  const topMaterial = materialesData[0] || null;
 
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#FAF8F1',
-      overflow: 'hidden',
-      height: '100vh'
-    }}>
-      {/* Header */}
-      <CommonHeader
-        title="Reportes"
-        searchPlaceholder="Buscar reporte..."
-        searchQuery={searchTerm}
-        onSearch={(term) => setSearchTerm(term)}
-        onCreateNew={() => {}}
-        createButtonText="+ Descargar PDF"
-      />
-
-      {/* Error Banner */}
-      {error && (
-        <div style={{
-          backgroundColor: '#fee2e2',
-          color: '#991b1b',
-          padding: '0.75rem 1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          borderBottom: '1px solid #fecaca'
-        }}>
-          <span>{error}</span>
-          <button 
-            onClick={() => setError(null)}
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#FAF8F1', height: '100vh', overflow: 'hidden' }}>
+      <CommonHeader title="Reportes" searchPlaceholder="Buscar..." searchQuery="" onSearch={() => {}} onCreateNew={() => {}} createButtonText="Actualizar" />
+      
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '2rem', gap: '1rem', overflow: 'auto' }} ref={reportRef}>
+        {/* Tabs + Botón PDF */}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '2px solid #e5e7eb', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              onClick={() => setActiveTab('materiales')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: activeTab === 'materiales' ? '#149D52' : 'transparent',
+                color: activeTab === 'materiales' ? 'white' : '#6b7280',
+                border: 'none',
+                borderRadius: '0.375rem 0.375rem 0 0',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '1rem',
+                transition: 'all 0.3s'
+              }}
+            >
+              📊 Reporte de Materiales
+            </button>
+            <button
+              onClick={() => setActiveTab('scores')}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: activeTab === 'scores' ? '#149D52' : 'transparent',
+                color: activeTab === 'scores' ? 'white' : '#6b7280',
+                border: 'none',
+                borderRadius: '0.375rem 0.375rem 0 0',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '1rem',
+                transition: 'all 0.3s'
+              }}
+            >
+              ⭐ Reporte de Calificaciones
+            </button>
+          </div>
+          <button
+            onClick={downloadPDF}
+            disabled={loading || (!materialesData.length && !scoresData)}
             style={{
-              background: 'none',
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#149D52',
+              color: 'white',
               border: 'none',
-              color: '#991b1b',
-              cursor: 'pointer',
-              fontSize: '1.2rem'
+              borderRadius: '0.375rem',
+              cursor: loading || (!materialesData.length && !scoresData) ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              opacity: loading || (!materialesData.length && !scoresData) ? 0.5 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.3s'
             }}
           >
-            ✕
+            📥 Descargar PDF
           </button>
         </div>
-      )}
 
-      {/* Main Content */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '2rem'
-      }}>
-        {loading ? (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '400px',
-            gap: '1rem'
-          }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              border: '4px solid #e5e7eb',
-              borderTop: '4px solid #149D52',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <p style={{ color: '#6b7280' }}>Cargando reporte...</p>
+        {/* Indicador si es admin o no */}
+        <div style={{ padding: '0.75rem 1rem', backgroundColor: isAdmin ? '#fef3c7' : '#e0f2fe', borderRadius: '0.375rem', fontSize: '0.875rem', color: isAdmin ? '#92400e' : '#0c4a6e', fontWeight: '500' }}>
+          {isAdmin ? '📊 Modo Administrador - Viendo reportes de TODOS los usuarios' : '👤 Viendo solo tus reportes'}
+        </div>
+
+        {/* Filtros */}
+        {activeTab === 'materiales' && (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', backgroundColor: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem', color: '#149D52' }}>Desde:</label>
+              <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem', color: '#149D52' }}>Hasta:</label>
+              <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem' }} />
+            </div>
+            <button onClick={loadData} disabled={loading} style={{ padding: '0.625rem 1.5rem', backgroundColor: '#149D52', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: '600', opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Cargando...' : 'Actualizar'}
+            </button>
           </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr',
-            gap: '2rem',
-            height: 'fit-content'
-          }}>
-            {/* Chart & Table Section */}
-            <div>
-              {/* Report Type Selector */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '1.5rem',
-                flexWrap: 'wrap',
-                gap: '1rem'
-              }}>
-                <h2 style={{
-                  fontSize: '1.1rem',
-                  fontWeight: '500',
-                  color: '#149D52',
-                  margin: 0
-                }}>
-                  {getReportTitle()}
-                </h2>
-                <select
-                  value={selectedReport}
-                  onChange={(e) => setSelectedReport(e.target.value)}
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.9rem',
-                    backgroundColor: 'white',
-                    color: '#374151',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  {reportTypes.map(type => (
-                    <option key={type.id} value={type.id}>{type.label}</option>
-                  ))}
-                </select>
-              </div>
+        )}
 
-              {/* Filters */}
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                padding: '1rem',
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <span style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>Período:</span>
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.9rem'
-                  }}
-                />
-                <span style={{ color: '#6b7280', fontWeight: '500' }}>-</span>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  style={{
-                    padding: '0.5rem 0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.9rem'
-                  }}
-                />
-                <button 
-                  onClick={handleDownloadPDF}
-                  disabled={loading}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: loading ? '#d1d5db' : '#149D52',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    fontSize: '0.9rem',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}
-                >
-                  <Download size={16} />
-                  Descargar
-                </button>
-              </div>
+        {error && <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '1rem', borderRadius: '0.5rem' }}>❌ Error: {error}</div>}
 
-              {/* Chart */}
-              <div style={{
-                overflow: 'hidden',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                backgroundColor: 'white',
-                padding: '2rem',
-                marginBottom: '2rem'
-              }}>
-                <h3 style={{
-                  fontSize: '1rem',
-                  fontWeight: '600',
-                  color: '#149D52',
-                  margin: '0 0 1.5rem 0'
-                }}>
-                  Visualización
-                </h3>
-                {renderChart()}
-              </div>
+        {/* REPORTE MATERIALES */}
+        {activeTab === 'materiales' && !loading && materialesData.length === 0 && !error && (
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', textAlign: 'center', color: '#9ca3af' }}>
+            Sin datos disponibles
+          </div>
+        )}
 
-              {/* Table */}
-              <div style={{
-                overflow: 'hidden',
-                borderRadius: '0.5rem',
-                border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                backgroundColor: 'white'
-              }}>
-                <div style={{
-                  padding: '1.5rem',
-                  borderBottom: '1px solid #e5e7eb',
-                  backgroundColor: '#FAF8F1'
-                }}>
-                  <h3 style={{
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    color: '#149D52',
-                    margin: 0
-                  }}>
-                    Detalles
-                  </h3>
-                </div>
-                {renderTable()}
+        {activeTab === 'materiales' && materialesData.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            {/* Gráfico Donut con Leyenda */}
+            <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem' }}>📊 Distribución de Materiales</h3>
+              <svg width="300" height="300" viewBox="0 0 300 300" style={{ marginBottom: '1rem' }}>
+                {renderDonut()}
+                <circle cx="150" cy="150" r="55" fill="white" />
+                <text x="150" y="145" textAnchor="middle" fontSize="32" fontWeight="bold" fill="#149D52">
+                  {total}
+                </text>
+                <text x="150" y="170" textAnchor="middle" fontSize="14" fill="#6b7280" fontWeight="600">
+                  items reciclados
+                </text>
+              </svg>
+
+              {/* Leyenda mejorada */}
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #e5e7eb', maxHeight: '200px', overflowY: 'auto' }}>
+                {materialesData.map((item: any, idx: number) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
+                    <div style={{ 
+                      width: '16px', 
+                      height: '16px', 
+                      borderRadius: '50%', 
+                      backgroundColor: item.color || '#10b981',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      flexShrink: 0
+                    }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>
+                        {item.name}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                        {item.kg} items • {item.percentage}%
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Right Sidebar - Summary */}
-            {summary && (
-              <div>
-                <div style={{
-                  backgroundColor: 'white',
-                  borderRadius: '0.5rem',
-                  padding: '1.5rem',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '1.5rem'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingBottom: '1rem',
-                    borderBottom: '1px solid #e5e7eb'
-                  }}>
-                    <h3 style={{
-                      fontSize: '1.1rem',
-                      fontWeight: '600',
-                      color: '#149D52',
-                      margin: 0
-                    }}>
-                      Resumen
-                    </h3>
-                  </div>
+            {/* Gráfico de Barras Horizontal */}
+            <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1.5rem' }}>📈 Comparativa de Materiales</h3>
+              
+              {/* Box resumen */}
+              <div style={{ backgroundColor: '#dcfce7', padding: '1rem', borderRadius: '0.375rem', borderLeft: '4px solid #149D52', marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: '#149D52', fontWeight: '600', margin: '0 0 0.5rem 0' }}>🏆 TOP MATERIAL</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{topMaterial?.name}</p>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0.25rem 0 0 0' }}>{topMaterial?.kg} items ({topMaterial?.percentage}%)</p>
+              </div>
 
-                  {/* Summary Stats */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{
-                      padding: '1rem',
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '0.5rem',
-                      borderLeft: `4px solid ${summary.stat1.color}`
-                    }}>
-                      <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>{summary.stat1.label}</p>
-                      <p style={{ fontSize: '1.5rem', fontWeight: '700', color: summary.stat1.color, margin: 0 }}>{summary.stat1.value}</p>
+              {/* Barras horizontales */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+                {materialesData.map((item: any) => {
+                  const percentage = item.percentage;
+                  
+                  return (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ minWidth: '100px', fontSize: '0.85rem', fontWeight: '600', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.name}
+                      </div>
+                      <div style={{ flex: 1, height: '28px', backgroundColor: '#f3f4f6', borderRadius: '0.375rem', overflow: 'hidden', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${percentage}%`,
+                            backgroundColor: item.color || '#10b981',
+                            borderRadius: '0.375rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            paddingRight: '0.5rem',
+                            transition: 'width 0.3s ease'
+                          }}
+                        >
+                          {percentage > 15 && (
+                            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: 'white' }}>
+                              {percentage}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div style={{ minWidth: '50px', textAlign: 'right', fontSize: '0.85rem', fontWeight: '600', color: '#6b7280' }}>
+                        {item.kg} items
+                      </div>
                     </div>
-                    <div style={{
-                      padding: '1rem',
-                      backgroundColor: '#f0fdf4',
-                      borderRadius: '0.5rem',
-                      borderLeft: `4px solid ${summary.stat2.color}`
-                    }}>
-                      <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: '0 0 0.25rem 0' }}>{summary.stat2.label}</p>
-                      <p style={{ fontSize: '1.5rem', fontWeight: '700', color: summary.stat2.color, margin: 0 }}>{summary.stat2.value}</p>
-                    </div>
-                  </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
-                  {/* Period Info */}
-                  <div style={{
-                    padding: '1rem',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: '0.5rem'
-                  }}>
-                    <p style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500', margin: '0 0 0.5rem 0' }}>Período de reporte</p>
-                    <p style={{ fontSize: '0.9rem', color: '#374151', margin: 0 }}>
-                      {new Date(dateFrom).toLocaleDateString('es-ES')} al {new Date(dateTo).toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
+        {/* REPORTE SCORES */}
+        {activeTab === 'scores' && !loading && scoresData !== null && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {/* Primera fila: Gráfico + Estadísticas */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflowX: 'auto' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1rem' }}>Distribución de Calificaciones</h3>
+                {renderScoresChart()}
+              </div>
+
+              <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem', overflow: 'auto' }}>
+                <div style={{ backgroundColor: '#dcfce7', padding: '1.5rem', borderRadius: '0.375rem', borderLeft: '4px solid #149D52' }}>
+                  <p style={{ fontSize: '0.875rem', color: '#149D52', fontWeight: '600', margin: '0 0 0.5rem 0' }}>📊 RESUMEN</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>⭐ {scoresData.average.toFixed(1)}</p>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0.5rem 0 0 0' }}>Promedio de {scoresData.total} calificaciones</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {[5, 4, 3, 2, 1].map((score) => {
+                    const count = scoresData[`count_${score}`] || 0;
+                    const percentageNum = scoresData.total > 0 ? ((count / scoresData.total) * 100) : 0;
+                    const percentage = parseFloat(percentageNum.toFixed(1));
+                    const colors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
+                    const color = colors[score - 1];
+
+                    return (
+                      <div key={score} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '600', minWidth: '30px' }}>
+                          {'⭐'.repeat(score)}
+                        </span>
+                        <div style={{ flex: 1, height: '24px', backgroundColor: '#f3f4f6', borderRadius: '0.375rem', overflow: 'hidden' }}>
+                          <div
+                            style={{
+                              height: '100%',
+                              width: `${percentage}%`,
+                              backgroundColor: color,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              paddingRight: '0.5rem',
+                              fontSize: '0.75rem',
+                              fontWeight: '700',
+                              color: 'white'
+                            }}
+                          >
+                            {percentage > 10 ? `${percentage}%` : ''}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#6b7280', minWidth: '40px', textAlign: 'right' }}>
+                          {count}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Segunda fila: Tabla detallada de calificaciones */}
+            {scoresData.details && scoresData.details.length > 0 && (
+              <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '1rem' }}>📋 Detalles de Calificaciones</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '2px solid #149D52' }}>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '700', color: '#149D52', whiteSpace: 'nowrap' }}>⭐ Score</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '700', color: '#149D52', whiteSpace: 'nowrap' }}>👤 Quien Califica</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '700', color: '#149D52', whiteSpace: 'nowrap' }}>→ Calificado A</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '700', color: '#149D52', whiteSpace: 'nowrap' }}>📝 Comentario</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '700', color: '#149D52', whiteSpace: 'nowrap' }}>📅 Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scoresData.details.map((detail: any, idx: number) => {
+                        const scoreColors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
+                        const scoreColor = scoreColors[detail.score - 1];
+
+                        return (
+                          <tr key={detail.id} style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: idx % 2 === 0 ? '#f9fafb' : 'white' }}>
+                            <td style={{ padding: '0.75rem', fontWeight: '700', color: scoreColor }}>
+                              {'⭐'.repeat(detail.score)} {detail.score}
+                            </td>
+                            <td style={{ padding: '0.75rem', color: '#374151', fontWeight: '600' }}>
+                              {detail.ratedByUsername || `Usuario ${detail.ratedByUserId}`}
+                            </td>
+                            <td style={{ padding: '0.75rem', color: '#374151', fontWeight: '600' }}>
+                              {detail.ratedToUsername || `Usuario ${detail.ratedToUserId}`}
+                            </td>
+                            <td style={{ padding: '0.75rem', color: '#6b7280', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {detail.comment || '(sin comentario)'}
+                            </td>
+                            <td style={{ padding: '0.75rem', color: '#6b7280', textAlign: 'center', whiteSpace: 'nowrap', fontSize: '0.75rem' }}>
+                              {new Date(detail.createdDate).toLocaleDateString('es-ES')}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             )}
           </div>
         )}
-      </div>
 
-      {/* CSS para animación de carga */}
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+        {activeTab === 'scores' && !loading && scoresData === null && !error && (
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '0.5rem', textAlign: 'center', color: '#9ca3af' }}>
+            Sin datos de calificaciones
+          </div>
+        )}
+
+        {loading && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', gap: '1rem' }}>
+            <div style={{ width: '40px', height: '40px', border: '4px solid #dcfce7', borderTop: '4px solid #149D52', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <span style={{ color: '#6b7280', fontWeight: '600' }}>Cargando...</span>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

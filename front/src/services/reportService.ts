@@ -1,5 +1,5 @@
 /**
- * Report Service - Genera reportes dinámicos desde datos del API
+ * Report Service - Reportes de materiales y calificaciones
  */
 import { apiUrl } from '../config/environment';
 
@@ -10,37 +10,39 @@ export interface MaterialReport {
   color: string;
 }
 
-export interface CollectorReport {
-  rank: number;
-  name: string;
-  kg: number;
-  percentage: number;
+export interface ScoreDetail {
+  id: number;
+  score: number;
+  comment: string;
+  createdDate: string;
+  ratedByUserId: number;
+  ratedToUserId: number;
+  ratedByUsername: string;
+  ratedToUsername: string;
 }
 
-export interface CitaReport {
-  day: string;
-  completed: number;
-  pending: number;
-  cancelled: number;
-}
-
-export interface PuntuacionReport {
-  stars: number;
-  count: number;
-  percentage: number;
-  label: string;
+export interface ScoresReport {
+  count_1: number;
+  count_2: number;
+  count_3: number;
+  count_4: number;
+  count_5: number;
+  total: number;
+  average: number;
+  details: ScoreDetail[];
 }
 
 /**
  * Obtener reporte de materiales reciclados
  */
-export const getMaterialesReport = async (dateFrom?: string, dateTo?: string): Promise<MaterialReport[]> => {
+export const getMaterialesReport = async (dateFrom?: string, dateTo?: string, userId?: number): Promise<MaterialReport[]> => {
   try {
     console.log('📊 reportService.getMaterialesReport - Obteniendo...');
 
     const url = new URL(apiUrl('/api/reports/materiales'));
     if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
     if (dateTo) url.searchParams.append('dateTo', dateTo);
+    if (userId) url.searchParams.append('userId', userId.toString());
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -63,16 +65,14 @@ export const getMaterialesReport = async (dateFrom?: string, dateTo?: string): P
 };
 
 /**
- * Obtener reporte de recolectores top
+ * Obtener reporte de calificaciones (scores)
  */
-export const getRecolectoresReport = async (dateFrom?: string, dateTo?: string, limit: number = 5): Promise<CollectorReport[]> => {
+export const getScoresReport = async (userId?: number): Promise<ScoresReport | null> => {
   try {
-    console.log('📊 reportService.getRecolectoresReport - Obteniendo...');
+    console.log('⭐ reportService.getScoresReport - Obteniendo...');
 
-    const url = new URL(apiUrl('/api/reports/recolectores'));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
-    url.searchParams.append('limit', limit.toString());
+    const url = new URL(apiUrl('/api/reports/scores'));
+    if (userId) url.searchParams.append('userId', userId.toString());
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -85,111 +85,11 @@ export const getRecolectoresReport = async (dateFrom?: string, dateTo?: string, 
     }
 
     const data = await response.json();
-    console.log('✅ reportService.getRecolectoresReport - Éxito:', data);
+    console.log('✅ reportService.getScoresReport - Éxito:', data);
 
-    return data.data || [];
+    return data;
   } catch (error) {
-    console.error('❌ reportService.getRecolectoresReport - Error:', error);
-    return [];
-  }
-};
-
-/**
- * Obtener reporte de citas/solicitudes por día
- */
-export const getCitasReport = async (dateFrom?: string, dateTo?: string): Promise<CitaReport[]> => {
-  try {
-    console.log('📊 reportService.getCitasReport - Obteniendo...');
-
-    const url = new URL(apiUrl('/api/reports/citas'));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ reportService.getCitasReport - Éxito:', data);
-
-    return data.data || [];
-  } catch (error) {
-    console.error('❌ reportService.getCitasReport - Error:', error);
-    return [];
-  }
-};
-
-/**
- * Obtener reporte de puntuaciones
- */
-export const getPuntuacionesReport = async (dateFrom?: string, dateTo?: string): Promise<PuntuacionReport[]> => {
-  try {
-    console.log('📊 reportService.getPuntuacionesReport - Obteniendo...');
-
-    const url = new URL(apiUrl('/api/reports/puntuaciones'));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ reportService.getPuntuacionesReport - Éxito:', data);
-
-    return data.data || [];
-  } catch (error) {
-    console.error('❌ reportService.getPuntuacionesReport - Error:', error);
-    return [];
-  }
-};
-
-/**
- * Generar y descargar PDF de un reporte
- */
-export const downloadReportPDF = async (reportType: string, dateFrom?: string, dateTo?: string): Promise<void> => {
-  try {
-    console.log('📥 reportService.downloadReportPDF - Descargando:', reportType);
-
-    const url = new URL(apiUrl(`/api/reports/${reportType}/pdf`));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    // Descargar el archivo
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `reporte-${reportType}-${new Date().toISOString().split('T')[0]}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(downloadUrl);
-
-    console.log('✅ reportService.downloadReportPDF - Descargado');
-  } catch (error) {
-    console.error('❌ reportService.downloadReportPDF - Error:', error);
-    throw error;
+    console.error('❌ reportService.getScoresReport - Error:', error);
+    return null;
   }
 };
