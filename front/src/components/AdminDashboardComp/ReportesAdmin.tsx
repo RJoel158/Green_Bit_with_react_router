@@ -73,35 +73,79 @@ export default function ReportesAdmin() {
       const html2canvas = (await import('html2canvas')).default;
       const jsPDF = (await import('jspdf')).jsPDF;
 
-      const canvas = await html2canvas(reportRef.current, {
+      //Guardar estilos originales
+      const originalScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const element = reportRef.current;
+      const originalOverflow = element.style.overflow;
+      const originalHeight = element.style.height;
+      const originalWidth = element.style.width;
+      
+      // Contenedor muestra todo su contenido con ancho fijo
+      element.style.overflow = 'visible';
+      element.style.height = 'auto';
+      element.style.width = '1200px'; 
+      element.style.minWidth = '1200px';
+      
+      // Scroll al inicio para la captura
+      window.scrollTo(0, 0);
+
+      // Esperar un momento para que el DOM se actualice
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      const canvas = await html2canvas(element, {
         backgroundColor: '#FAF8F1',
         scale: 2,
         logging: false,
-        useCORS: true
+        useCORS: true,
+        allowTaint: true,
+        scrollY: 0,
+        scrollX: 0,
+        width: 1200,
+        windowWidth: 1200
       });
+
+      // Restaurar estilos y scroll originales
+      element.style.overflow = originalOverflow;
+      element.style.height = originalHeight;
+      element.style.width = originalWidth;
+      element.style.minWidth = '';
+      window.scrollTo(0, originalScrollTop);
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
+      const pdfWidth = 210; 
+      const pdfHeight = 297; 
+      
+      // Calcular dimensiones manteniendo la proporción
+      const imgWidth = pdfWidth - 10; 
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const xOffset = 5; 
       let heightLeft = imgHeight;
       let position = 0;
 
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Primera página
+      pdf.addImage(imgData, 'PNG', xOffset, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
 
-      while (heightLeft >= 0) {
+      // Agregar páginas adicionales si es necesario
+      while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', xOffset, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
       }
 
-      const fileName = `Reporte_${activeTab === 'materiales' ? 'Materiales' : activeTab === 'scores' ? 'Calificaciones' : 'Recolecciones'}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      // Generar nombre con fecha y hora completa (incluyendo segundos)
+      const now = new Date();
+      const fecha = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const hora = now.toTimeString().slice(0, 8).replace(/:/g, '-'); // HH-MM-SS
+      const tipoReporte = activeTab === 'materiales' ? 'Materiales' : activeTab === 'scores' ? 'Calificaciones' : 'Recolecciones';
+      const fileName = `Reporte_${tipoReporte}_${fecha}_${hora}.pdf`;
+      
       pdf.save(fileName);
     } catch (err) {
       console.error('Error al descargar PDF:', err);
+      alert('Error al generar el PDF. Por favor, intenta nuevamente.');
     }
   };
 
@@ -233,19 +277,26 @@ export default function ReportesAdmin() {
         <line x1={leftMargin - 10} y1="20" x2={leftMargin - 10} y2={startY} stroke="#d1d5db" strokeWidth="2" />
         <line x1={leftMargin - 10} y1={startY} x2={chartWidth - rightMargin} y2={startY} stroke="#d1d5db" strokeWidth="2" />
 
-        {/* Grid horizontal con valores */}
-        {[0, 1, 2, 3, 4, 5].map((level) => {
-          const y = startY - (level / 5) * chartAreaHeight;
-          const value = Math.round((level / 5) * maxCount);
-          return (
-            <g key={`grid-${level}`}>
-              <line x1={leftMargin - 15} y1={y} x2={chartWidth - rightMargin} y2={y} stroke="#f3f4f6" strokeWidth="1" />
-              <text x={leftMargin - 20} y={y + 5} fontSize="11" textAnchor="end" fill="#9ca3af" fontWeight="500">
-                {value}
-              </text>
-            </g>
-          );
-        })}
+        {/* Grid horizontal con valores - Dinámico basado en maxCount */}
+        {(() => {
+          // Determinar cantidad de líneas a mostrar basado en maxCount
+          const numLines = Math.min(maxCount + 1, 6); // Máximo 6 líneas
+          const step = maxCount / (numLines - 1);
+          
+          return Array.from({ length: numLines }, (_, i) => {
+            const value = Math.round(i * step);
+            const y = startY - (value / maxCount) * chartAreaHeight;
+            
+            return (
+              <g key={`grid-${i}`}>
+                <line x1={leftMargin - 15} y1={y} x2={chartWidth - rightMargin} y2={y} stroke="#f3f4f6" strokeWidth="1" />
+                <text x={leftMargin - 20} y={y + 5} fontSize="11" textAnchor="end" fill="#9ca3af" fontWeight="500">
+                  {value}
+                </text>
+              </g>
+            );
+          });
+        })()}
 
         {/* Barras con animación y degradado */}
         {data.map((item: any, index: number) => {
@@ -325,17 +376,6 @@ export default function ReportesAdmin() {
             </g>
           );
         })}
-
-        {/* Etiqueta del eje Y */}
-        <text 
-          x={leftMargin - 50} 
-          y="15" 
-          fontSize="11" 
-          fill="#6b7280" 
-          fontWeight="600"
-        >
-          📊
-        </text>
       </svg>
     );
   };
