@@ -3,7 +3,7 @@ import * as RequestModel from "../Models/Forms/requestModel.js";
 import * as ImageModel from "../Models/Forms/imageModel.js";
 import * as ScheduleModel from "../Models/Forms/scheduleModel.js";
 import { REQUEST_STATE } from "../shared/constants.js";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
