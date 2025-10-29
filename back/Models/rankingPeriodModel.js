@@ -1,5 +1,5 @@
 // back/Models/rankingPeriodModel.js
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 const RankingPeriod = {
   async create({ fecha_inicio, fecha_fin, estado }) {

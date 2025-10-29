@@ -1,6 +1,6 @@
 // Models/userModel.js
 import bcrypt from "bcrypt";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 import * as PersonModel from "./personModel.js";
 import { passwordGenerater } from "../PasswordGenerator/passGen.js";
 import { create } from "./institutionModel.js";

@@ -1,5 +1,5 @@
 // back/Models/rankingTopsModel.js
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 const RankingTops = {
   async insertMany(topsArray) {
