@@ -41,7 +41,7 @@ export const getAllWithPersona = async () => {
   return rows;
 };
 /**
- * Obtener todos los usuarios con su persona (si existe)
+ * Obtener todos los usuarios con su persona (si existe  y fue aprobado)
  */
 export const getAllUsersWithPerson = async () => {
   const [rows] = await db.query(
@@ -49,7 +49,7 @@ export const getAllUsersWithPerson = async () => {
           p.firstname, p.lastname, p.state AS personState
      FROM users u
      INNER JOIN person p ON p.userId = u.id
-     WHERE u.state != 0`
+     WHERE u.state != 0 AND u.state!=3`
   );
   return rows;
 };
@@ -447,7 +447,7 @@ export const updateUserRole = async (userId, roleId) => {
 
 // Institucion Model
 /**
- * Obtener todas las instituciones (user + institution).
+ * Obtener todas las instituciones (user + institution) que fueron aprobadas.
  */
 export const getAllWithInstitution = async () => {
   const [rows] = await db.query(
@@ -455,7 +455,7 @@ export const getAllWithInstitution = async () => {
            i.companyName, i.nit, i.state AS institutionState
      FROM users u
      INNER JOIN institution i ON i.userId = u.id
-     WHERE u.state != 0`
+     WHERE u.state != 0 AND u.state!=3`
   );
   return rows;
 };
