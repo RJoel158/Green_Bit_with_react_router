@@ -342,10 +342,8 @@ const RecyclingPointsMap: React.FC = () => {
           materialName: request.materialName || getMaterialName(request.materialId, materialsArray)
         }));
 
-        // Filtrar solo las requests que tengan coordenadas válidas
-        // Solo mostrar requests en estado OPEN (1) - disponibles para recoger
+        // Filtrar solo las requests que tengan coordenadas válidas y estado OPEN (1)
         const activeRequests = requestsWithMaterials.filter((request: any) => {
-          // Parsear coordenadas a números y validar que sean válidos
           const lat = parseFloat(request.latitude);
           const lng = parseFloat(request.longitude);
 
