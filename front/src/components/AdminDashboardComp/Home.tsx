@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import RecyclingChart from './RecyclingCharts';
@@ -15,6 +15,19 @@ import './AdminDashboard.css';
 
 export default function AdminDashboard() {
   const [activeMenu, setActiveMenu] = useState('control');
+
+  // Navegar a reportes desde otros componentes
+  useEffect(() => {
+    const handleNavigateToReports = () => {
+      setActiveMenu('reportes');
+    };
+
+    window.addEventListener('navigate-to-reports', handleNavigateToReports);
+    
+    return () => {
+      window.removeEventListener('navigate-to-reports', handleNavigateToReports);
+    };
+  }, []);
 
   const renderContent = () => {
     switch (activeMenu) {

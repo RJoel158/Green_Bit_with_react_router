@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import NotificationBell from '../CommonComp/NotificationBell';
 import * as reportService from '../../services/reportService';
 import './AdminReports.css';
@@ -17,6 +18,7 @@ const handleLogout = () => {
 };
 
 export default function ReportesAdmin() {
+  const [searchParams] = useSearchParams();
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,30 @@ export default function ReportesAdmin() {
   const [reportGeneratedDate, setReportGeneratedDate] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Detectar parámetro de pestaña en la URL
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'recolecciones' || tab === 'materiales' || tab === 'scores') {
+      setActiveTab(tab as 'materiales' | 'scores' | 'recolecciones');
+    }
+  }, [searchParams]);
+
+  // Escuchar evento para cambiar de pestaña desde otros componentes
+  useEffect(() => {
+    const handleTabChange = (event: any) => {
+      const tab = event.detail?.tab;
+      if (tab === 'recolecciones' || tab === 'materiales' || tab === 'scores') {
+        setActiveTab(tab as 'materiales' | 'scores' | 'recolecciones');
+      }
+    };
+
+    window.addEventListener('change-report-tab', handleTabChange);
+    
+    return () => {
+      window.removeEventListener('change-report-tab', handleTabChange);
+    };
+  }, []);
 
   // Obtener usuario del localStorage para header
   useEffect(() => {
