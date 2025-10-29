@@ -163,6 +163,101 @@ export const getScoresReport = async (req, res) => {
   }
 };
 
+export const getRecolectionsReport = async (req, res) => {
+  try {
+    const { dateFrom, dateTo } = req.query;
+    console.log('[INFO] getRecolectionsReport - Parameters:', { dateFrom, dateTo });
+
+    let whereClause = 'WHERE ac.state = 4'; // Estado 4 = completado
+    const params = [];
+
+    // Si no se proporcionan fechas, obtener últimos 30 días
+    let effectiveDateFrom = dateFrom;
+    let effectiveDateTo = dateTo;
+    
+    if (!dateFrom && !dateTo) {
+      const today = new Date();
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      effectiveDateFrom = thirtyDaysAgo.toISOString().split('T')[0];
+      effectiveDateTo = today.toISOString().split('T')[0];
+      console.log('[INFO] getRecolectionsReport - No se proporcionaron fechas, usando últimos 30 días:', { effectiveDateFrom, effectiveDateTo });
+    }
+
+    if (effectiveDateFrom) {
+      whereClause += ' AND DATE(ac.acceptedDate) >= ?';
+      params.push(effectiveDateFrom);
+    }
+
+    if (effectiveDateTo) {
+      whereClause += ' AND DATE(ac.acceptedDate) <= ?';
+      params.push(effectiveDateTo);
+    }
+
+    // Query para obtener recolecciones agrupadas por fecha
+    const query = `
+      SELECT 
+        DATE(ac.acceptedDate) as date,
+        COUNT(*) as count
+      FROM appointmentconfirmation ac
+      ${whereClause}
+      GROUP BY DATE(ac.acceptedDate)
+      ORDER BY date ASC
+    `;
+
+    console.log('[DEBUG] getRecolectionsReport - Query:', query);
+    console.log('[DEBUG] getRecolectionsReport - Params:', params);
+
+    const [rows] = await db.query(query, params);
+    console.log('[INFO] getRecolectionsReport - Found', rows.length, 'days with collections');
+    console.log('[DEBUG] getRecolectionsReport - Rows:', rows);
+
+    // Calcular total de recolecciones
+    const totalCollections = rows.reduce((sum, row) => sum + (row.count || 0), 0);
+
+    // Calcular rango de días
+    let dayRange = 1;
+    if (effectiveDateFrom && effectiveDateTo) {
+      const startDate = new Date(effectiveDateFrom);
+      const endDate = new Date(effectiveDateTo);
+      dayRange = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+      if (dayRange < 1) dayRange = 1;
+    } else if (rows.length > 0) {
+      // Si no hay fechas explícitas, calcular desde las fechas de los datos
+      const dates = rows.map(row => new Date(row.date));
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
+      dayRange = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+      if (dayRange < 1) dayRange = 1;
+    }
+
+    console.log('[DEBUG] getRecolectionsReport - totalCollections:', totalCollections, 'dayRange:', dayRange);
+
+    // Calcular IDR (Índice Diario de Recolecciones)
+    const cdi = dayRange > 0 ? parseFloat((totalCollections / dayRange).toFixed(2)) : 0;
+
+    // Formatear datos para el gráfico
+    const collectionsData = rows.map((row, index) => ({
+      date: row.date,
+      count: row.count || 0,
+      color: getColorByIndex(index)
+    }));
+
+    res.json({
+      data: collectionsData,
+      summary: {
+        totalCollections,
+        dayRange,
+        cdi,
+        dailyAverage: cdi 
+      }
+    });
+  } catch (err) {
+    console.error('[ERROR] getRecolectionsReport:', err);
+    res.status(500).json({ error: 'Error al generar reporte de recolecciones', details: err.message });
+  }
+};
+
 function getColorByIndex(index) {
   const colors = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#EC4899', '#14B8A6'];
   return colors[index % colors.length];

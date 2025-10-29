@@ -32,6 +32,22 @@ export interface ScoresReport {
   details: ScoreDetail[];
 }
 
+export interface CollectionData {
+  date: string;
+  count: number;
+  color: string;
+}
+
+export interface CollectionsReport {
+  data: CollectionData[];
+  summary: {
+    totalCollections: number;
+    dayRange: number;
+    cdi: number;
+    dailyAverage: number;
+  };
+}
+
 /**
  * Obtener reporte de materiales reciclados
  */
@@ -90,6 +106,37 @@ export const getScoresReport = async (userId?: number): Promise<ScoresReport | n
     return data;
   } catch (error) {
     console.error('❌ reportService.getScoresReport - Error:', error);
+    return null;
+  }
+};
+
+/**
+ * Obtener reporte de recolecciones completadas
+ */
+export const getCollectionsReport = async (dateFrom?: string, dateTo?: string): Promise<CollectionsReport | null> => {
+  try {
+    console.log('🚛 reportService.getCollectionsReport - Obteniendo...');
+
+    const url = new URL(apiUrl('/api/reports/recolecciones'));
+    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
+    if (dateTo) url.searchParams.append('dateTo', dateTo);
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ reportService.getCollectionsReport - Éxito:', data);
+
+    return data;
+  } catch (error) {
+    console.error('❌ reportService.getCollectionsReport - Error:', error);
     return null;
   }
 };
