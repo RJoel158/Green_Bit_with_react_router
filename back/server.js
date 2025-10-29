@@ -70,7 +70,6 @@ const io = new Server(server, {
 // Mapa para mantener usuarios conectados
 const connectedUsers = new Map();
 
-app.use(cors(corsOptions));
 app.use(express.json({ 
   limit: process.env.MAX_FILE_SIZE || '10mb' 
 }));
