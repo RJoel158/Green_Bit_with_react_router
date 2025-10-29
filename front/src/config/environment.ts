@@ -5,7 +5,7 @@
  */
 
 // Validar que las variables requeridas estén presentes
-const requiredEnvVars = ['VITE_API_BASE_URL'];
+const requiredEnvVars = ['VITE_API_URL'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !import.meta.env[envVar]);
 
 if (missingEnvVars.length > 0) {
@@ -22,7 +22,7 @@ export const config = {
 
   // Configuración del API
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+    baseUrl: import.meta.env.VITE_API_URL,
     timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
     endpoints: {
       requests: '/api/request',
