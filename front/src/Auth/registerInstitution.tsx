@@ -106,9 +106,9 @@ const RegisterInstitution: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          companyName: form.companyName,
-          nit: form.nit,
-          email: form.email,
+          companyName: Validator.normalizeSpaces(form.companyName),
+          nit: form.nit.toUpperCase(),
+          email: form.email.toLowerCase(),
           phone: form.phone,
           role_id: 2, // recolector institución
           // state: 1, // pendiente (opcional, si quieres forzar)

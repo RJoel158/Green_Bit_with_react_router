@@ -26,6 +26,62 @@ body {
   width: 100vw;
   background-color: #faf8f1;
   overflow: hidden;
+  position: relative;
+}
+
+/* Botón hamburguesa para móvil */
+.hamburger-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  display: none;
+  background-color: #16a34a;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s;
+}
+
+.hamburger-button:hover {
+  background-color: #15803d;
+  transform: scale(1.05);
+}
+
+.hamburger-button:active {
+  transform: scale(0.95);
+}
+
+/* Overlay del sidebar */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sidebar-overlay {
+    display: block;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Sidebar Styles */
@@ -40,6 +96,30 @@ body {
   flex-shrink: 0;
   height: 100vh;
   overflow-y: auto;
+  position: relative;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+/* Botón de cerrar el sidebar */
+.sidebar-close {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  z-index: 1001;
+}
+
+.sidebar-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-logo {
@@ -650,17 +730,49 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 640px) {
-  .sidebar {
-    width: 200px;
+@media (max-width: 767px) {
+  /* Mostrar botón */
+  .hamburger-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
+  /* Ocultar sidebar por defecto en móvil */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    width: 280px;
+    max-width: 85vw;
+  }
+
+  /* Mostrar sidebar cuando está abierto */
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /* Mostrar botón de cerrar en móvil */
+  .sidebar-close {
+    display: block;
+  }
+
+  /* Ajustar el contenido principal para que ocupe todo el ancho */
+  .dashboard-main {
+    max-width: 100vw;
+    width: 100vw;
+  }
+
+  /* Ajustar header */
   .dashboard-header {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 0.75rem 4rem;
   }
   
   .dashboard-header-title {
-    font-size: 1.125rem;
+    font-size: 1rem;
   }
   
   .dashboard-header-search {
@@ -669,7 +781,6 @@ body {
   
   .dashboard-header-user-name {
     display: none;
-    color:#149D52 Im !important ;
   }
 
   .card {
@@ -678,6 +789,7 @@ body {
 
   .dashboard-content {
     padding: 1rem;
+    padding-top: 4rem; 
   }
 
   .recycling-amount {
@@ -692,15 +804,52 @@ body {
   .chart-container {
     height: 9rem;
   }
+
+  /* Ajustar elementos de lista en móvil */
+  .list-item-name {
+    font-size: 0.8rem;
+  }
+
+  .list-item-amount {
+    font-size: 0.8rem;
+  }
+
+  /* Ajustar logo del sidebar */
+  .sidebar-logo-img {
+    max-width: 140px;
+  }
+
+  /* Ajustar botones del sidebar */
+  .sidebar-button {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.813rem;
+  }
+
+  .sidebar-button-icon {
+    font-size: 1.1rem;
+  }
 }
 
-@media (min-width: 641px) and (max-width: 1023px) {
+@media (min-width: 768px) and (max-width: 1023px) {
+  
+  .sidebar {
+    width: 220px;
+  }
+
+  .dashboard-main {
+    max-width: calc(100vw - 220px);
+  }
+
   .dashboard-header {
     padding: 0.75rem 1.5rem;
   }
 
   .dashboard-header-title {
     font-size: 1.25rem;
+  }
+
+  .dashboard-header-search-input {
+    width: 12rem;
   }
 
   .card {

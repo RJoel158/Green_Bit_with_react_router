@@ -48,11 +48,22 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
 
       <div className="user-profile d-flex align-items-center gap-2">
         <div className="user-avatar">
-          <img
-            src={user?.avatar || "https://i.pravatar.cc/40?img=5"}
-            alt="avatar"
-            className="rounded-circle"
-          />
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: '#149D52',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            color: 'white',
+            lineHeight: '1',
+            textAlign: 'center'
+          }}>
+            {user?.email?.charAt(0).toUpperCase() || 'U'}
+          </div>
         </div>
 
         <div className="dropdown">

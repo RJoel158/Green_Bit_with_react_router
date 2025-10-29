@@ -6,19 +6,24 @@ import { useNavigate } from "react-router-dom";
 //Estructura del usuario
 interface User {
   userId: number;
-  firstname: string;
-  lastname: string;
   email: string;
   phone: string;
   registerDate: string;
   avatar?: string;
-  totalPoints?: number;
+  score?: number;
+  // Campos de Persona
+  firstname?: string;
+  lastname?: string;
+  // Campos de Institución
+  companyName?: string;
+  nit?: string;
 }
 
 const UserInfo: React.FC = () => {
   //Guardar información de usuario y rol
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
   const navigate=useNavigate();
 
   useEffect(() => {
@@ -33,15 +38,41 @@ const UserInfo: React.FC = () => {
       const parsedUser = JSON.parse(userStr);
       setRole(parsedUser.role);
       const userId = parsedUser.id;
-      // Fetch para obtener los datos completos del usuario desde la API
+      
+      // Buscar id como persona
       fetch(`http://localhost:3000/api/users/${userId}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.success) setUser(data.user);
+          if (data.success && data.user) {
+            // Si firstname y lastname no son null, es persona
+            if (data.user.firstname !== null && data.user.lastname !== null) {
+              setUser(data.user);
+              setLoading(false);
+            } else {
+              // firstname y lastname son null, intentar como institución
+              fetch(`http://localhost:3000/api/users/withInstitution/${userId}`)
+                .then((res) => res.json())
+                .then((institutionData) => {
+                  if (institutionData.success && institutionData.user) {
+                    setUser(institutionData.user);
+                  }
+                  setLoading(false);
+                })
+                .catch((err) => {
+                  console.error('Error al obtener institución:', err);
+                  setLoading(false);
+                });
+            }
+          } else {
+            setLoading(false);
+          }
         })
-        .catch((err) => console.error(err));
+        .catch((err) => {
+          console.error('Error al obtener usuario:', err);
+          setLoading(false);
+        });
     }
-  }, []);
+  }, [navigate]);
 
   const handleBack = () => {
     window.history.back();
@@ -51,6 +82,34 @@ const UserInfo: React.FC = () => {
     window.location.replace("/login");// reemplaza la URL y evita volver atrás
   };
 
+  // Establecer si es institución o persona para mostrar nombre adecuado
+  const isInstitution = !!(user?.companyName || user?.nit);
+  
+  const displayName = isInstitution 
+    ? (user?.companyName || 'Empresa')
+    : user?.firstname && user?.lastname 
+      ? `${user.firstname} ${user.lastname}`.trim()
+      : 'Nombre completo';
+
+  // Mostrar loading mientras se cargan los datos
+  if (loading) {
+    return (
+      <div className="user-info-container">
+        <HeaderUserInfo />
+        <div className="user-info-wrapper">
+          <div className="user-info-card">
+            <div className="loading-container">
+              <div className="spinner-border text-success" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="loading-text">Cargando información...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="user-info-container">
       <HeaderUserInfo />
@@ -58,14 +117,31 @@ const UserInfo: React.FC = () => {
       <div className="user-info-wrapper">
         <div className="user-info-card">
           <h2 className="user-title">
-            {user ? `${user.firstname} ${user.lastname}` : "Nombre completo"}
+            {displayName}
           </h2>
 
-          <div className="user-avatar-large mx-auto">
-            <img
-              src={user?.avatar || "https://i.pravatar.cc/150?img=5"}
-              alt="Avatar del usuario"
-            />
+          <div className="user-avatar-large" style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            margin: '20px auto'
+          }}>
+            <div style={{
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              backgroundColor: '#149D52',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '4rem',
+              fontWeight: 'bold',
+              color: 'white',
+              lineHeight: '1',
+              textAlign: 'center'
+            }}>
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
           </div>
 
           <div className="user-role mt-3 mb-4">
@@ -73,6 +149,18 @@ const UserInfo: React.FC = () => {
           </div>
 
           <div className="user-form">
+            {isInstitution && user?.nit && (
+              <div className="form-group">
+                <label>NIT:</label>
+                <input
+                  type="text"
+                  className="form-control form-input"
+                  value={user.nit}
+                  readOnly
+                />
+              </div>
+            )}
+
             <div className="form-group">
               <label>Número de Referencia:</label>
               <input
@@ -109,10 +197,10 @@ const UserInfo: React.FC = () => {
                 <input
                   type="text"
                   className="form-control form-input"
-                  value={user?.totalPoints || "600"}
+                  value={user?.score || 0}
                   readOnly
                 />
-                <span className="star-icon ms-2">⭐</span>
+               
               </div>
             </div>
           </div>

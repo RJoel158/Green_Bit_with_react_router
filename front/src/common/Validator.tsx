@@ -1,9 +1,30 @@
 export class Validator {
-  // Valida nombres personales (solo letras y espacios)
+  // Normaliza espacios: elimina espacios al inicio y fin, convierte múltiples espacios en uno solo
+  static normalizeSpaces(text: string): string {
+    return text.trim().replace(/\s+/g, ' ');
+  }
+
+  // Capitaliza la primera letra de cada palabra
+  static capitalizeWords(text: string): string {
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  // Valida nombres personales (solo letras y espacios) y capitaliza cada palabra
   static validatenames(name: string): string {
-    if (!name.trim()) return "El nombre es requerido";
-    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(name)) return "Solo letras y espacios permitidos";
+    const normalized = this.normalizeSpaces(name);
+    if (!normalized) return "El nombre es requerido";
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(normalized)) return "Solo letras y espacios permitidos";
     return "";
+  }
+
+  // Normaliza nombres: trim, espacios múltiples y capitaliza
+  static normalizeName(name: string): string {
+    const normalized = this.normalizeSpaces(name);
+    return this.capitalizeWords(normalized);
   }
 
   // Valida nombre de usuario (solo requerido)
@@ -12,24 +33,26 @@ export class Validator {
     return "";
   }
 
-  // Valida nombre de empresa/institución (mínimo 2 caracteres)
+  // Valida nombre de empresa/institucións
   static validateCompanyName(name: string): string {
-    if (!name.trim()) return "El nombre de la empresa es requerido";
-    if (name.length < 2) return "El nombre es muy corto";
+    const normalized = this.normalizeSpaces(name);
+    if (!normalized) return "El nombre de la empresa es requerido";
     return "";
   }
 
   // Valida NIT (alfanumérico básico, requerido)
   static validateNIT(nit: string): string {
-    if (!nit.trim()) return "El NIT es obligatorio";
-    if (!/^[0-9A-Za-z\-]{5,20}$/.test(nit)) return "NIT inválido";
+    const normalized = nit.trim(); // NIT no debería tener espacios internos
+    if (!normalized) return "El NIT es obligatorio";
+    if (!/^[0-9A-Za-z\-]{5,20}$/.test(normalized)) return "NIT inválido";
     return "";
   }
 
   // Valida correo electrónico (formato general)
   static validateEmail(email: string): string {
-    if (!email.trim()) return "El correo es requerido";
-    if (!/\S+@\S+\.\S+/.test(email)) return "Formato de correo inválido";
+    const normalized = email.trim().toLowerCase(); // Email sin espacios y en minúsculas
+    if (!normalized) return "El correo es requerido";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return "Formato de correo inválido";
     return "";
   }
 
@@ -42,7 +65,9 @@ export class Validator {
 
   // Valida contraseña (mínimo 8 caracteres, una mayúscula y un número)
   static validatePassword(password: string): string {
-    if (!password.trim()) return "La contraseña es requerida";
+    // La contraseña NO se trimea ni normaliza, se valida tal cual
+    if (!password) return "La contraseña es requerida";
+    if (/\s/.test(password)) return "La contraseña no puede contener espacios";
     if (password.length < 8) return "Debe tener al menos 8 caracteres";
     if (!/[A-Z]/.test(password)) return "Debe tener al menos una mayúscula";
     if (!/[0-9]/.test(password)) return "Debe tener al menos un número";
