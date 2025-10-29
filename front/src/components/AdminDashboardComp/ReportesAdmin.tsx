@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import CommonHeader from '../CommonComp/CommonHeader';
 import * as reportService from '../../services/reportService';
+import './AdminReports.css';
 
 export default function ReportesAdmin() {
   const [dateFrom, setDateFrom] = useState('');
@@ -343,76 +344,28 @@ export default function ReportesAdmin() {
   const topMaterial = materialesData[0] || null;
 
   return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#FAF8F1',
-      height: '100vh',
-      overflow: 'hidden'
-    }}>
+    <div className="admin-reports-container">
       <CommonHeader title="Reportes" searchPlaceholder="Buscar..." searchQuery="" onSearch={() => { }} onCreateNew={() => { }} createButtonText="Actualizar" />
 
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '2rem',
-        gap: '1rem',
-        overflow: 'auto'
-      }} ref={reportRef}>
+      <div className="admin-reports-content" ref={reportRef}>
         {/* Tabs + Botón PDF */}
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          borderBottom: '2px solid #e5e7eb',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="admin-reports-tabs-container">
+          <div className="admin-reports-tabs">
             <button
               onClick={() => setActiveTab('materiales')}
-              style={{
-                padding: '1rem 1.5rem',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === 'materiales' ? '3px solid #149D52' : '3px solid transparent',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: activeTab === 'materiales' ? '#149D52' : '#6b7280',
-                transition: 'all 0.3s ease'
-              }}
+              className={`admin-reports-tab ${activeTab === 'materiales' ? 'active' : ''}`}
             >
               📊 Reporte de Materiales
             </button>
             <button
               onClick={() => setActiveTab('scores')}
-              style={{
-                padding: '1rem 1.5rem',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === 'scores' ? '3px solid #149D52' : '3px solid transparent',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: activeTab === 'scores' ? '#149D52' : '#6b7280',
-                transition: 'all 0.3s ease'
-              }}
+              className={`admin-reports-tab ${activeTab === 'scores' ? 'active' : ''}`}
             >
               ⭐ Reporte de Calificaciones
             </button>
             <button
               onClick={() => setActiveTab('recolecciones')}
-              style={{
-                padding: '1rem 1.5rem',
-                background: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === 'recolecciones' ? '3px solid #149D52' : '3px solid transparent',
-                cursor: 'pointer',
-                fontWeight: 600,
-                color: activeTab === 'recolecciones' ? '#149D52' : '#6b7280',
-                transition: 'all 0.3s ease'
-              }}
+              className={`admin-reports-tab ${activeTab === 'recolecciones' ? 'active' : ''}`}
             >
               🚛 Reporte de Recolecciones
             </button>
@@ -420,102 +373,42 @@ export default function ReportesAdmin() {
           <button
             onClick={downloadPDF}
             disabled={loading || (!materialesData.length && !scoresData && !collectionsData)}
-            style={{
-              padding: '0.625rem 1.25rem',
-              backgroundColor: '#149D52',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: loading || (!materialesData.length && !scoresData && !collectionsData) ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-              opacity: loading || (!materialesData.length && !scoresData && !collectionsData) ? 0.5 : 1,
-              whiteSpace: 'nowrap'
-            }}
+            className="admin-reports-download-btn"
           >
             📥 Descargar PDF
           </button>
         </div>
 
         {/* Indicador si es admin o no */}
-        <div style={{
-          padding: '0.75rem 1rem',
-          borderRadius: '0.375rem',
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          backgroundColor: isAdmin ? '#fef3c7' : '#e0f2fe',
-          color: isAdmin ? '#92400e' : '#0c4a6e'
-        }}>
+        <div className={`admin-reports-mode-indicator ${isAdmin ? 'admin' : 'user'}`}>
           {isAdmin ? '📊 Modo Administrador - Viendo reportes de TODOS los usuarios' : '👤 Viendo solo tus reportes'}
         </div>
 
         {/* Filtros */}
         {activeTab === 'materiales' && (
-          <div style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'flex-end',
-            backgroundColor: 'white',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-                color: '#149D52'
-              }}>Desde:</label>
+          <div className="admin-reports-filters">
+            <div className="admin-reports-filter-field">
+              <label className="admin-reports-filter-label">Desde:</label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem'
-                }}
+                className="admin-reports-filter-input"
               />
             </div>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-                color: '#149D52'
-              }}>Hasta:</label>
+            <div className="admin-reports-filter-field">
+              <label className="admin-reports-filter-label">Hasta:</label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem'
-                }}
+                className="admin-reports-filter-input"
               />
             </div>
             <button
               onClick={loadData}
               disabled={loading}
-              style={{
-                padding: '0.625rem 1.5rem',
-                backgroundColor: '#149D52',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                opacity: loading ? 0.7 : 1,
-                whiteSpace: 'nowrap'
-              }}
+              className="admin-reports-filter-btn"
             >
               {loading ? 'Cargando...' : 'Actualizar'}
             </button>
@@ -523,121 +416,50 @@ export default function ReportesAdmin() {
         )}
 
         {activeTab === 'recolecciones' && (
-          <div style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'flex-end',
-            backgroundColor: 'white',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-                color: '#149D52'
-              }}>Desde:</label>
+          <div className="admin-reports-filters">
+            <div className="admin-reports-filter-field">
+              <label className="admin-reports-filter-label">Desde:</label>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem'
-                }}
+                className="admin-reports-filter-input"
               />
             </div>
-            <div style={{ flex: 1, minWidth: '200px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                marginBottom: '0.5rem',
-                color: '#149D52'
-              }}>Hasta:</label>
+            <div className="admin-reports-filter-field">
+              <label className="admin-reports-filter-label">Hasta:</label>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.625rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.375rem',
-                  fontSize: '1rem'
-                }}
+                className="admin-reports-filter-input"
               />
             </div>
             <button
               onClick={loadData}
               disabled={loading}
-              style={{
-                padding: '0.625rem 1.5rem',
-                backgroundColor: '#149D52',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                opacity: loading ? 0.7 : 1,
-                whiteSpace: 'nowrap'
-              }}
+              className="admin-reports-filter-btn"
             >
               {loading ? 'Cargando...' : 'Actualizar'}
             </button>
           </div>
         )}
 
-        {error && <div style={{
-          color: '#dc2626',
-          backgroundColor: '#fee2e2',
-          borderRadius: '0.5rem',
-          textAlign: 'center',
-          padding: '2rem',
-          fontSize: '1rem'
-        }}>❌ Error: {error}</div>}
+        {error && <div className="admin-reports-error">❌ Error: {error}</div>}
 
         {/* REPORTE MATERIALES */}
         {activeTab === 'materiales' && !loading && materialesData.length === 0 && !error && (
-          <div style={{
-            color: '#9ca3af',
-            textAlign: 'center',
-            padding: '2rem'
-          }}>
+          <div className="admin-reports-no-data">
             Sin datos disponibles
           </div>
         )}
 
         {activeTab === 'materiales' && materialesData.length > 0 && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '2rem'
-          }}>
+          <div className="admin-reports-grid-two">
             {/* Gráfico Donut con Leyenda */}
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              padding: '2rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center'
-            }}>
-              <h3 style={{
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem',
-                color: '#1f2937'
-              }}>📊 Distribución de Materiales</h3>
-              <svg width="300" height="300" viewBox="0 0 300 300" style={{ marginBottom: '1rem' }}>
+            <div className="admin-reports-card admin-reports-card-center">
+              <h3 className="admin-reports-card-title">📊 Distribución de Materiales</h3>
+              <svg width="300" height="300" viewBox="0 0 300 300">
                 {renderDonut()}
                 <circle cx="150" cy="150" r="55" fill="white" />
                 <text x="150" y="145" textAnchor="middle" fontSize="32" fontWeight="bold" fill="#149D52">
@@ -649,46 +471,18 @@ export default function ReportesAdmin() {
               </svg>
 
               {/* Leyenda mejorada */}
-              <div style={{
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                marginTop: '1rem',
-                paddingTop: '1rem',
-                borderTop: '2px solid #e5e7eb',
-                maxHeight: '200px',
-                overflowY: 'auto'
-              }}>
+              <div className="admin-reports-donut-legend">
                 {materialesData.map((item: any, idx: number) => (
-                  <div key={idx} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    padding: '0.5rem 0'
-                  }}>
+                  <div key={idx} className="admin-reports-legend-item">
                     <div
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        backgroundColor: item.color || '#10b981',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                        flexShrink: 0
-                      }}
+                      className="admin-reports-legend-color"
+                      style={{ backgroundColor: item.color || '#10b981' }}
                     />
-                    <div style={{ flex: 1 }}>
-                      <div style={{
-                        fontWeight: 600,
-                        color: '#374151',
-                        fontSize: '0.9rem'
-                      }}>
+                    <div className="admin-reports-legend-details">
+                      <div className="admin-reports-legend-name">
                         {item.name}
                       </div>
-                      <div style={{
-                        fontSize: '0.75rem',
-                        color: '#6b7280'
-                      }}>
+                      <div className="admin-reports-legend-stats">
                         {item.kg} items • {item.percentage}%
                       </div>
                     </div>
@@ -698,110 +492,40 @@ export default function ReportesAdmin() {
             </div>
 
             {/* Gráfico de Barras Horizontal */}
-            <div style={{
-              backgroundColor: 'white',
-              borderRadius: '0.5rem',
-              padding: '2rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <h3 style={{
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem',
-                color: '#1f2937'
-              }}>📈 Comparativa de Materiales</h3>
+            <div className="admin-reports-card">
+              <h3 className="admin-reports-card-title">📈 Comparativa de Materiales</h3>
 
               {/* Box resumen */}
-              <div style={{
-                backgroundColor: '#dcfce7',
-                padding: '1rem',
-                borderRadius: '0.375rem',
-                borderLeft: '4px solid #149D52',
-                marginBottom: '1.5rem'
-              }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#149D52',
-                  fontWeight: 600,
-                  margin: '0 0 0.5rem 0'
-                }}>🏆 TOP MATERIAL</p>
-                <p style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  margin: 0,
-                  color: '#1f2937'
-                }}>{topMaterial?.name}</p>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: '#6b7280',
-                  margin: '0.25rem 0 0 0'
-                }}>{topMaterial?.kg} items ({topMaterial?.percentage}%)</p>
+              <div className="admin-reports-summary-box">
+                <p className="admin-reports-summary-label">🏆 TOP MATERIAL</p>
+                <p className="admin-reports-summary-value">{topMaterial?.name}</p>
+                <p className="admin-reports-summary-text">{topMaterial?.kg} items ({topMaterial?.percentage}%)</p>
               </div>
 
               {/* Barras horizontales */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem'
-              }}>
+              <div className="admin-reports-bars-container">
                 {materialesData.map((item: any) => {
                   const percentage = item.percentage;
 
                   return (
-                    <div key={item.id} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem'
-                    }}>
-                      <div style={{
-                        minWidth: '100px',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: '#374151'
-                      }}>{item.name}</div>
-                      <div style={{
-                        flex: 1,
-                        height: '28px',
-                        backgroundColor: '#f3f4f6',
-                        borderRadius: '0.375rem',
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        position: 'relative'
-                      }}>
+                    <div key={item.id} className="admin-reports-bar-item">
+                      <div className="admin-reports-bar-label">{item.name}</div>
+                      <div className="admin-reports-bar-track">
                         <div
+                          className="admin-reports-bar-fill"
                           style={{
                             width: `${percentage}%`,
-                            height: '100%',
-                            backgroundColor: item.color || '#10b981',
-                            borderRadius: '0.375rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            paddingRight: '0.5rem',
-                            transition: 'width 0.3s ease'
+                            backgroundColor: item.color || '#10b981'
                           }}
                         >
                           {percentage > 15 && (
-                            <span style={{
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              color: 'white'
-                            }}>
+                            <span className="admin-reports-bar-percentage">
                               {percentage}%
                             </span>
                           )}
                         </div>
                       </div>
-                      <div style={{
-                        minWidth: '50px',
-                        textAlign: 'right',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        color: '#6b7280'
-                      }}>{item.kg} items</div>
+                      <div className="admin-reports-bar-value">{item.kg} items</div>
                     </div>
                   );
                 })}
@@ -812,78 +536,22 @@ export default function ReportesAdmin() {
 
         {/* REPORTE SCORES */}
         {activeTab === 'scores' && !loading && scoresData !== null && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2rem'
-          }}>
+          <div className="admin-reports-scores-container">
             {/* Primera fila: Gráfico + Estadísticas */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '2rem'
-            }}>
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                padding: '2rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflowX: 'auto'
-              }}>
-                <h3 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 600,
-                  color: '#1f2937',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
-                }}>Distribución de Calificaciones</h3>
+            <div className="admin-reports-grid-two">
+              <div className="admin-reports-scores-card">
+                <h3 className="admin-reports-card-title">Distribución de Calificaciones</h3>
                 {renderScoresChart()}
               </div>
 
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                padding: '2rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem',
-                overflow: 'auto'
-              }}>
-                <div style={{
-                  backgroundColor: '#dcfce7',
-                  padding: '1.5rem',
-                  borderRadius: '0.375rem',
-                  borderLeft: '4px solid #149D52'
-                }}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#149D52',
-                    fontWeight: 600,
-                    margin: '0 0 0.5rem 0'
-                  }}>📊 RESUMEN</p>
-                  <p style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    margin: 0,
-                    color: '#1f2937'
-                  }}>⭐ {scoresData.average.toFixed(1)}</p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#6b7280',
-                    margin: '0.5rem 0 0 0'
-                  }}>Promedio de {scoresData.total} calificaciones</p>
+              <div className="admin-reports-scores-stats">
+                <div className="admin-reports-scores-summary">
+                  <p className="admin-reports-scores-summary-label">📊 RESUMEN</p>
+                  <p className="admin-reports-scores-summary-value">⭐ {scoresData.average.toFixed(1)}</p>
+                  <p className="admin-reports-scores-summary-text">Promedio de {scoresData.total} calificaciones</p>
                 </div>
 
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem'
-                }}>
+                <div className="admin-reports-scores-bars">
                   {[5, 4, 3, 2, 1].map((score) => {
                     const count = scoresData[`count_${score}`] || 0;
                     const percentageNum = scoresData.total > 0 ? ((count / scoresData.total) * 100) : 0;
@@ -892,50 +560,22 @@ export default function ReportesAdmin() {
                     const color = colors[score - 1];
 
                     return (
-                      <div key={score} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem'
-                      }}>
-                        <span style={{
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          minWidth: '30px'
-                        }}>
+                      <div key={score} className="admin-reports-scores-bar-item">
+                        <span className="admin-reports-scores-bar-stars">
                           {'⭐'.repeat(score)}
                         </span>
-                        <div style={{
-                          flex: 1,
-                          height: '24px',
-                          backgroundColor: '#f3f4f6',
-                          borderRadius: '0.375rem',
-                          overflow: 'hidden'
-                        }}>
+                        <div className="admin-reports-scores-bar-track">
                           <div
+                            className="admin-reports-scores-bar-fill"
                             style={{
                               width: `${percentage}%`,
-                              height: '100%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'flex-end',
-                              paddingRight: '0.5rem',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              color: 'white',
-                              backgroundColor: color,
-                              transition: 'width 0.5s ease'
+                              backgroundColor: color
                             }}
                           >
                             {percentage > 10 ? `${percentage}%` : ''}
                           </div>
                         </div>
-                        <span style={{
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          color: '#6b7280',
-                          minWidth: '40px',
-                          textAlign: 'right'
-                        }}>
+                        <span className="admin-reports-scores-bar-count">
                           {count}
                         </span>
                       </div>
@@ -947,116 +587,39 @@ export default function ReportesAdmin() {
 
             {/* Segunda fila: Tabla detallada de calificaciones */}
             {scoresData.details && scoresData.details.length > 0 && (
-              <div style={{
-                background: 'white',
-                padding: '1.5rem',
-                borderRadius: '0.5rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                marginBottom: '2rem'
-              }}>
-                <h3 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 600,
-                  color: '#1f2937',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
-                }}>📋 Detalles de Calificaciones</h3>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '0.875rem'
-                  }}>
+              <div className="admin-reports-table-container">
+                <h3 className="admin-reports-table-title">📋 Detalles de Calificaciones</h3>
+                <div className="admin-reports-table-wrapper">
+                  <table className="admin-reports-table">
                     <thead>
-                      <tr style={{
-                        backgroundColor: '#f3f4f6',
-                        borderBottom: '2px solid #149D52'
-                      }}>
-                        <th style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          fontWeight: 700,
-                          color: '#149D52',
-                          whiteSpace: 'nowrap'
-                        }}>⭐ Score</th>
-                        <th style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          fontWeight: 700,
-                          color: '#149D52',
-                          whiteSpace: 'nowrap'
-                        }}>👤 Quien Califica</th>
-                        <th style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          fontWeight: 700,
-                          color: '#149D52',
-                          whiteSpace: 'nowrap'
-                        }}>→ Calificado A</th>
-                        <th style={{
-                          padding: '0.75rem',
-                          textAlign: 'left',
-                          fontWeight: 700,
-                          color: '#149D52',
-                          whiteSpace: 'nowrap'
-                        }}>📝 Comentario</th>
-                        <th style={{
-                          padding: '0.75rem',
-                          textAlign: 'center',
-                          fontWeight: 700,
-                          color: '#149D52',
-                          whiteSpace: 'nowrap'
-                        }}>📅 Fecha</th>
+                      <tr>
+                        <th>⭐ Score</th>
+                        <th>👤 Quien Califica</th>
+                        <th>→ Calificado A</th>
+                        <th>📝 Comentario</th>
+                        <th className="center">📅 Fecha</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {scoresData.details.map((detail: any, index: number) => {
+                      {scoresData.details.map((detail: any) => {
                         const scoreColors = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
                         const scoreColor = scoreColors[detail.score - 1];
 
                         return (
-                          <tr key={detail.id} style={{
-                            borderBottom: '1px solid #e5e7eb',
-                            backgroundColor: index % 2 === 0 ? '#f9fafb' : 'white'
-                          }}>
-                            <td style={{
-                              padding: '0.75rem',
-                              color: scoreColor,
-                              fontWeight: 700
-                            }}>
+                          <tr key={detail.id}>
+                            <td className="score" style={{ color: scoreColor }}>
                               {'⭐'.repeat(detail.score)} {detail.score}
                             </td>
-                            <td style={{
-                              padding: '0.75rem',
-                              color: '#374151',
-                              fontWeight: 600
-                            }}>
+                            <td className="username">
                               {detail.ratedByUsername || `Usuario ${detail.ratedByUserId}`}
                             </td>
-                            <td style={{
-                              padding: '0.75rem',
-                              color: '#374151',
-                              fontWeight: 600
-                            }}>
+                            <td className="username">
                               {detail.ratedToUsername || `Usuario ${detail.ratedToUserId}`}
                             </td>
-                            <td style={{
-                              padding: '0.75rem',
-                              color: '#6b7280',
-                              maxWidth: '200px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}>
+                            <td className="comment">
                               {detail.comment || '(sin comentario)'}
                             </td>
-                            <td style={{
-                              padding: '0.75rem',
-                              textAlign: 'center',
-                              color: '#6b7280',
-                              whiteSpace: 'nowrap',
-                              fontSize: '0.75rem'
-                            }}>
+                            <td className="date">
                               {new Date(detail.createdDate).toLocaleDateString('es-ES')}
                             </td>
                           </tr>
@@ -1072,126 +635,32 @@ export default function ReportesAdmin() {
 
         {/* REPORTE RECOLECCIONES */}
         {activeTab === 'recolecciones' && !loading && collectionsData !== null && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '2rem'
-          }}>
+          <div className="admin-reports-collections-container">
             {/* Primera fila: Gráfico + Estadísticas */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '2rem'
-            }}>
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                padding: '2rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflowX: 'auto'
-              }}>
-                <h3 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 600,
-                  color: '#1f2937',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
-                }}>🚛 Recolecciones por Fecha</h3>
+            <div className="admin-reports-grid-two">
+              <div className="admin-reports-collections-chart">
+                <h3 className="admin-reports-card-title">🚛 Recolecciones por Fecha</h3>
                 {renderCollectionsChart()}
               </div>
 
-              <div style={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                padding: '2rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem',
-                overflow: 'auto'
-              }}>
-                <div style={{
-                  backgroundColor: '#dcfce7',
-                  padding: '1.5rem',
-                  borderRadius: '0.375rem',
-                  borderLeft: '4px solid #149D52'
-                }}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#149D52',
-                    fontWeight: 600,
-                    margin: '0 0 0.5rem 0'
-                  }}>📊 RESUMEN GENERAL</p>
-                  <p style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    margin: 0,
-                    color: '#1f2937'
-                  }}>🚛 {collectionsData.summary.totalCollections} recolecciones</p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#6b7280',
-                    margin: '0.5rem 0 0 0'
-                  }}>En {collectionsData.summary.dayRange} días</p>
+              <div className="admin-reports-collections-stats">
+                <div className="admin-reports-collections-summary-green">
+                  <p className="admin-reports-collections-summary-label green">📊 RESUMEN GENERAL</p>
+                  <p className="admin-reports-collections-summary-value large">🚛 {collectionsData.summary.totalCollections} recolecciones</p>
+                  <p className="admin-reports-collections-summary-text">En {collectionsData.summary.dayRange} días</p>
                 </div>
 
-                <div style={{
-                  backgroundColor: '#fef3c7',
-                  padding: '1.5rem',
-                  borderRadius: '0.375rem',
-                  borderLeft: '4px solid #f59e0b'
-                }}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#92400e',
-                    fontWeight: 600,
-                    margin: '0 0 0.5rem 0'
-                  }}>📈 IDR (Índice Diario de Recolecciones)</p>
-                  <p style={{
-                    fontSize: '2rem',
-                    fontWeight: 700,
-                    margin: 0,
-                    color: '#149D52'
-                  }}>{collectionsData.summary.cdi}</p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#6b7280',
-                    margin: '0.5rem 0 0 0'
-                  }}>recolecciones por día en promedio</p>
+                <div className="admin-reports-collections-summary-yellow">
+                  <p className="admin-reports-collections-summary-label yellow">📈 IDR (Índice Diario de Recolecciones)</p>
+                  <p className="admin-reports-collections-summary-value xlarge">{collectionsData.summary.cdi}</p>
+                  <p className="admin-reports-collections-summary-text">recolecciones por día en promedio</p>
                 </div>
 
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                  paddingTop: '1rem',
-                  borderTop: '2px solid #e5e7eb'
-                }}>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    margin: 0
-                  }}>📅 Días con actividad:</p>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem'
-                  }}>
-                    <div style={{
-                      width: '12px',
-                      height: '12px',
-                      backgroundColor: '#149D52',
-                      borderRadius: '50%'
-                    }}></div>
-                    <span style={{
-                      fontSize: '0.875rem',
-                      color: '#6b7280'
-                    }}>{collectionsData.data.length} días con recolecciones completadas</span>
+                <div className="admin-reports-collections-info">
+                  <p className="admin-reports-collections-info-label">📅 Días con actividad:</p>
+                  <div className="admin-reports-collections-info-item">
+                    <div className="admin-reports-collections-info-dot"></div>
+                    <span className="admin-reports-collections-info-text">{collectionsData.data.length} días con recolecciones completadas</span>
                   </div>
                 </div>
               </div>
@@ -1200,81 +669,32 @@ export default function ReportesAdmin() {
         )}
 
         {activeTab === 'recolecciones' && !loading && collectionsData !== null && collectionsData.data && collectionsData.data.length === 0 && (
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '0.5rem',
-            textAlign: 'center',
-            color: '#9ca3af'
-          }}>
-            <p style={{
-              fontSize: '1.2rem',
-              marginBottom: '0.5rem'
-            }}>📭 No se encontraron recolecciones</p>
-            <p style={{
-              fontSize: '0.875rem'
-            }}>Intenta seleccionar un rango de fechas diferente</p>
+          <div className="admin-reports-empty-state">
+            <p className="admin-reports-empty-title">📭 No se encontraron recolecciones</p>
+            <p className="admin-reports-empty-text">Intenta seleccionar un rango de fechas diferente</p>
           </div>
         )}
 
         {activeTab === 'recolecciones' && !loading && collectionsData === null && !error && (
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '0.5rem',
-            textAlign: 'center',
-            color: '#9ca3af'
-          }}>
-            <p style={{
-              fontSize: '1.2rem',
-              marginBottom: '0.5rem'
-            }}>📭 Sin datos de recolecciones</p>
-            <p style={{
-              fontSize: '0.875rem'
-            }}>Error al cargar el reporte de recolecciones</p>
+          <div className="admin-reports-empty-state">
+            <p className="admin-reports-empty-title">📭 Sin datos de recolecciones</p>
+            <p className="admin-reports-empty-text">Error al cargar el reporte de recolecciones</p>
           </div>
         )}
 
         {activeTab === 'scores' && !loading && scoresData === null && !error && (
-          <div style={{
-            color: '#9ca3af',
-            textAlign: 'center',
-            padding: '2rem'
-          }}>
+          <div className="admin-reports-no-data">
             Sin datos de calificaciones
           </div>
         )}
 
         {loading && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '300px',
-            gap: '1rem'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid #dcfce7',
-              borderTop: '4px solid #149D52',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }} />
-            <span style={{
-              color: '#6b7280',
-              fontWeight: 600
-            }}>Cargando...</span>
+          <div className="admin-reports-loading">
+            <div className="admin-reports-spinner" />
+            <span className="admin-reports-loading-text">Cargando...</span>
           </div>
         )}
       </div>
-      <style>{`
-        @keyframes spin {
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }
