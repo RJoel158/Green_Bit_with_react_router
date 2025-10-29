@@ -1,5 +1,5 @@
 // Models/institutionModel.js
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Crear una institución ligada a un usuario (userId).

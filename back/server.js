@@ -17,7 +17,7 @@ import announcementRoutes from './Routes/announcementRoutes.js';
 import uploadRoutes from './Routes/uploadRoutes.js';
 import reportRoutes from './Routes/reportRoutes.js';
 import { verifyEmailConnection } from './Services/emailService.js';
-import { checkConnection } from './Config/DBConnect.js';
+import { checkConnection } from './config/DBConnect.js';
 
 // Cargar variables de entorno
 dotenv.config();

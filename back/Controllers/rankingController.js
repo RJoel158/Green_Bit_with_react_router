@@ -41,7 +41,7 @@ const createPeriod = async (req, res) => {
 import RankingPeriod from '../Models/rankingPeriodModel.js';
 import RankingHistory from '../Models/rankingHistoryModel.js';
 import RankingTops from '../Models/rankingTopsModel.js';
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 const RankingController = {
   // Obtener periodo activo o último cerrado

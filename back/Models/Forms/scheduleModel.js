@@ -1,5 +1,5 @@
 // Models/Forms/scheduleModel.js
-import db from "../../Config/DBConnect.js";
+import db from "../../config/DBConnect.js";
 
 /**
  * Crear un horario para una solicitud

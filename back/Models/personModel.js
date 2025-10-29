@@ -1,5 +1,5 @@
 // Models/personModel.js
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Crear una persona ligada a un usuario (userId).

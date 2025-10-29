@@ -1,6 +1,6 @@
 // Controllers/announcementController.js
 import * as AnnouncementModel from "../Models/announcementModel.js";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Obtener todos los anuncios

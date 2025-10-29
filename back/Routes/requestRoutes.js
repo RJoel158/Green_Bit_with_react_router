@@ -35,7 +35,7 @@ router.get('/:id/schedule', getRequestWithSchedule);
 router.get('/:id/images', async (req, res) => {
   try {
     const { id } = req.params;
-    const [images] = await (await import('../Config/DBConnect.js')).default.query(
+  const [images] = await (await import('../config/DBConnect.js')).default.query(
       'SELECT * FROM image WHERE idRequest = ?',
       [id]
     );
@@ -56,7 +56,7 @@ router.get('/:id/images', async (req, res) => {
 // Endpoint para listar todas las solicitudes con sus imágenes
 router.get('/debug/all-with-images', async (req, res) => {
   try {
-    const db = (await import('../Config/DBConnect.js')).default;
+  const db = (await import('../config/DBConnect.js')).default;
     
     const [requests] = await db.query(`
       SELECT r.id, r.description, r.materialId, 

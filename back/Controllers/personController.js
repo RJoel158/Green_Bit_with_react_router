@@ -1,6 +1,6 @@
 // Controllers/personController.js
 import * as PersonModel from "../Models/personModel.js";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Obtener todas las personas

@@ -1,5 +1,5 @@
 // Models/Forms/imageModel.js
-import db from "../../Config/DBConnect.js";
+import db from "../../config/DBConnect.js";
 
 /**
  * Crear una imagen asociada a una solicitud

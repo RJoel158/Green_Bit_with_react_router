@@ -1,5 +1,5 @@
 import * as AppointmentModel from "../Models/appointmentModel.js";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 import * as NotificationModel from "../Models/notificationModel.js";
 import { sendRealTimeNotification } from "../server.js";
 import { APPOINTMENT_STATE, REQUEST_STATE } from "../shared/constants.js";

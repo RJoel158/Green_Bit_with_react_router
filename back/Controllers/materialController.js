@@ -1,6 +1,6 @@
 // Controllers/materialController.js
 import * as MaterialModel from "../Models/Forms/materialModel.js";
-import db from "../Config/DBConnect.js"; // ← ESTA LÍNEA FALTABA
+import db from "../config/DBConnect.js"; // ← ESTA LÍNEA FALTABA
 
 /**
  * Obtener todos los materiales activos

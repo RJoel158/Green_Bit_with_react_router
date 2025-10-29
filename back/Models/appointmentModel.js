@@ -1,5 +1,5 @@
 // Models/appointmentModel.js
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 import * as RequestModel from "./Forms/requestModel.js";
 import { REQUEST_STATE, APPOINTMENT_STATE } from "../shared/constants.js";
 

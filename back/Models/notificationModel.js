@@ -1,5 +1,5 @@
 // Models/notificationModel.js
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Crear una nueva notificación

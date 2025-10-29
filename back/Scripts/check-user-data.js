@@ -1,4 +1,4 @@
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 async function checkUserData() {
   try {

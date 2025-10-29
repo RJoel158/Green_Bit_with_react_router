@@ -1,6 +1,6 @@
 // Controllers/institutionController.js
 import * as InstitutionModel from "../Models/institutionModel.js";
-import db from "../Config/DBConnect.js";
+import db from "../config/DBConnect.js";
 
 /**
  * Obtener todas las instituciones

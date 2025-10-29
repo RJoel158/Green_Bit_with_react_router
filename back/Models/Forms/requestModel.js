@@ -1,5 +1,5 @@
 // Models/Forms/requestModel.js
-import db from "../../Config/DBConnect.js";
+import db from "../../config/DBConnect.js";
 import { REQUEST_STATE } from "../../shared/constants.js";
 
 /**
