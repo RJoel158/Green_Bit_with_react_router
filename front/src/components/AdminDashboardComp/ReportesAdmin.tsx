@@ -38,6 +38,17 @@ export default function ReportesAdmin() {
     }
   }, [dateFrom, dateTo, userId, activeTab]);
 
+  // Función para establecer rango de fechas 
+  const setQuickDateRange = () => {
+    const today = new Date();
+    const pastDate = new Date();
+    //Obtener fecha de hace 30 días
+    pastDate.setDate(today.getDate() - 30);
+    
+    setDateFrom(pastDate.toISOString().split('T')[0]);
+    setDateTo(today.toISOString().split('T')[0]);
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -470,6 +481,13 @@ export default function ReportesAdmin() {
               />
             </div>
             <button
+              onClick={setQuickDateRange}
+              disabled={loading}
+              className="admin-reports-filter-btn"
+            >
+              Último Mes
+            </button>
+            <button
               onClick={loadData}
               disabled={loading}
               className="admin-reports-filter-btn"
@@ -499,6 +517,13 @@ export default function ReportesAdmin() {
                 className="admin-reports-filter-input"
               />
             </div>
+            <button
+              onClick={setQuickDateRange}
+              disabled={loading}
+              className="admin-reports-filter-btn"
+            >
+              Último Mes
+            </button>
             <button
               onClick={loadData}
               disabled={loading}
