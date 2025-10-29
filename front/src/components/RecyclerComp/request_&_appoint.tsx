@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import "./requestandappointment.css";
+import "./RequestAndAppointment.css";
 import { getRequestsByUserAndState } from "../../services/requestService";
 import { getAppointmentsByRecycler, getAppointmentsByCollector } from "../../services/appointmentService";
 import type { Appointment } from "../../services/appointmentService";
