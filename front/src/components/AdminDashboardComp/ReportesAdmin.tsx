@@ -15,6 +15,7 @@ export default function ReportesAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'materiales' | 'scores' | 'recolecciones'>('materiales');
   const reportRef = useRef<HTMLDivElement>(null);
+  const [reportGeneratedDate, setReportGeneratedDate] = useState<string>('');
 
   // Obtener userId y rol del usuario autenticado
   useEffect(() => {
@@ -41,6 +42,21 @@ export default function ReportesAdmin() {
     try {
       setLoading(true);
       setError(null);
+      
+      // Actualizar fecha y hora de generación del reporte
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const formattedTime = now.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      setReportGeneratedDate(`${formattedDate} - ${formattedTime}`);
+      
       const userIdToFilter = isAdmin ? undefined : userId || undefined;
 
       if (activeTab === 'materiales') {
@@ -423,6 +439,14 @@ export default function ReportesAdmin() {
         <div className={`admin-reports-mode-indicator ${isAdmin ? 'admin' : 'user'}`}>
           {isAdmin ? '📊 Modo Administrador - Viendo reportes de TODOS los usuarios' : '👤 Viendo solo tus reportes'}
         </div>
+
+        {/* Fecha y Hora de Generación del Reporte */}
+        {reportGeneratedDate && (
+          <div className="admin-reports-generated-date">
+            <span className="admin-reports-date-label">Reporte generado:</span>
+            <span className="admin-reports-date-value">{reportGeneratedDate}</span>
+          </div>
+        )}
 
         {/* Filtros */}
         {activeTab === 'materiales' && (
