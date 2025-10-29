@@ -58,9 +58,9 @@ export default function AdminDashboard() {
               
               {/* Fila 2: Listas */}
               <div className="lists-row">
-                <PendingApprovals />
-                <TopRecyclers />
-                <TopCollectors />
+                <PendingApprovals setActiveMenu={setActiveMenu} />
+                <TopRecyclers setActiveMenu={setActiveMenu} />
+                <TopCollectors setActiveMenu={setActiveMenu} />
               </div>
             </div>
           </div>
