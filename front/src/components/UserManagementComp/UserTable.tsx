@@ -47,7 +47,7 @@ export default function UserTable({
               ? 'user-management-table-avatar-collector' 
               : 'user-management-table-avatar-recycler'
           }`}>
-            {user.fullName.charAt(0)}
+            {user.email.charAt(0).toUpperCase()}
           </div>
           {user.fullName}
         </div>
@@ -83,7 +83,7 @@ export default function UserTable({
       render: (user) => (
         <div className="user-management-table-user-cell">
           <div className="user-management-table-avatar user-management-table-avatar-collector">
-            {user.companyName?.charAt(0) || 'E'}
+            {user.email.charAt(0).toUpperCase()}
           </div>
           {user.companyName || user.fullName}
         </div>

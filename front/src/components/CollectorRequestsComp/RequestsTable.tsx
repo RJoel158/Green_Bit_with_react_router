@@ -58,7 +58,7 @@ export default function RequestsTable({
       render: (request) => (
         <div className="collector-requests-table-user-cell">
           <div className="collector-requests-table-avatar">
-            {request.fullName.charAt(0)}
+            {request.email.charAt(0).toUpperCase()}
           </div>
           {request.fullName}
         </div>
@@ -116,7 +116,7 @@ export default function RequestsTable({
       render: (request) => (
         <div className="collector-requests-table-user-cell">
           <div className="collector-requests-table-avatar">
-            {request.companyName?.charAt(0) || 'E'}
+            {request.email.charAt(0).toUpperCase()}
           </div>
           {request.companyName || request.fullName}
         </div>

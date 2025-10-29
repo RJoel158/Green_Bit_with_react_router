@@ -317,7 +317,7 @@ export default function ReportesAdmin() {
             <g key={`bar-${score}`}>
               <rect x={x - barWidth / 2} y={y} width={barWidth} height={height} fill={color} rx="4" />
               <text x={x} y={startY + 20} fontSize="14" fontWeight="bold" textAnchor="middle" fill="#374151">
-                ⭐{score}
+                {score}
               </text>
               <text x={x} y={y - 5} fontSize="12" fontWeight="bold" textAnchor="middle" fill="#374151">
                 {count}
@@ -516,7 +516,7 @@ export default function ReportesAdmin() {
                 <NotificationBell userId={user.id} />
               ) : (
                 <button className="user-management-header-notif-btn">
-                  🔔
+                  Notificaciones
                 </button>
               )}
             </div>
@@ -532,19 +532,19 @@ export default function ReportesAdmin() {
               onClick={() => setActiveTab('materiales')}
               className={`admin-reports-tab ${activeTab === 'materiales' ? 'active' : ''}`}
             >
-              📊 Reporte de Materiales
+              Reporte de Materiales
             </button>
             <button
               onClick={() => setActiveTab('scores')}
               className={`admin-reports-tab ${activeTab === 'scores' ? 'active' : ''}`}
             >
-              ⭐ Reporte de Calificaciones
+              Reporte de Calificaciones
             </button>
             <button
               onClick={() => setActiveTab('recolecciones')}
               className={`admin-reports-tab ${activeTab === 'recolecciones' ? 'active' : ''}`}
             >
-              🚛 Reporte de Recolecciones
+              Reporte de Recolecciones
             </button>
           </div>
           <button
@@ -552,13 +552,13 @@ export default function ReportesAdmin() {
             disabled={loading || (!materialesData.length && !scoresData && !collectionsData)}
             className="admin-reports-download-btn"
           >
-            📥 Descargar PDF
+            Descargar PDF
           </button>
         </div>
 
         {/* Indicador si es admin o no */}
         <div className={`admin-reports-mode-indicator ${isAdmin ? 'admin' : 'user'}`}>
-          {isAdmin ? '📊 Modo Administrador - Viendo reportes de TODOS los usuarios' : '👤 Viendo solo tus reportes'}
+          {isAdmin ? 'Modo Administrador - Viendo reportes de TODOS los usuarios' : 'Viendo solo tus reportes'}
         </div>
 
         {/* Fecha y Hora de Generación del Reporte */}
@@ -566,6 +566,12 @@ export default function ReportesAdmin() {
           <div className="admin-reports-generated-date">
             <span className="admin-reports-date-label">Reporte generado:</span>
             <span className="admin-reports-date-value">{reportGeneratedDate}</span>
+            {user?.email && (
+              <>
+                <span className="admin-reports-date-label"> | Generado por:</span>
+                <span className="admin-reports-date-value">{user.email}</span>
+              </>
+            )}
           </div>
         )}
 
@@ -657,7 +663,7 @@ export default function ReportesAdmin() {
           <div className="admin-reports-grid-two">
             {/* Gráfico Donut con Leyenda */}
             <div className="admin-reports-card admin-reports-card-center">
-              <h3 className="admin-reports-card-title">📊 Distribución de Materiales</h3>
+              <h3 className="admin-reports-card-title">Distribución de Materiales</h3>
               <svg width="300" height="300" viewBox="0 0 300 300">
                 {renderDonut()}
                 <circle cx="150" cy="150" r="55" fill="white" />
@@ -692,11 +698,11 @@ export default function ReportesAdmin() {
 
             {/* Gráfico de Barras Horizontal */}
             <div className="admin-reports-card">
-              <h3 className="admin-reports-card-title">📈 Comparativa de Materiales</h3>
+              <h3 className="admin-reports-card-title">Comparativa de Materiales</h3>
 
               {/* Box resumen */}
               <div className="admin-reports-summary-box">
-                <p className="admin-reports-summary-label">🏆 TOP MATERIAL</p>
+                <p className="admin-reports-summary-label">TOP MATERIAL</p>
                 <p className="admin-reports-summary-value">{topMaterial?.name}</p>
                 <p className="admin-reports-summary-text">{topMaterial?.kg} items ({topMaterial?.percentage}%)</p>
               </div>
@@ -745,8 +751,8 @@ export default function ReportesAdmin() {
 
               <div className="admin-reports-scores-stats">
                 <div className="admin-reports-scores-summary">
-                  <p className="admin-reports-scores-summary-label">📊 RESUMEN</p>
-                  <p className="admin-reports-scores-summary-value">⭐ {scoresData.average.toFixed(1)}</p>
+                  <p className="admin-reports-scores-summary-label">RESUMEN</p>
+                  <p className="admin-reports-scores-summary-value">{scoresData.average.toFixed(1)}</p>
                   <p className="admin-reports-scores-summary-text">Promedio de {scoresData.total} calificaciones</p>
                 </div>
 
@@ -761,7 +767,7 @@ export default function ReportesAdmin() {
                     return (
                       <div key={score} className="admin-reports-scores-bar-item">
                         <span className="admin-reports-scores-bar-stars">
-                          {'⭐'.repeat(score)}
+                          {score} estrellas
                         </span>
                         <div className="admin-reports-scores-bar-track">
                           <div
@@ -787,16 +793,16 @@ export default function ReportesAdmin() {
             {/* Segunda fila: Tabla detallada de calificaciones */}
             {scoresData.details && scoresData.details.length > 0 && (
               <div className="admin-reports-table-container">
-                <h3 className="admin-reports-table-title">📋 Detalles de Calificaciones</h3>
+                <h3 className="admin-reports-table-title">Detalles de Calificaciones</h3>
                 <div className="admin-reports-table-wrapper">
                   <table className="admin-reports-table">
                     <thead>
                       <tr>
-                        <th>⭐ Score</th>
-                        <th>👤 Quien Califica</th>
-                        <th>→ Calificado A</th>
-                        <th>📝 Comentario</th>
-                        <th className="center">📅 Fecha</th>
+                        <th>Score</th>
+                        <th>Quien Califica</th>
+                        <th>Calificado A</th>
+                        <th>Comentario</th>
+                        <th className="center">Fecha</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -807,7 +813,7 @@ export default function ReportesAdmin() {
                         return (
                           <tr key={detail.id}>
                             <td className="score" style={{ color: scoreColor }}>
-                              {'⭐'.repeat(detail.score)} {detail.score}
+                              {detail.score} estrellas
                             </td>
                             <td className="username">
                               {detail.ratedByUsername || `Usuario ${detail.ratedByUserId}`}
@@ -838,25 +844,25 @@ export default function ReportesAdmin() {
             {/* Primera fila: Gráfico + Estadísticas */}
             <div className="admin-reports-grid-two">
               <div className="admin-reports-collections-chart">
-                <h3 className="admin-reports-card-title">🚛 Recolecciones por Fecha</h3>
+                <h3 className="admin-reports-card-title">Recolecciones por Fecha</h3>
                 {renderCollectionsChart()}
               </div>
 
               <div className="admin-reports-collections-stats">
                 <div className="admin-reports-collections-summary-green">
-                  <p className="admin-reports-collections-summary-label green">📊 RESUMEN GENERAL</p>
-                  <p className="admin-reports-collections-summary-value large">🚛 {collectionsData.summary.totalCollections} recolecciones</p>
+                  <p className="admin-reports-collections-summary-label green">RESUMEN GENERAL</p>
+                  <p className="admin-reports-collections-summary-value large">{collectionsData.summary.totalCollections} recolecciones</p>
                   <p className="admin-reports-collections-summary-text">En {collectionsData.summary.dayRange} días</p>
                 </div>
 
                 <div className="admin-reports-collections-summary-yellow">
-                  <p className="admin-reports-collections-summary-label yellow">📈 IDR (Índice Diario de Recolecciones)</p>
+                  <p className="admin-reports-collections-summary-label yellow">IDR (Índice Diario de Recolecciones)</p>
                   <p className="admin-reports-collections-summary-value xlarge">{collectionsData.summary.cdi}</p>
                   <p className="admin-reports-collections-summary-text">recolecciones por día en promedio</p>
                 </div>
 
                 <div className="admin-reports-collections-info">
-                  <p className="admin-reports-collections-info-label">📅 Días con actividad:</p>
+                  <p className="admin-reports-collections-info-label">Días con actividad:</p>
                   <div className="admin-reports-collections-info-item">
                     <div className="admin-reports-collections-info-dot"></div>
                     <span className="admin-reports-collections-info-text">{collectionsData.data.length} días con recolecciones completadas</span>

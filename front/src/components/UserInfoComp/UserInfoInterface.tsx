@@ -120,11 +120,28 @@ const UserInfo: React.FC = () => {
             {displayName}
           </h2>
 
-          <div className="user-avatar-large mx-auto">
-            <img
-              src={user?.avatar || "https://i.pravatar.cc/150?img=5"}
-              alt="Avatar del usuario"
-            />
+          <div className="user-avatar-large" style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            margin: '20px auto'
+          }}>
+            <div style={{
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              backgroundColor: '#149D52',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '4rem',
+              fontWeight: 'bold',
+              color: 'white',
+              lineHeight: '1',
+              textAlign: 'center'
+            }}>
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            </div>
           </div>
 
           <div className="user-role mt-3 mb-4">

@@ -220,7 +220,7 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
               : 'user-management-info-avatar-recycler'
           }`}
         >
-          {displayName.split(' ').map(n => n[0]).join('')}
+          {user.email.charAt(0).toUpperCase()}
         </div>
         <h2 className="user-management-info-name">{displayName}</h2>
         <p className="user-management-info-role">{user.role}</p>
