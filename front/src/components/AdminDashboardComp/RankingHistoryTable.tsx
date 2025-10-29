@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 interface Period {
   id: number;
   fecha_inicio: string;
@@ -18,8 +18,8 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
   const [selectedPeriodId, setSelectedPeriodId] = useState<number>(periodoId);
   const [ranking, setRanking] = useState<any[]>([]);
   const [loadingRanking, setLoadingRanking] = useState(false);
-  const [selectedRol, setSelectedRol] = useState<'todos' | 1 | 2>('todos');
-  const [error, setError] = useState<string | null>(null);
+  // const [selectedRol, setSelectedRol] = useState<'todos' | 1 | 2>('todos');
+  // const [error, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<Record<number, {name: string, email: string}>>({});
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
   };
 
   // Filtrar ranking por rol
-  const filteredRanking = selectedRol === 'todos' ? ranking : ranking.filter(r => r.rol === selectedRol);
+  // const filteredRanking = selectedRol === 'todos' ? ranking : ranking.filter(r => r.rol === selectedRol);
 
   return (
   <div className="ranking-history-dashboard" style={{paddingLeft: '2.5rem', paddingRight: '2.5rem'}}>

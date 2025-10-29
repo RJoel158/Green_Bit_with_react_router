@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './SchedulePickup.css';
 import SuccessModal from '../CommonComp/SuccesModal';
 import ImageCarousel from './ImageCarousel';
-import { config, apiUrl, debugLog } from '../../config/environment';
+import { config, debugLog } from '../../config/environment';
 
 interface SchedulePickupModalProps {
   show: boolean;

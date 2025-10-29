@@ -67,7 +67,7 @@ export default function LiveRankingAdmin() {
           <div className="list-container">
             <h3 className="card-title">Top Recicladores</h3>
             {recicladores.length === 0 && <div>No hay datos.</div>}
-            {recicladores.map((user, idx) => (
+            {recicladores.map((user) => (
               <div key={user.user_id} className="list-item">
                 <div className="list-item-content">
                   <div className="list-item-info">
@@ -84,7 +84,7 @@ export default function LiveRankingAdmin() {
           <div className="list-container mt-4">
             <h3 className="card-title">Top Recolectores</h3>
             {recolectores.length === 0 && <div>No hay datos.</div>}
-            {recolectores.map((user, idx) => (
+            {recolectores.map((user) => (
               <div key={user.user_id} className="list-item">
                 <div className="list-item-content">
                   <div className="list-item-info">
