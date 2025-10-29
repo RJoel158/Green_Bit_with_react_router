@@ -17,9 +17,10 @@ export const createScore = async (appointmentId, ratedByUserId, ratedToUserId, s
       INSERT INTO score (appointmentConfirmationId, ratedByUserId, ratedToUserId, score, comment, state)
       VALUES (?, ?, ?, ?, ?, 1)
     `;
-    
     console.log('[INFO] ScoreModel.createScore - Executing query:', query);
     const [result] = await db.query(query, [appointmentId, ratedByUserId, ratedToUserId, score, comment]);
+    // Actualizar el campo score en users (sumar el nuevo score)
+    await db.query('UPDATE users SET score = score + ? WHERE id = ?', [score, ratedToUserId]);
     console.log('[INFO] ScoreModel.createScore - Success! InsertId:', result.insertId);
     return result.insertId;
   } catch (err) {

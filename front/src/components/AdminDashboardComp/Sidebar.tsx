@@ -14,7 +14,8 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
     { id: 'usuarios', label: 'Administrar Usuarios', icon: 'bi-people-fill' },
     { id: 'materiales', label: 'Materiales', icon: 'bi-recycle' },
     { id: 'anuncios', label: 'Anuncios', icon: 'bi-megaphone-fill' },
-    { id: 'accesos', label: 'Accesos', icon: 'bi-person-check-fill' }
+    { id: 'accesos', label: 'Accesos', icon: 'bi-person-check-fill' },
+    { id: 'ranking', label: 'Ranking', icon: 'bi-trophy-fill' }
   ];
 
   return (

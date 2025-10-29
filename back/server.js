@@ -83,6 +83,7 @@ const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use('/uploads', express.static(uploadDir));
 
 // Usar rutas de usuarios
+import rankingRoutes from './Routes/rankingRoutes.js';
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
@@ -91,6 +92,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/scores", scoreRoutes);
 app.use("/api/announcement", announcementRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/ranking", rankingRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {

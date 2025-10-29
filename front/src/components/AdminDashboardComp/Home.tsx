@@ -10,6 +10,7 @@ import MaterialesAdmin from './MaterialesAdmin';
 import AnnouncementsAdmin from './AnnouncementsAdmin';
 import UserManagement from '../UserManagementComp/UserManagement';
 import CollectorRequests from '../CollectorRequestsComp/CollectorRequests';
+import RankingPeriodsAdmin from './RankingPeriodsAdmin';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
@@ -44,6 +45,8 @@ export default function AdminDashboard() {
         return <UserManagement />;
       case 'accesos':
         return <CollectorRequests />;
+      case 'ranking':
+        return <RankingPeriodsAdmin />;
       default:
         return (
           <div className="dashboard-content">
