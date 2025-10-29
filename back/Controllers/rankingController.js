@@ -44,6 +44,25 @@ import RankingTops from '../Models/rankingTopsModel.js';
 import db from '../Config/DBConnect.js';
 
 const RankingController = {
+  // Obtener periodo activo o último cerrado
+  getActiveOrLastPeriod: async (req, res) => {
+    try {
+      // Buscar periodo activo
+      const [activos] = await db.query("SELECT * FROM ranking_periods WHERE estado = 'activo' ORDER BY fecha_inicio DESC LIMIT 1");
+      if (activos.length > 0) {
+        return res.json(activos[0]);
+      }
+      // Si no hay activo, buscar el último cerrado
+      const [cerrados] = await db.query("SELECT * FROM ranking_periods WHERE estado = 'cerrado' ORDER BY fecha_fin DESC LIMIT 1");
+      if (cerrados.length > 0) {
+        return res.json(cerrados[0]);
+      }
+      // Si no hay periodos
+      return res.status(404).json({ error: 'No hay periodos registrados.' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
   // Ranking en tiempo real por periodo
   getLiveRankingByPeriod: async (req, res) => {
     const { periodo_id } = req.params;

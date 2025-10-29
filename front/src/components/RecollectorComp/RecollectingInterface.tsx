@@ -9,9 +9,13 @@ import AnnouncementBanner from "../CommonComp/AnnouncementBanner";
 
 interface Recycler {
   id: number;
-  name: string;
-  points: number;
-  avatar: string;
+  name?: string;
+  points?: number;
+  avatar?: string;
+  rol?: string;
+  user_id?: number;
+  email?: string;
+  puntaje_final?: number;
 }
 
 interface User {
@@ -56,10 +60,18 @@ const RecollectingInterface: React.FC = () => {
     async function fetchTop() {
       try {
         const period = await getActiveOrLastPeriod();
+        console.log('Periodo recibido:', period);
         setPeriodState(period.estado);
         if (period.estado === 'activo') {
           const top = await getLiveRanking(period.id, 'recolector');
-          setRecyclers(Array.isArray(top) ? top : []);
+          console.log('Top recibido (activo):', top);
+          if (top && Array.isArray(top)) {
+            setRecyclers(top);
+          } else if (top && Array.isArray(top.recolectores)) {
+            setRecyclers(top.recolectores);
+          } else {
+            setRecyclers([]);
+          }
         } else {
           const top = await getHistoricalRanking(period.id, 'recolector');
           setRecyclers(Array.isArray(top) ? top : []);
@@ -104,15 +116,18 @@ const RecollectingInterface: React.FC = () => {
             </p>
 
             <div className="recyclers-list">
-              {recyclers.map((recycler: Recycler) => (
-                <div key={recycler.id} className="recycler-item">
-                  <div className="recycler-avatar">
-                    <img src={recycler.avatar} alt={recycler.name} />
+              {recyclers
+                .filter(r => r.rol === 'recolector')
+                .slice(0, 5)
+                .map((recycler, idx) => (
+                  <div key={recycler.user_id || recycler.id || idx} className="recycler-item">
+                    <div className="recycler-avatar">
+                      <img src={recycler.avatar || `https://i.pravatar.cc/40?img=${idx+1}`} alt={recycler.name || recycler.email || 'Recolector'} />
+                    </div>
+                    <span className="recycler-name">{recycler.name || recycler.email || 'Recolector'}</span>
+                    <span className="recycler-points">{recycler.puntaje_final || recycler.points || 0}</span>
                   </div>
-                  <span className="recycler-name">{recycler.name}</span>
-                  <span className="recycler-points">{recycler.points}</span>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
         </div>

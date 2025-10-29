@@ -9,6 +9,8 @@ router.get('/live/:periodo_id', rankingController.getLiveRankingByPeriod);
 router.get('/periods', rankingController.getPeriods);
 // Listar periodos cerrados
 router.get('/periods/closed', rankingController.getClosedPeriods);
+// Obtener periodo activo o último cerrado
+router.get('/periods/active-or-last', rankingController.getActiveOrLastPeriod);
 // Obtener tops por periodo
 router.get('/tops/:periodo_id', rankingController.getTopsByPeriod);
 // Obtener historial por periodo

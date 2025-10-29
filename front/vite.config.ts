@@ -21,6 +21,9 @@ export default defineConfig({
     host: true,
     hmr: {
       overlay: true
+    },
+    proxy: {
+      '/api': 'http://localhost:3000'
     }
   },
   optimizeDeps: {
