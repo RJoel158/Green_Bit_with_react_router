@@ -102,7 +102,7 @@ const RegisterInstitution: React.FC = () => {
 
     try {
       // POST a /api/users/collector
-      const res = await fetch("http://localhost:3000/api/users/institution", {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/institution`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

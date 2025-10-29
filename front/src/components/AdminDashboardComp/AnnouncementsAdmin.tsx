@@ -105,7 +105,7 @@ const AnnouncementsAdmin: React.FC = () => {
       // Convertir URL relativa a absoluta apuntando al backend (puerto 3000)
       let imageUrl = fullData.imagePath;
       if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `http://localhost:3000${imageUrl}`;
+  imageUrl = `${import.meta.env.VITE_API_URL}${imageUrl}`;
       }
       
       setPreviewImage(imageUrl || null);
@@ -145,7 +145,7 @@ const AnnouncementsAdmin: React.FC = () => {
       
       // Convertir URL relativa a absoluta apuntando al backend (puerto 3000)
       if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `http://localhost:3000${imageUrl}`;
+  imageUrl = `${import.meta.env.VITE_API_URL}${imageUrl}`;
         console.log('🔗 URL convertida a absoluta (backend):', imageUrl);
       }
       

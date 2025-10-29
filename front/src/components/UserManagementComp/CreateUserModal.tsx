@@ -112,7 +112,7 @@ export default function CreateUserModal({
       try {
         // Admin crea usuarios ya aprobados (estado 1) con correo de credenciales
         // Todos usan el mismo endpoint /api/users
-        const res = await fetch('http://localhost:3000/api/users', {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -158,7 +158,7 @@ export default function CreateUserModal({
       try {
         // Admin crea instituciones ya aprobadas (estado 1) con correo de credenciales
         // Usa el endpoint /api/users/institution-admin (nuevo endpoint que aprobaremos directamente)
-        const res = await fetch('http://localhost:3000/api/users/institution-admin', {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/institution-admin`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

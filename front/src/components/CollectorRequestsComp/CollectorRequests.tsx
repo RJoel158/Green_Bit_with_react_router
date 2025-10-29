@@ -54,8 +54,8 @@ export default function CollectorRequests() {
     
     try {
       const endpoint = type === 'Persona' 
-        ? 'http://localhost:3000/api/users/collectors/pending' 
-        : 'http://localhost:3000/api/users/collectors/pending/institution';
+  ? `${import.meta.env.VITE_API_URL}/api/users/collectors/pending` 
+  : `${import.meta.env.VITE_API_URL}/api/users/collectors/pending/institution`;
       
       const response = await fetch(endpoint);
       const data = await response.json();
@@ -127,8 +127,8 @@ export default function CollectorRequests() {
     setProcessing(true); // Activar indicador de carga
     try {
       const endpoint = requestType === 'Persona' 
-        ? `http://localhost:3000/api/users/approve/${userId}`
-        : `http://localhost:3000/api/users/institution/approve/${userId}`;
+  ? `${import.meta.env.VITE_API_URL}/api/users/approve/${userId}`
+  : `${import.meta.env.VITE_API_URL}/api/users/institution/approve/${userId}`;
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -160,8 +160,8 @@ export default function CollectorRequests() {
     try {
       // Determinar el endpoint según el tipo de solicitud
       const endpoint = requestType === 'Persona'
-        ? `http://localhost:3000/api/users/reject/${userId}`
-        : `http://localhost:3000/api/users/institution/reject/${userId}`;
+  ? `${import.meta.env.VITE_API_URL}/api/users/reject/${userId}`
+  : `${import.meta.env.VITE_API_URL}/api/users/institution/reject/${userId}`;
       
       const response = await fetch(endpoint, {
         method: 'POST',

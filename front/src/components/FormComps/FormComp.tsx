@@ -69,7 +69,7 @@ const FormComp: React.FC = () => {
   const checkServerHealth = async () => {
     try {
       console.log("Verificando salud del servidor...");
-      const response = await fetch("http://localhost:3000/health", { 
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/health`, { 
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -114,7 +114,7 @@ const FormComp: React.FC = () => {
         }
 
         // Intentar obtener materiales reales
-        const response = await fetch("http://localhost:3000/api/material", {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/material`, {
           method: 'GET',
           headers: { 
             'Content-Type': 'application/json', 
@@ -322,7 +322,7 @@ const FormComp: React.FC = () => {
 
       console.log("Enviando solicitud con FormData...");
 
-      const response = await fetch("http://localhost:3000/api/request", {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/request`, {
         method: 'POST',
         body: formDataToSend, // No establecer Content-Type, el navegador lo hace automáticamente
       });

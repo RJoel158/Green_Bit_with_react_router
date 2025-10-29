@@ -9,7 +9,7 @@ export default function TopCollectors({ setActiveMenu }: { setActiveMenu?: (menu
   useEffect(() => {
     async function fetchRanking() {
       try {
-        const periodsRes = await axios.get('http://localhost:3000/api/ranking/periods');
+  const periodsRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/ranking/periods`);
         const periods = periodsRes.data.periods || [];
   let period = periods.find((p: any) => p.estado === 'activo');
         if (!period) {
@@ -20,10 +20,10 @@ export default function TopCollectors({ setActiveMenu }: { setActiveMenu?: (menu
         setPeriodLabel(period.estado === 'activo' ? 'Periodo activo' : `Temporada ${period.id}`);
         let rankingRes;
         if (period.estado === 'activo') {
-          rankingRes = await axios.get(`http://localhost:3000/api/ranking/live/${period.id}`);
+          rankingRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/ranking/live/${period.id}`);
           setCollectors(rankingRes.data.recolectores || []);
         } else {
-          rankingRes = await axios.get(`http://localhost:3000/api/ranking/tops/${period.id}`);
+          rankingRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/ranking/tops/${period.id}`);
           setCollectors((rankingRes.data.tops || []).filter((r: any) => r.rol === 'recolector'));
         }
       } catch (err) {

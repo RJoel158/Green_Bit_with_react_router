@@ -40,7 +40,7 @@ const UserInfo: React.FC = () => {
       const userId = parsedUser.id;
       
       // Buscar id como persona
-      fetch(`http://localhost:3000/api/users/${userId}`)
+  fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`)
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.user) {
@@ -50,7 +50,7 @@ const UserInfo: React.FC = () => {
               setLoading(false);
             } else {
               // firstname y lastname son null, intentar como institución
-              fetch(`http://localhost:3000/api/users/withInstitution/${userId}`)
+              fetch(`${import.meta.env.VITE_API_URL}/api/users/withInstitution/${userId}`)
                 .then((res) => res.json())
                 .then((institutionData) => {
                   if (institutionData.success && institutionData.user) {

@@ -67,8 +67,8 @@ export default function UserManagement() {
     
     try {
       const endpoint = type === 'Persona' 
-        ? 'http://localhost:3000/api/users/withPerson' 
-        : 'http://localhost:3000/api/users/withInstitution';
+  ? `${import.meta.env.VITE_API_URL}/api/users/withPerson` 
+  : `${import.meta.env.VITE_API_URL}/api/users/withInstitution`;
       
       const response = await fetch(endpoint);
       const data = await response.json();

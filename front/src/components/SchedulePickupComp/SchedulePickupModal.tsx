@@ -298,7 +298,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       console.log('[INFO] Enviando cita:', appointmentData);
 
       // Realizar petición POST al endpoint de creación de citas
-      const response = await fetch('http://localhost:3000/api/appointments/schedule', {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

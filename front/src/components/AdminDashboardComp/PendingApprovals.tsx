@@ -7,7 +7,7 @@ export default function PendingApprovals({ setActiveMenu }: { setActiveMenu?: (m
   useEffect(() => {
     async function fetchRequests() {
       try {
-        const response = await fetch('http://localhost:3000/api/users/collectors/pending');
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/collectors/pending`);
         const data = await response.json();
         if (data.success) {
           setRequests(data.collectors || []);

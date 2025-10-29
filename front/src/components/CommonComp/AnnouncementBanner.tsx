@@ -71,7 +71,7 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ role, position 
     }
     
     // Si es relativa, agregar el backend
-    return `http://localhost:3000${imagePath}`;
+  return `${import.meta.env.VITE_API_URL}${imagePath}`;
   };
 
   const bannerClass = position === 'left' ? 'banner-left' : 'banner-right';

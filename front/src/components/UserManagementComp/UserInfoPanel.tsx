@@ -63,7 +63,7 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
     setProcessing(true); // Activar indicador de procesamiento
 
     try {
-      const response = await fetch(`http://localhost:3000/api/users/${user.userId}/role`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${user.userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,10 +101,10 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
     let endpoint = '';
     if (isInstitution) {
       // Ruta para institución: DELETE /api/users/institution/:id
-      endpoint = `http://localhost:3000/api/users/institution/${user.userId}`;
+  endpoint = `${import.meta.env.VITE_API_URL}/api/users/institution/${user.userId}`;
     } else {
       // Ruta para persona: DELETE /api/users/:id
-      endpoint = `http://localhost:3000/api/users/${user.userId}`;
+  endpoint = `${import.meta.env.VITE_API_URL}/api/users/${user.userId}`;
     }
 
     console.log(`[DELETE] Tipo: ${isInstitution ? 'Empresa' : 'Persona'}, Endpoint: ${endpoint}`);
