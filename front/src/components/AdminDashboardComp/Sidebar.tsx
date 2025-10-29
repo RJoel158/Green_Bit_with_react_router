@@ -5,9 +5,11 @@ import logo from '../../assets/logo.png'
 interface SidebarProps {
   onMenuSelect: (menuId: string) => void;
   activeMenu: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
+export default function Sidebar({ onMenuSelect, activeMenu, isOpen, onClose }: SidebarProps) {
   const menuItems = [
     { id: 'control', label: 'Panel de Control', icon: 'bi-grid-fill' },
     { id: 'reportes', label: 'Reportes', icon: 'bi-graph-up' },
@@ -17,8 +19,28 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
     { id: 'accesos', label: 'Accesos', icon: 'bi-person-check-fill' }
   ];
 
+  const handleMenuClick = (menuId: string) => {
+    onMenuSelect(menuId);
+    // Cerrar el sidebar en móvil después de seleccionar
+    if (window.innerWidth < 768) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="sidebar">
+    <>
+      {/* Overlay para cerrar el sidebar en móvil */}
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={onClose}></div>
+      )}
+      
+      
+      <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+      {/* Botón de cerrar para móvil */}
+      <button className="sidebar-close" onClick={onClose} aria-label="Cerrar menú">
+        <i className="bi bi-x-lg"></i>
+      </button>
+
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-container">
@@ -33,7 +55,7 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
           {menuItems.map(item => (
             <button
               key={item.id}
-              onClick={() => onMenuSelect(item.id)}
+              onClick={() => handleMenuClick(item.id)}
               className={`sidebar-button ${activeMenu === item.id ? 'active' : ''}`}
             >
               <i className={`bi ${item.icon} sidebar-button-icon`}></i>
@@ -58,5 +80,6 @@ export default function Sidebar({ onMenuSelect, activeMenu }: SidebarProps) {
         </nav>
       </div>
     </div>
+    </>
   );
 }
