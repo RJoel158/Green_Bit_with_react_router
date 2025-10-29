@@ -51,11 +51,18 @@ const RankingPeriodsAdmin: React.FC = () => {
 
   useEffect(() => {
     if (selectedPeriodId) {
-      fetchRanking(selectedPeriodId);
+      const period = periods.find(p => p.id === selectedPeriodId);
+      if (period) {
+        if (period.estado === 'cerrado') {
+          fetchHistoricalRanking(selectedPeriodId);
+        } else {
+          fetchLiveRanking(selectedPeriodId);
+        }
+      }
     } else {
       setRanking({ recicladores: [], recolectores: [] });
     }
-  }, [selectedPeriodId]);
+  }, [selectedPeriodId, periods]);
 
   const fetchPeriods = async () => {
     setLoading(true);
@@ -70,7 +77,8 @@ const RankingPeriodsAdmin: React.FC = () => {
     }
   };
 
-  const fetchRanking = async (periodId: number) => {
+  // Ranking en tiempo real (periodo activo)
+  const fetchLiveRanking = async (periodId: number) => {
     setLoadingRanking(true);
     try {
       const res = await api.get(`/api/ranking/live/${periodId}`);
@@ -78,6 +86,22 @@ const RankingPeriodsAdmin: React.FC = () => {
         recicladores: res.data.recicladores || [],
         recolectores: res.data.recolectores || []
       });
+    } catch (err) {
+      setRanking({ recicladores: [], recolectores: [] });
+    } finally {
+      setLoadingRanking(false);
+    }
+  };
+
+  // Ranking histórico (periodo cerrado)
+  const fetchHistoricalRanking = async (periodId: number) => {
+    setLoadingRanking(true);
+    try {
+      const res = await api.get(`/api/ranking/tops/${periodId}`);
+      // Agrupa por rol
+      const recicladores = res.data.tops.filter((r: any) => r.rol === 'reciclador');
+      const recolectores = res.data.tops.filter((r: any) => r.rol === 'recolector');
+      setRanking({ recicladores, recolectores });
     } catch (err) {
       setRanking({ recicladores: [], recolectores: [] });
     } finally {

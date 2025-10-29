@@ -93,7 +93,14 @@ const RankingController = {
   getTopsByPeriod: async (req, res) => {
     const { periodo_id } = req.params;
     try {
-      const [tops] = await db.query("SELECT * FROM ranking_tops WHERE periodo_id = ? ORDER BY rol, posicion ASC", [periodo_id]);
+      // Consulta el top real del periodo desde ranking_tops
+      const [tops] = await db.query(`
+        SELECT t.*, u.email
+        FROM ranking_tops t
+        INNER JOIN users u ON t.user_id = u.id
+        WHERE t.periodo_id = ?
+        ORDER BY t.rol, t.posicion ASC
+      `, [periodo_id]);
       res.json({ success: true, tops });
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
@@ -122,35 +129,21 @@ const RankingController = {
 
       // 2. Obtener top 5 recicladores y top 5 recolectores usando el nombre del rol
       // Recicladores: roleId=3, sumar score por ratedToUserId
-      const [recicladores] = await db.query(`
-        SELECT s.ratedToUserId AS user_id, r.name AS rol, SUM(s.score) AS puntaje_final
-        FROM score s
-        INNER JOIN users u ON s.ratedToUserId = u.id
-        INNER JOIN role r ON u.roleId = r.id AND r.name = 'reciclador'
-        WHERE s.createdDate BETWEEN (
-          SELECT fecha_inicio FROM ranking_periods WHERE id = ?
-        ) AND (
-          SELECT fecha_fin FROM ranking_periods WHERE id = ?
-        )
-        GROUP BY s.ratedToUserId, r.name
-        ORDER BY puntaje_final DESC
-        LIMIT 5
-      `, [periodo_id, periodo_id]);
+      const [recicladores] = await db.query(
+        `SELECT u.id AS user_id, 'reciclador' AS rol, u.score AS puntaje_final
+         FROM users u
+         WHERE u.roleId = 3
+         ORDER BY u.score DESC
+         LIMIT 5`
+      );
       // Recolectores: roleId=2, sumar score por ratedToUserId
-      const [recolectores] = await db.query(`
-        SELECT s.ratedToUserId AS user_id, r.name AS rol, SUM(s.score) AS puntaje_final
-        FROM score s
-        INNER JOIN users u ON s.ratedToUserId = u.id
-        INNER JOIN role r ON u.roleId = r.id AND r.name = 'recolector'
-        WHERE s.createdDate BETWEEN (
-          SELECT fecha_inicio FROM ranking_periods WHERE id = ?
-        ) AND (
-          SELECT fecha_fin FROM ranking_periods WHERE id = ?
-        )
-        GROUP BY s.ratedToUserId, r.name
-        ORDER BY puntaje_final DESC
-        LIMIT 5
-      `, [periodo_id, periodo_id]);
+      const [recolectores] = await db.query(
+        `SELECT u.id AS user_id, 'recolector' AS rol, u.score AS puntaje_final
+         FROM users u
+         WHERE u.roleId = 2
+         ORDER BY u.score DESC
+         LIMIT 5`
+      );
       console.log('[RANKING] Recicladores:', recicladores);
       console.log('[RANKING] Recolectores:', recolectores);
 
@@ -184,23 +177,24 @@ const RankingController = {
         console.log('[RANKING] Ranking guardado en historial');
 
         // --- DECAY GLOBAL ---
-        // Obtener todos los usuarios activos
-        const [users] = await db.query(`SELECT u.id, r.name AS rol FROM users u INNER JOIN role r ON u.roleId = r.id WHERE u.state = 1`);
-        for (const user of users) {
-          // Buscar si está en el ranking actual
-          const top = topsPorRol.find(t => t.user_id === user.id && t.rol === user.rol);
-          let puntaje = top ? top.puntaje_final : 0;
-          let posicion = top ? top.posicion : null;
-          // Decay escalonado
-          let decay = 0.05; // fuera del top 10
-          if (posicion && posicion <= 5) decay = 0.20;
-          else if (posicion && posicion <= 10) decay = 0.10;
-          const puntaje_final_decay = Number(puntaje) * (1 - decay);
-          // Actualizar ranking_tops si existe
-          if (top) {
-            await db.query(`UPDATE ranking_tops SET puntaje_final = ? WHERE periodo_id = ? AND user_id = ? AND rol = ?`, [puntaje_final_decay, periodo_id, user.id, user.rol]);
-          }
-          // Si quieres guardar el puntaje global, aquí puedes actualizar/insertar en otra tabla
+        // Decay: 1° -30%, 2° -25%, 3° -20%, 4° -15%, 5° -10%, resto -5%
+        // Aplica decay a los top 5
+        const recicladorDecays = [0.3, 0.25, 0.2, 0.15, 0.1];
+        for (let i = 0; i < recicladores.length; i++) {
+          const userId = recicladores[i].user_id;
+          const decay = recicladorDecays[i] ?? 0.05;
+          await db.query('UPDATE users SET score = ROUND(score * (1 - ?)) WHERE id = ?', [decay, userId]);
+        }
+        const recolectorDecays = [0.3, 0.25, 0.2, 0.15, 0.1];
+        for (let i = 0; i < recolectores.length; i++) {
+          const userId = recolectores[i].user_id;
+          const decay = recolectorDecays[i] ?? 0.05;
+          await db.query('UPDATE users SET score = ROUND(score * (1 - ?)) WHERE id = ?', [decay, userId]);
+        }
+        // Decay para el resto de usuarios de cada rol
+        const ids = [...recicladores.map(r => r.user_id), ...recolectores.map(r => r.user_id)];
+        if (ids.length > 0) {
+          await db.query('UPDATE users SET score = ROUND(score * 0.95) WHERE roleId IN (2,3) AND id NOT IN (?)', [ids]);
         }
         res.json({ success: true, ranking: topsPorRol });
       } else {
