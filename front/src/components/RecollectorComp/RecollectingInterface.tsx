@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "../RecyclerComp/RecyclingInterface.css";
 import Header from "../RecyclerComp/headerRecycler";
+import { getActiveOrLastPeriod, getLiveRanking, getHistoricalRanking } from "../../services/rankingService";
 import { useNavigate } from "react-router-dom";
 import RequestAndAppoint from "../RecyclerComp/request_&_appoint";
 import ChangePasswordModal from "../PasswordComp/ChangePasswordModal";
@@ -22,15 +23,11 @@ interface User {
   avatar?: string;
 }
 
-const recyclers: Recycler[] = [
-  { id: 1, name: "Joel Saavedra", points: 120, avatar: "https://i.pravatar.cc/40?img=1" },
-  { id: 2, name: "María Pérez", points: 110, avatar: "https://i.pravatar.cc/40?img=2" },
-  { id: 3, name: "Carlos Gómez", points: 95, avatar: "https://i.pravatar.cc/40?img=3" },
-];
-
 const RecollectingInterface: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [recyclers, setRecyclers] = useState<Recycler[]>([]);
+  const [periodState, setPeriodState] = useState<'activo' | 'cerrado' | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,12 +48,27 @@ const RecollectingInterface: React.FC = () => {
     }
 
     setUser(u);
-
     if (u.state === 1) {
-      console.log("✅ El modal de cambio de contraseña debería aparecer"); // <-- Aquí
       setShowModal(true);
     }
-    setUser(JSON.parse(userStr));
+
+    // Cargar el top dinámico
+    async function fetchTop() {
+      try {
+        const period = await getActiveOrLastPeriod();
+        setPeriodState(period.estado);
+        if (period.estado === 'activo') {
+          const top = await getLiveRanking(period.id, 'recolector');
+          setRecyclers(Array.isArray(top) ? top : []);
+        } else {
+          const top = await getHistoricalRanking(period.id, 'recolector');
+          setRecyclers(Array.isArray(top) ? top : []);
+        }
+      } catch (err) {
+        setRecyclers([]);
+      }
+    }
+    fetchTop();
   }, [navigate]);
    if (!user) return null;
 
@@ -87,7 +99,9 @@ const RecollectingInterface: React.FC = () => {
 
           <div className="recyclers-card">
             <h3 className="card-title">Top Recicladores</h3>
-            <p className="card-subtitle">Índice de reciclaje este mes</p>
+            <p className="card-subtitle">
+              {periodState === 'activo' ? 'Índice de reciclaje este mes' : 'Último ranking de periodo cerrado'}
+            </p>
 
             <div className="recyclers-list">
               {recyclers.map((recycler: Recycler) => (

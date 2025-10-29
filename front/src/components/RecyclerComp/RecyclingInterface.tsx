@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./RecyclingInterface.css";
 import Header from "./headerRecycler";
+import { getActiveOrLastPeriod, getLiveRanking, getHistoricalRanking } from "../../services/rankingService";
 import RequestAndAppoint from "./request_&_appoint";
 import ChangePasswordModal from "../PasswordComp/ChangePasswordModal";
 import AnnouncementBanner from "../CommonComp/AnnouncementBanner";
@@ -23,40 +24,45 @@ interface User {
   avatar?: string;
 }
 
-const recyclers: Recycler[] = [
-  { id: 1, name: "Joel Saavedra", points: 120, avatar: "https://i.pravatar.cc/40?img=1" },
-  { id: 2, name: "María Pérez", points: 110, avatar: "https://i.pravatar.cc/40?img=2" },
-  { id: 3, name: "Carlos Gómez", points: 95, avatar: "https://i.pravatar.cc/40?img=3" },
-];
-
+// El top real se carga dinámicamente
 const RecyclingInterface: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [recyclers, setRecyclers] = useState<Recycler[]>([]);
+  const [periodState, setPeriodState] = useState<'activo' | 'cerrado' | null>(null);
   const navigate = useNavigate();
 
-
-  //Cargar datos del usuario al montar el componente  
   useEffect(() => {
     const userStr = localStorage.getItem("user");
-
-    // Si no hay sesión activa -> redirige al login
     if (!userStr) {
       navigate("/login", { replace: true });
       return;
     }
     const u = JSON.parse(userStr);
-    u.state = Number(u.state); // asegurarse que sea número
-    // Asegurarse que el usuario tiene email
+    u.state = Number(u.state);
     if (!u.email) {
-      u.email = ""; // o asignar un valor por defecto si es necesario
+      u.email = "";
     }
     setUser(u as User);
-    setUser(u);
-
-    // Si el estado es 1, mostrar modal de cambio de contraseña
     if (u.state === 1) {
       setShowModal(true);
     }
+    async function fetchTop() {
+      try {
+        const period = await getActiveOrLastPeriod();
+        setPeriodState(period.estado);
+        if (period.estado === 'activo') {
+          const top = await getLiveRanking(period.id, 'reciclador');
+          setRecyclers(Array.isArray(top) ? top : []);
+        } else {
+          const top = await getHistoricalRanking(period.id, 'reciclador');
+          setRecyclers(Array.isArray(top) ? top : []);
+        }
+      } catch (err) {
+        setRecyclers([]);
+      }
+    }
+    fetchTop();
   }, [navigate]);
 
   if (!user) return null;
@@ -91,7 +97,9 @@ const RecyclingInterface: React.FC = () => {
 
           <div className="recyclers-card">
             <h3 className="card-title">Top Recicladores</h3>
-            <p className="card-subtitle">Índice de reciclaje este mes</p>
+            <p className="card-subtitle">
+              {periodState === 'activo' ? 'Índice de reciclaje este mes' : 'Último ranking de periodo cerrado'}
+            </p>
 
             <div className="recyclers-list">
               {recyclers.map((recycler: Recycler) => (
