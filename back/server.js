@@ -56,18 +56,13 @@ console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '***configured***' : 'NOT 
 const app = express();
 const server = createServer(app);
 
-// Configurar CORS para múltiples orígenes
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173").split(",").map(o => o.trim());
-const corsOptions = {
-  origin: allowedOrigins,
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+// Configurar CORS abierto temporalmente (solo pruebas)
+app.use(cors({ origin: true, credentials: true }));
 
-// Configurar Socket.IO con CORS para múltiples orígenes
+// Configurar Socket.IO con CORS abierto temporalmente
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: true,
     methods: ["GET", "POST"]
   }
 });
