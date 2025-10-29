@@ -126,12 +126,15 @@ const RankingPeriodsAdmin: React.FC = () => {
   const handleClose = async (id: number) => {
     if (!window.confirm('¿Cerrar este periodo? Se guardará el ranking histórico.')) return;
     setMensaje('');
+    setLoadingRanking(true);
     try {
       await api.post('/api/ranking/periods/close', { periodo_id: id });
-      fetchPeriods();
+      await fetchPeriods();
       setMensaje('Periodo cerrado y ranking guardado');
     } catch (err) {
       setMensaje('Error al cerrar periodo');
+    } finally {
+      setLoadingRanking(false);
     }
   };
 
@@ -139,7 +142,15 @@ const RankingPeriodsAdmin: React.FC = () => {
   const visiblePeriods = periods.filter(p => p.estado === 'activo' || p.estado === 'cerrado');
 
   return (
-    <div className="ranking-periods-dashboard" style={{paddingLeft: '2.5rem', paddingRight: '2.5rem'}}>
+    <div
+      className="ranking-periods-dashboard"
+      style={{
+        paddingLeft: '2.5rem',
+        paddingRight: '2.5rem',
+        maxHeight: '100vh',
+        overflowY: 'auto'
+      }}
+    >
       <CommonHeader
         title="Gestión de Periodos de Ranking"
         searchPlaceholder="Buscar periodo..."
@@ -197,19 +208,23 @@ const RankingPeriodsAdmin: React.FC = () => {
               <div className="card mb-4" style={{ minHeight: 350, overflowX: 'auto' }}>
                 <div className="card-body">
                   <h5 className="card-title">Top 10 Recicladores</h5>
-                  <div className="table-responsive">
-                    {loadingRanking ? <div>Cargando ranking...</div> : (
-                      <table className="table table-bordered table-hover ranking-table user-management-table" style={{ minWidth: 350 }}>
-                        <thead className="table-light">
+                  <div className="table-responsive" style={{ maxHeight: 300, overflowY: 'auto', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                    {loadingRanking ? (
+                      <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <span className="spinner-border spinner-border-sm" /> Procesando ranking...
+                      </div>
+                    ) : (
+                      <table className="table table-bordered table-hover ranking-table user-management-table" style={{ minWidth: 350, borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                        <thead className="table-light" style={{ background: 'linear-gradient(90deg, #b2f7ef 0%, #e3f6ed 100%)', color: '#1b6d4b', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
                           <tr>
-                            <th style={{ width: 80, textAlign: 'center' }}>Posición</th>
-                            <th style={{ minWidth: 220 }}>Correo</th>
-                            <th style={{ width: 100, textAlign: 'center' }}>Puntaje</th>
+                            <th style={{ width: 80, textAlign: 'center', borderTopLeftRadius: 16, background: 'inherit', color: 'inherit' }}>Posición</th>
+                            <th style={{ minWidth: 220, background: 'inherit', color: 'inherit' }}>Correo</th>
+                            <th style={{ width: 100, textAlign: 'center', borderTopRightRadius: 16, background: 'inherit', color: 'inherit' }}>Puntaje</th>
                           </tr>
                         </thead>
                         <tbody>
                           {ranking.recicladores && ranking.recicladores.length > 0 ? (
-                            ranking.recicladores.slice(0, 10).map((r, idx) => (
+                            ranking.recicladores.map((r, idx) => (
                               <tr key={r.user_id}>
                                 <td style={{ textAlign: 'center' }}>
                                   <span className="badge bg-success">{idx + 1}</span>
@@ -236,19 +251,23 @@ const RankingPeriodsAdmin: React.FC = () => {
               <div className="card mb-4" style={{ minHeight: 350, overflowX: 'auto' }}>
                 <div className="card-body">
                   <h5 className="card-title">Top 10 Recolectores</h5>
-                  <div className="table-responsive">
-                    {loadingRanking ? <div>Cargando ranking...</div> : (
-                      <table className="table table-bordered table-hover ranking-table user-management-table" style={{ minWidth: 350 }}>
-                        <thead className="table-light">
+                  <div className="table-responsive" style={{ maxHeight: 300, overflowY: 'auto', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                    {loadingRanking ? (
+                      <div style={{ textAlign: 'center', padding: '2rem' }}>
+                        <span className="spinner-border spinner-border-sm" /> Procesando ranking...
+                      </div>
+                    ) : (
+                      <table className="table table-bordered table-hover ranking-table user-management-table" style={{ minWidth: 350, borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+                        <thead className="table-light" style={{ background: 'linear-gradient(90deg, #b2f7ef 0%, #e3f6ed 100%)', color: '#1b6d4b', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
                           <tr>
-                            <th style={{ width: 80, textAlign: 'center' }}>Posición</th>
-                            <th style={{ minWidth: 220 }}>Correo</th>
-                            <th style={{ width: 100, textAlign: 'center' }}>Puntaje</th>
+                            <th style={{ width: 80, textAlign: 'center', borderTopLeftRadius: 16, background: 'inherit', color: 'inherit' }}>Posición</th>
+                            <th style={{ minWidth: 220, background: 'inherit', color: 'inherit' }}>Correo</th>
+                            <th style={{ width: 100, textAlign: 'center', borderTopRightRadius: 16, background: 'inherit', color: 'inherit' }}>Puntaje</th>
                           </tr>
                         </thead>
                         <tbody>
                           {ranking.recolectores && ranking.recolectores.length > 0 ? (
-                            ranking.recolectores.slice(0, 10).map((r, idx) => (
+                            ranking.recolectores.map((r, idx) => (
                               <tr key={r.user_id}>
                                 <td style={{ textAlign: 'center' }}>
                                   <span className="badge bg-warning text-dark">{idx + 1}</span>
@@ -277,13 +296,13 @@ const RankingPeriodsAdmin: React.FC = () => {
       {/* Tabla de periodos (gestión) */}
       <div className="ranking-periods-panel mt-4">
         {loading ? <div className="ranking-loading">Cargando...</div> : error ? <div className="alert alert-danger">{error}</div> : (
-          <table className="table table-bordered table-hover ranking-table user-management-table">
-            <thead className="table-light">
+          <table className="table table-bordered table-hover ranking-table user-management-table" style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+            <thead className="table-light" style={{ background: 'linear-gradient(90deg, #b2f7ef 0%, #e3f6ed 100%)', color: '#1b6d4b', borderTopLeftRadius: 16, borderTopRightRadius: 16 }}>
               <tr>
-                <th>Inicio</th>
-                <th>Fin</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th style={{ background: 'inherit', color: 'inherit', borderTopLeftRadius: 16 }}>Inicio</th>
+                <th style={{ background: 'inherit', color: 'inherit' }}>Fin</th>
+                <th style={{ background: 'inherit', color: 'inherit' }}>Estado</th>
+                <th style={{ background: 'inherit', color: 'inherit', borderTopRightRadius: 16 }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
