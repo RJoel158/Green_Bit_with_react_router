@@ -19,7 +19,7 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
   const [ranking, setRanking] = useState<any[]>([]);
   const [loadingRanking, setLoadingRanking] = useState(false);
   // const [selectedRol, setSelectedRol] = useState<'todos' | 1 | 2>('todos');
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<Record<number, {name: string, email: string}>>({});
 
   useEffect(() => {

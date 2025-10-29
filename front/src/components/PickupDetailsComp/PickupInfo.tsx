@@ -61,7 +61,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [completing, setCompleting] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showComplaintModal, setShowComplaintModal] = useState(false);
-  const [hasRated, setHasRated] = useState(false);
+  const [, setHasRated] = useState(false);
   const [hasComplained, setHasComplained] = useState(false);
   const [deleting, setDeleting] = useState(false); // <-- move here, above all logic
 
