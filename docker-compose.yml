@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  db:
+    image: mariadb:11
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: greenbit
+      MYSQL_USER: greenuser
+      MYSQL_PASSWORD: greenpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: ./back
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./back/.env
+    depends_on:
+      - db
+    volumes:
+      - ./back:/app
+
+  frontend:
+    build: ./front
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./front/.env
+    depends_on:
+      - backend
+    volumes:
+      - ./front:/app
+
+volumes:
+  db_data:
