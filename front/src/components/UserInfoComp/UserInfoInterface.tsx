@@ -10,7 +10,7 @@ interface User {
   phone: string;
   registerDate: string;
   avatar?: string;
-  totalPoints?: number;
+  score?: number;
   // Campos de Persona
   firstname?: string;
   lastname?: string;
@@ -197,10 +197,10 @@ const UserInfo: React.FC = () => {
                 <input
                   type="text"
                   className="form-control form-input"
-                  value={user?.totalPoints || "600"}
+                  value={user?.score || 0}
                   readOnly
                 />
-                <span className="star-icon ms-2">⭐</span>
+               
               </div>
             </div>
           </div>

@@ -81,7 +81,7 @@ export const getCollectorsPendingWithInstitution = async () => {
 };
 export const getByIdWithPersona = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,u.score,
             p.userId AS personId, p.firstname, p.lastname, p.state AS personState
      FROM users u
      LEFT JOIN person p ON p.userId = u.id
@@ -510,7 +510,7 @@ export const rejectUserWithInstitution = async (userId) => {
  */
 export const getInstitutionById = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,u.score,
             i.companyName, i.nit, i.state AS institutionState
      FROM users u
      INNER JOIN institution i ON i.userId = u.id
