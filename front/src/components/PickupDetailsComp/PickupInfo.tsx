@@ -24,6 +24,7 @@ interface RequestData {
   description: string;
   materialName?: string;
   userName?: string;
+  userId?: number; // <-- fix: add userId for owner
   registerDate: string;
   state: number;
   latitude?: number;
@@ -62,6 +63,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [showComplaintModal, setShowComplaintModal] = useState(false);
   const [hasRated, setHasRated] = useState(false);
   const [hasComplained, setHasComplained] = useState(false);
+  const [deleting, setDeleting] = useState(false); // <-- move here, above all logic
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -70,6 +72,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   };
 
   // Verificar si el usuario actual es el reciclador (dueño de la request)
+  // Verificar si el usuario actual es el reciclador (dueño de la request)
+  const isRecyclerRequestOwner = () => {
+    const currentUser = getCurrentUser();
+    return currentUser && requestData && currentUser.id === requestData.userId;
+  };
+
+  // Verificar si el usuario actual es el reciclador (de la cita)
   const isRecycler = () => {
     const currentUser = getCurrentUser();
     return currentUser && appointmentData && currentUser.id === appointmentData.recyclerId;
@@ -109,7 +118,12 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
             if (requestResponse.ok) {
               const requestResult = await requestResponse.json();
               if (requestResult.success) {
-                setRequestData(requestResult.data);
+                // Mapear idUser a userId para compatibilidad con el frontend
+                const reqData = requestResult.data;
+                if (reqData && reqData.idUser) {
+                  reqData.userId = reqData.idUser;
+                }
+                setRequestData(reqData);
               }
             }
           } else {
@@ -125,7 +139,12 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
           const data = await response.json();
           if (data.success) {
-            setRequestData(data.data);
+            // Mapear idUser a userId para compatibilidad con el frontend
+            const reqData = data.data;
+            if (reqData && reqData.idUser) {
+              reqData.userId = reqData.idUser;
+            }
+            setRequestData(reqData);
           } else {
             throw new Error('No se pudieron cargar los datos de la solicitud');
           }
@@ -520,6 +539,30 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const isAppointmentView = appointmentData !== null;
   const displayData = isAppointmentView ? appointmentData : requestData;
 
+  // Eliminar lógico de la request
+  const handleDeleteRequest = async () => {
+    if (!requestData) return;
+    if (!window.confirm('¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario.')) return;
+    setDeleting(true);
+    try {
+      const response = await fetch(apiUrl(`/api/request/${requestData.id}/state`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: 4 }) // 4 = Eliminado lógico
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('Solicitud eliminada correctamente.');
+        onCancel();
+      } else {
+        alert('No se pudo eliminar la solicitud.');
+      }
+    } catch (err) {
+      alert('Error al eliminar la solicitud.');
+    } finally {
+      setDeleting(false);
+    }
+  };
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -853,12 +896,35 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
       {/* Botón para vista de request solamente (sin appointment) */}
       {!isAppointmentView && (
-        <button
-          onClick={onCancel}
-          className="pickupdetail-cancel-button"
-        >
-          Cerrar
-        </button>
+        <>
+          <button
+            onClick={onCancel}
+            className="pickupdetail-cancel-button"
+          >
+            Cerrar
+          </button>
+          {/* Botón eliminar solo para el reciclador dueño y estado abierto (1) */}
+          {isRecyclerRequestOwner() && requestData?.state === 1 && (
+            <button
+              onClick={handleDeleteRequest}
+              className="pickupdetail-delete-button"
+              disabled={deleting}
+              style={{
+                marginTop: '1rem',
+                backgroundColor: '#d32f2f',
+                color: 'white',
+                padding: '0.75rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                fontWeight: 600,
+                opacity: deleting ? 0.6 : 1,
+                cursor: deleting ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {deleting ? 'Eliminando...' : '🗑️ Eliminar Solicitud'}
+            </button>
+          )}
+        </>
       )}
       {showRatingModal && appointmentData && (
         <RatingModal 
