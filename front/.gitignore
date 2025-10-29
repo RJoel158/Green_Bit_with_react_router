@@ -1,7 +1,6 @@
 # ==============================
 # ARCHIVOS DE CONFIGURACIÓN
 # ==============================
-.env
 .env.local
 .env.development
 .env.test
