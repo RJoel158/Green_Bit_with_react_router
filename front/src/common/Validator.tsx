@@ -44,7 +44,7 @@ export class Validator {
   static validateNIT(nit: string): string {
     const normalized = nit.trim(); // NIT no debería tener espacios internos
     if (!normalized) return "El NIT es obligatorio";
-    if (!/^[0-9A-Za-z\-]{5,20}$/.test(normalized)) return "NIT inválido";
+    if (!/^[0-9\-]{5,20}$/.test(normalized)) return "NIT inválido";
     return "";
   }
 
@@ -56,10 +56,32 @@ export class Validator {
     return "";
   }
 
-  // Valida teléfono (solo requerido y mínimo 7 dígitos, sin formato específico)
+  /**
+   * Valida teléfono para Bolivia, Perú o Chile
+   * Detecta automáticamente el país del número
+   * @param phone - Número telefónico
+   * @returns Mensaje de error o string vacío si es válido
+   */
   static validatePhone(phone: string): string {
     if (!phone.trim()) return "El teléfono es requerido";
-    if (!/^[0-9+\-\s]{7,20}$/.test(phone)) return "Teléfono inválido";
+    
+    // Normalizar quitando espacios, guiones, paréntesis
+    const normalized = phone.replace(/[\s\-().]/g, '');
+    
+    // Validar formato general: 8-15 dígitos con posible +
+    if (!/^(\+)?[0-9]{8,15}$/.test(normalized)) {
+      return "Teléfono inválido";
+    }
+
+    // Validar que sea de Bolivia (+591, 591, 91), Perú (+51, 51) o Chile (+56, 56)
+    const isBolivia = /^(\+591|591|91)[0-9]{7,8}$/.test(normalized);
+    const isPeru = /^(\+51|51)[0-9]{8,9}$/.test(normalized);
+    const isChile = /^(\+56|56)[0-9]{7,8}$/.test(normalized);
+
+    if (!isBolivia && !isPeru && !isChile) {
+      return "Teléfono debe ser de Bolivia (+591), Perú (+51) o Chile (+56)";
+    }
+
     return "";
   }
 
@@ -71,6 +93,7 @@ export class Validator {
     if (password.length < 8) return "Debe tener al menos 8 caracteres";
     if (!/[A-Z]/.test(password)) return "Debe tener al menos una mayúscula";
     if (!/[0-9]/.test(password)) return "Debe tener al menos un número";
+    if (!/[!#$%&*().:]/.test(password)) return "Debe tener al menos un carácter especial";
     return "";
   }
 

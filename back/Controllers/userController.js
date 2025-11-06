@@ -2,6 +2,7 @@
 import bcrypt from "bcrypt";
 import * as UserModel from "../Models/userModel.js";
 import { sendCredentialsEmail, sendRejectionEmail } from "../Services/emailService.js";
+import { Validator } from "../shared/Validator.js";
 
 /** GET /users */
 export const getUsers = async (req, res) => {
@@ -55,9 +56,13 @@ export const getUserById = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      console.warn("[WARN] loginUser - missing fields", { body: { ...req.body, password: "[REDACTED]" } });
-      return res.status(400).json({ success: false, error: "Email y contraseña son requeridos" });
+
+    // Validar con Validator
+    const errors = Validator.validateLoginCredentials({ email, password });
+    
+    if (!Validator.isValid(errors)) {
+      console.warn("[WARN] loginUser - validation error", { errors, email });
+      return res.status(400).json({ success: false, error: Object.values(errors).find(e => e !== "") || "Validación fallida" });
     }
 
     const user = await UserModel.loginUser(email);
@@ -98,13 +103,16 @@ export const createUser = async (req, res) => {
     console.log("[INFO] POST /users body:", { ...req.body, password: undefined });
     const { nombres, apellidos, email, phone, role_id } = req.body;
 
-    if (!nombres || !apellidos || !email || !phone) {
-      console.warn("[WARN] createUser - missing fields", { body: req.body });
-      return res.status(400).json({ success: false, error: "Campos requeridos: nombres, apellidos, email, phone" });
-    }
-    if (typeof email !== "string" || !email.includes("@")) {
-      console.warn("[WARN] createUser - invalid email", { email });
-      return res.status(400).json({ success: false, error: "Email inválido" });
+    // Validar campos con Validator
+    const errors = Validator.validateUserPerson({ nombres, apellidos, email, phone });
+    
+    if (!Validator.isValid(errors)) {
+      console.warn("[WARN] createUser - validation error", { errors, body: req.body });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Validación fallida",
+        details: errors 
+      });
     }
 
     // Usa el role_id recibido o por defecto 3 (reciclador)
@@ -112,10 +120,10 @@ export const createUser = async (req, res) => {
 
     try {
       const result = await UserModel.createWithPersona(
-        nombres,
-        apellidos,
-        email,
-        phone,
+        Validator.normalizeName(nombres),
+        Validator.normalizeName(apellidos),
+        email.toLowerCase().trim(),
+        phone.trim(),
         roleId
       );
 
@@ -169,10 +177,15 @@ export const createCollectorUser = async (req, res) => {
   try {
     const { nombres, apellidos, email, phone } = req.body;
 
-    if (!nombres || !apellidos || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        error: "Campos requeridos: nombres, apellidos, email, phone",
+    // Validar campos con Validator
+    const errors = Validator.validateUserPerson({ nombres, apellidos, email, phone });
+    
+    if (!Validator.isValid(errors)) {
+      console.warn("[WARN] createCollectorUser - validation error", { errors, body: req.body });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Validación fallida",
+        details: errors 
       });
     }
 
@@ -181,10 +194,10 @@ export const createCollectorUser = async (req, res) => {
     const state = 3; // pendiente de aprobación
 
     const result = await UserModel.createCollectorWithPersona(
-      nombres,
-      apellidos,
-      email,
-      phone,
+      Validator.normalizeName(nombres),
+      Validator.normalizeName(apellidos),
+      email.toLowerCase().trim(),
+      phone.trim(),
       roleId,
       state
     );
