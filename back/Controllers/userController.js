@@ -621,32 +621,43 @@ export const forgotPassword = async (req, res) => {
 
 /** POST /users/reject/:id - Rechazar usuario persona con envío de email */
 export const rejectUser = async (req, res) => {
+  const startTime = Date.now();
   try {
     const id = req.params.id;
-    console.log("[INFO] rejectUser - start", { userId: id });
+    console.log("[INFO] rejectUser - start", { userId: id, timestamp: new Date().toISOString() });
     
     // Rechazar usuario y obtener datos
+    const modelStartTime = Date.now();
     const userData = await UserModel.rejectUserWithPersona(id);
+    console.log(`[TIMING] rejectUserWithPersona tomó: ${Date.now() - modelStartTime}ms`);
     
     if (!userData) {
       return res.status(404).json({ success: false, error: "Usuario no encontrado" });
     }
     
-    // Enviar email de rechazo si tiene datos completos
+    // Enviar email de rechazo si tiene datos completos - NO BLOQUEANTE
     if (userData.firstname && userData.lastname && userData.email) {
       try {
-        await sendRejectionEmail(
+        const emailStartTime = Date.now();
+        sendRejectionEmail(
           userData.email, 
           userData.firstname, 
           userData.lastname, 
           'persona'
-        );
-        console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+        ).then(() => {
+          console.log(`[TIMING] Email de rechazo enviado en: ${Date.now() - emailStartTime}ms`);
+          console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+        }).catch(emailError => {
+          console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        });
       } catch (emailError) {
-        console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        console.error("⚠️ Error al iniciar envío de email de rechazo:", emailError.message);
         // Continuar aunque falle el email
       }
     }
+    
+    const totalTime = Date.now() - startTime;
+    console.log(`[TIMING] rejectUser - tiempo total: ${totalTime}ms`);
     
     res.json({ 
       success: true, 
@@ -667,32 +678,43 @@ export const rejectUser = async (req, res) => {
 
 /** POST /users/institution/reject/:id - Rechazar usuario institución con envío de email */
 export const rejectInstitution = async (req, res) => {
+  const startTime = Date.now();
   try {
     const id = req.params.id;
-    console.log("[INFO] rejectInstitution - start", { userId: id });
+    console.log("[INFO] rejectInstitution - start", { userId: id, timestamp: new Date().toISOString() });
     
     // Rechazar institución y obtener datos
+    const modelStartTime = Date.now();
     const userData = await UserModel.rejectUserWithInstitution(id);
+    console.log(`[TIMING] rejectUserWithInstitution tomó: ${Date.now() - modelStartTime}ms`);
     
     if (!userData) {
       return res.status(404).json({ success: false, error: "Institución no encontrada" });
     }
     
-    // Enviar email de rechazo si tiene datos completos
+    // Enviar email de rechazo si tiene datos completos - NO BLOQUEANTE
     if (userData.companyName && userData.email) {
       try {
-        await sendRejectionEmail(
+        const emailStartTime = Date.now();
+        sendRejectionEmail(
           userData.email, 
           userData.companyName, 
           '', 
           'institucion'
-        );
-        console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+        ).then(() => {
+          console.log(`[TIMING] Email de rechazo enviado en: ${Date.now() - emailStartTime}ms`);
+          console.log(`✅ Email de rechazo enviado a ${userData.email}`);
+        }).catch(emailError => {
+          console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        });
       } catch (emailError) {
-        console.error("⚠️ No se pudo enviar el email de rechazo:", emailError.message);
+        console.error("⚠️ Error al iniciar envío de email de rechazo:", emailError.message);
         // Continuar aunque falle el email
       }
     }
+    
+    const totalTime = Date.now() - startTime;
+    console.log(`[TIMING] rejectInstitution - tiempo total: ${totalTime}ms`);
     
     res.json({ 
       success: true, 
@@ -713,33 +735,43 @@ export const rejectInstitution = async (req, res) => {
 
 /** POST /users/approve/:id - Aprobar usuario persona con generación de contraseña y envío de email */
 export const approveUser = async (req, res) => {
+  const startTime = Date.now();
   try {
     const id = req.params.id;
-    console.log("[INFO] approveUser - start", { userId: id });
+    console.log("[INFO] approveUser - start", { userId: id, timestamp: new Date().toISOString() });
     
     // Aprobar usuario, generar contraseña y obtener datos
+    const modelStartTime = Date.now();
     const userData = await UserModel.approveUserWithPersona(id);
+    console.log(`[TIMING] approveUserWithPersona tomó: ${Date.now() - modelStartTime}ms`);
     
     if (!userData) {
       return res.status(404).json({ success: false, error: "Usuario no encontrado" });
     }
     
-    // Enviar email con credenciales si tiene datos completos
+    // Enviar email con credenciales si tiene datos completos - NO BLOQUEANTE
     if (userData.firstname && userData.lastname && userData.email && userData.tempPassword) {
       try {
-        await sendCredentialsEmail(
+        const emailStartTime = Date.now();
+        sendCredentialsEmail(
           userData.email,          
           userData.firstname,      
           userData.lastname,       
           userData.email,          
           userData.tempPassword    
-        );
-        console.log(`✅ Email de credenciales enviado a ${userData.email}`);
+        ).then(() => {
+          console.log(`[TIMING] Email enviado exitosamente en: ${Date.now() - emailStartTime}ms`);
+          console.log(`✅ Email de credenciales enviado a ${userData.email}`);
+        }).catch(emailError => {
+          console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
+        });
       } catch (emailError) {
-        console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
-       
+        console.error("⚠️ Error al iniciar envío de email:", emailError.message);
       }
     }
+    
+    const totalTime = Date.now() - startTime;
+    console.log(`[TIMING] approveUser - tiempo total: ${totalTime}ms`);
     
     res.json({ 
       success: true, 
@@ -760,13 +792,16 @@ export const approveUser = async (req, res) => {
 
 /** POST /users/institution/approve/:id - Aprobar usuario institución y enviar credenciales */
 export const approveInstitution = async (req, res) => {
+  const startTime = Date.now();
   try {
     const id = req.params.id;
-    console.log("[INFO] approveInstitution - start", { userId: id });
+    console.log("[INFO] approveInstitution - start", { userId: id, timestamp: new Date().toISOString() });
     console.log("[DEBUG] approveInstitution - función llamada desde:", new Error().stack);
     
     // Aprobar institución y generar NUEVA contraseña temporal
+    const modelStartTime = Date.now();
     const userData = await UserModel.approveUserWithInstitution(id);
+    console.log(`[TIMING] approveUserWithInstitution tomó: ${Date.now() - modelStartTime}ms`);
     
     console.log("[DEBUG] approveInstitution - userData recibido:", {
       email: userData?.email,
@@ -783,19 +818,33 @@ export const approveInstitution = async (req, res) => {
     if (userData.companyName && userData.email && userData.tempPassword) {
       try {
         console.log("[DEBUG] approveInstitution - ANTES de enviar email con password:", userData.tempPassword);
-        await sendCredentialsEmail(
+        const emailStartTime = Date.now();
+        
+        // Enviar email de forma NO bloqueante (no esperar a que termine)
+        sendCredentialsEmail(
           userData.email,           // to: email destino
           userData.companyName,     // nombre (companyName para instituciones)
           '',                       // apellidos (vacío para instituciones)
           userData.email,           // username: el email es el usuario
           userData.tempPassword     // password: contraseña temporal NUEVA
-        );
-        console.log(`✅ Email de credenciales enviado a ${userData.email} con password: ${userData.tempPassword}`);
+        ).then(() => {
+          console.log(`[TIMING] Email enviado exitosamente en: ${Date.now() - emailStartTime}ms`);
+          console.log(`✅ Email de credenciales enviado a ${userData.email} con password: ${userData.tempPassword}`);
+        }).catch(emailError => {
+          console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
+        });
+        
+        // Responder inmediatamente sin esperar el email (mejora UX)
+        console.log(`[TIMING] Respuesta enviada al cliente en: ${Date.now() - startTime}ms (antes de esperar email)`);
+        
       } catch (emailError) {
-        console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
+        console.error("⚠️ Error al iniciar envío de email:", emailError.message);
         // Continuar aunque falle el email
       }
     }
+    
+    const totalTime = Date.now() - startTime;
+    console.log(`[TIMING] approveInstitution - tiempo total: ${totalTime}ms`);
     
     res.json({ 
       success: true, 

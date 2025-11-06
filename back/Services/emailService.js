@@ -136,6 +136,7 @@ const getCredentialsEmailTemplate = (nombre, apellidos, username, password, emai
 // Plantilla HTML para rechazo de solicitud
 const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
   const tipoUsuario = userType === 'institucion' ? 'empresa' : 'persona';
+  const articuloTipo = userType === 'institucion' ? 'tu empresa' : 'tu perfil';
   
   return `<!doctype html>
 <html lang="es">
@@ -159,10 +160,28 @@ const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
       padding: 16px; 
       margin: 16px 0;
     }
+    .info-box { 
+      background: #e8f5f7; 
+      border: 2px solid #2196f3; 
+      border-radius: 8px; 
+      padding: 16px; 
+      margin: 16px 0;
+    }
+    .retry-button {
+      display:inline-block;
+      text-decoration:none;
+      padding:14px 32px;
+      border-radius:6px;
+      font-weight:700;
+      background:#14A24F;
+      color:#ffffff !important;
+      margin: 16px 0;
+    }
     @media only screen and (max-width:600px) {
       .email-content { width:94% !important; max-width:94% !important; }
       h1 { font-size:26px !important; }
       .card { border-width:2px !important; border-radius:10px !important; }
+      .retry-button { padding:12px 24px !important; font-size:14px !important; }
     }
   </style>
 </head>
@@ -176,34 +195,66 @@ const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="card">
                 <tr>
                   <td align="center" style="padding:26px 30px;">
-                    <h1>Solicitud de Cuenta Rechazada</h1>
+                    <h1>Solicitud No Aprobada</h1>
                     <div style="height:12px;"></div>
-                    <p class="lead">Lamentamos informarte que tu solicitud no ha sido aprobada.</p>
+                    <p class="lead">Tu solicitud de registro no fue aprobada en esta ocasión.</p>
                   </td>
                 </tr>
                 <tr>
                   <td style="padding:20px 34px;">
-                    <p>Estimado/a <strong>${nombre} ${apellidos}</strong>,</p>
-                    <p>Lamentamos informarte que tu solicitud de registro como ${tipoUsuario} recolector/a en GreenBit no ha sido aprobada.</p>
+                    <p>Hola <strong>${nombre} ${apellidos}</strong>,</p>
+                    <p>Gracias por tu interés en unirte a GreenBit como ${tipoUsuario} recolector/a. Lamentamos informarte que tu solicitud de registro no ha sido aprobada en esta ocasión.</p>
                     
                     <div class="rejection-box">
-                      <p style="margin:0; color:#B33A3A; font-weight:bold;">❌ Estado: Solicitud Rechazada</p>
+                      <p style="margin:0 0 8px 0; color:#B33A3A; font-weight:bold; font-size:16px;">❌ Estado: Solicitud Rechazada</p>
+                      <p style="margin:0; color:#5a4040; font-size:14px;">Tu cuenta no ha sido activada</p>
                     </div>
                     
-                    <p><strong>Posibles razones:</strong></p>
-                    <ul style="color:#2f5441; padding-left: 20px;">
-                      <li>La información proporcionada no cumple con nuestros requisitos</li>
+                    <p><strong>📋 Posibles razones del rechazo:</strong></p>
+                    <ul style="color:#2f5441; padding-left: 20px; margin: 8px 0 16px 0;">
+                      <li>La información proporcionada está incompleta o es incorrecta</li>
                       <li>No se pudo verificar la documentación enviada</li>
-                      <li>La solicitud no cumple con los criterios de aprobación</li>
+                      <li>Los datos no cumplen con nuestros requisitos de validación</li>
+                      <li>La información de ${articuloTipo} no es clara o verificable</li>
                     </ul>
                     
-                    <p>Si consideras que esto es un error o deseas obtener más información, por favor contacta con nuestro equipo de soporte.</p>
+                    <div class="info-box">
+                      <p style="margin:0 0 8px 0; color:#1976d2; font-weight:bold; font-size:15px;">💡 ¿Qué puedes hacer?</p>
+                      <p style="margin:0; color:#2f5441; font-size:14px;">
+                        <strong>¡No te desanimes!</strong> Puedes volver a registrarte proporcionando información más completa y precisa.
+                      </p>
+                    </div>
                     
-                    <div style="height:14px;"></div>
-                    <p style="color:#6b725f; font-size:12px; margin:0;">
-                      Puedes intentar registrarte nuevamente en el futuro.<br/>
-                      © GreenBit 2025 - Cuidando el planeta juntos
+                    <p><strong>✅ Recomendaciones para tu próxima solicitud:</strong></p>
+                    <ul style="color:#2f5441; padding-left: 20px; margin: 8px 0 16px 0;">
+                      <li>Asegúrate de que todos los campos estén completos</li>
+                      <li>Verifica que tu información sea correcta y actualizada</li>
+                      <li>Proporciona datos reales y verificables</li>
+                      ${userType === 'institucion' 
+                        ? '<li>Confirma que el NIT y nombre de empresa sean correctos</li>' 
+                        : '<li>Confirma que tus nombres y apellidos sean correctos</li>'}
+                      <li>Asegúrate de usar un correo electrónico válido y activo</li>
+                    </ul>
+                    
+                    <div align="center" style="margin: 24px 0;">
+                      <a href="http://localhost:5173/register" class="retry-button">
+                        🔄 Volver a Intentar
+                      </a>
+                    </div>
+                    
+                    <p style="font-size:14px; color:#5a6b5f; margin-top: 20px;">
+                      <strong>📞 ¿Necesitas ayuda?</strong><br/>
+                      Si consideras que esto es un error o deseas obtener más información sobre tu solicitud, 
+                      no dudes en contactar con nuestro equipo de soporte. Estamos aquí para ayudarte.
                     </p>
+                    
+                    <div style="height:20px;"></div>
+                    <div style="border-top: 2px solid #d4c9b0; padding-top: 16px;">
+                      <p style="color:#6b725f; font-size:12px; margin:0; text-align:center;">
+                        <strong>GreenBit</strong> - Juntos por un planeta más limpio 🌱<br/>
+                        © 2025 GreenBit. Todos los derechos reservados.
+                      </p>
+                    </div>
                   </td>
                 </tr>
               </table>
@@ -275,6 +326,13 @@ export const verifyEmailConnection = async () => {
 
 // Función para enviar email de rechazo
 export const sendRejectionEmail = async (to, nombre, apellidos, userType = 'persona') => {
+  console.log("[DEBUG] sendRejectionEmail - INICIO", {
+    to,
+    nombre,
+    apellidos,
+    userType,
+    timestamp: new Date().toISOString()
+  });
   
   if (!transporter) {
     const error = "❌ No se puede enviar email: falta configurar GMAIL_USER y GMAIL_APP_PASSWORD en .env";
@@ -288,11 +346,11 @@ export const sendRejectionEmail = async (to, nombre, apellidos, userType = 'pers
     const info = await transporter.sendMail({
       from: `"GreenBit" <${USER}>`,
       to: to,
-      subject: "⚠️ Solicitud de Cuenta Rechazada - GreenBit",
+      subject: "⚠️ Solicitud de Cuenta No Aprobada - GreenBit",
       html: html,
     });
 
-    console.log(`✅ Email de rechazo enviado a ${to}:`, info.messageId);
+    console.log(`✅ Email de rechazo ENVIADO EXITOSAMENTE a ${to}:`, info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("❌ Error enviando email de rechazo:", error);
