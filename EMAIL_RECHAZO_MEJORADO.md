@@ -9,13 +9,16 @@ Se mejoró el email de rechazo de solicitudes para hacerlo más amigable, inform
 ## 🎨 Mejoras Implementadas
 
 ### 1. **Diseño Visual Mejorado**
+
 - ✅ Cajas de información con colores distintivos
 - ✅ Iconos y emojis para mejor legibilidad
 - ✅ Botón CTA "Volver a Intentar" destacado
 - ✅ Responsive y profesional
 
 ### 2. **Contenido Más Amigable**
+
 **ANTES:**
+
 ```
 "Lamentamos informarte que tu solicitud no ha sido aprobada"
 "Posibles razones..." (genérico)
@@ -23,6 +26,7 @@ Se mejoró el email de rechazo de solicitudes para hacerlo más amigable, inform
 ```
 
 **AHORA:**
+
 ```
 "Tu solicitud no fue aprobada en esta ocasión"
 "¡No te desanimes! Puedes volver a registrarte"
@@ -34,21 +38,26 @@ Botón de acción: "🔄 Volver a Intentar"
 ### 3. **Información Útil Agregada**
 
 #### Caja de Estado (Roja)
+
 - ❌ Estado: Solicitud Rechazada
 - Tu cuenta no ha sido activada
 
 #### Caja de Información (Azul)
+
 - 💡 ¿Qué puedes hacer?
 - ¡No te desanimes! Puedes volver a registrarte proporcionando información más completa y precisa.
 
 #### Razones del Rechazo
+
 - La información proporcionada está incompleta o es incorrecta
 - No se pudo verificar la documentación enviada
 - Los datos no cumplen con nuestros requisitos de validación
 - La información de [tu perfil/tu empresa] no es clara o verificable
 
 #### Recomendaciones Específicas
+
 ✅ Para personas:
+
 - Asegúrate de que todos los campos estén completos
 - Verifica que tu información sea correcta y actualizada
 - Proporciona datos reales y verificables
@@ -56,6 +65,7 @@ Botón de acción: "🔄 Volver a Intentar"
 - Asegúrate de usar un correo electrónico válido y activo
 
 ✅ Para instituciones:
+
 - Asegúrate de que todos los campos estén completos
 - Verifica que tu información sea correcta y actualizada
 - Proporciona datos reales y verificables
@@ -63,20 +73,23 @@ Botón de acción: "🔄 Volver a Intentar"
 - Asegúrate de usar un correo electrónico válido y activo
 
 ### 4. **Botón de Acción (CTA)**
+
 ```html
 <a href="http://localhost:5173/register" class="retry-button">
   🔄 Volver a Intentar
 </a>
 ```
+
 - Verde GreenBit (#14A24F)
 - Centrado y visible
 - Link directo a registro
 - Responsive
 
 ### 5. **Sección de Soporte**
+
 ```
 📞 ¿Necesitas ayuda?
-Si consideras que esto es un error o deseas obtener más información 
+Si consideras que esto es un error o deseas obtener más información
 sobre tu solicitud, no dudes en contactar con nuestro equipo de soporte.
 ```
 
@@ -85,36 +98,42 @@ sobre tu solicitud, no dudes en contactar con nuestro equipo de soporte.
 ## 🔧 Aspectos Técnicos
 
 ### Archivo Modificado
+
 **`back/Services/emailService.js`**
 
 #### Función: `getRejectionEmailTemplate(nombre, apellidos, userType)`
 
 **Parámetros:**
+
 - `nombre`: String - Nombre o razón social
 - `apellidos`: String - Apellidos (vacío para instituciones)
 - `userType`: String - 'persona' o 'institucion'
 
 **Variables dinámicas:**
+
 ```javascript
-const tipoUsuario = userType === 'institucion' ? 'empresa' : 'persona';
-const articuloTipo = userType === 'institucion' ? 'tu empresa' : 'tu perfil';
+const tipoUsuario = userType === "institucion" ? "empresa" : "persona";
+const articuloTipo = userType === "institucion" ? "tu empresa" : "tu perfil";
 ```
 
 **Lógica condicional:**
+
 ```javascript
-${userType === 'institucion' 
-  ? '<li>Confirma que el NIT y nombre de empresa sean correctos</li>' 
+${userType === 'institucion'
+  ? '<li>Confirma que el NIT y nombre de empresa sean correctos</li>'
   : '<li>Confirma que tus nombres y apellidos sean correctos</li>'}
 ```
 
 ### Función: `sendRejectionEmail(to, nombre, apellidos, userType)`
 
 **Cambios:**
+
 - ✅ Logs detallados con timestamp
 - ✅ Subject mejorado: "Solicitud de Cuenta **No Aprobada**" (más amigable)
 - ✅ Consistencia con otras funciones de email
 
 **Logs implementados:**
+
 ```javascript
 [DEBUG] sendRejectionEmail - INICIO {
   to: 'user@example.com',
@@ -131,6 +150,7 @@ ${userType === 'institucion'
 ## 📊 Flujo Completo
 
 ### Para Persona:
+
 ```
 1. Admin rechaza solicitud desde panel
    ↓
@@ -149,6 +169,7 @@ ${userType === 'institucion'
 ```
 
 ### Para Institución:
+
 ```
 1. Admin rechaza solicitud desde panel
    ↓
@@ -171,23 +192,27 @@ ${userType === 'institucion'
 ## 🎯 Objetivos Logrados
 
 ### UX Mejorada
+
 - ✅ Mensaje más amigable y menos negativo
 - ✅ Tono motivador en lugar de definitivo
 - ✅ Información clara sobre qué hacer
 - ✅ Camino claro para volver a intentar
 
 ### Información Útil
+
 - ✅ Razones específicas del rechazo
 - ✅ Recomendaciones accionables
 - ✅ Diferenciación entre persona/institución
 - ✅ Contacto para soporte
 
 ### Call to Action
+
 - ✅ Botón destacado "Volver a Intentar"
 - ✅ Link directo a registro
 - ✅ Visible y fácil de usar
 
 ### Branding
+
 - ✅ Colores GreenBit consistentes
 - ✅ Logo/nombre de la aplicación
 - ✅ Mensaje de marca: "Juntos por un planeta más limpio 🌱"
@@ -197,6 +222,7 @@ ${userType === 'institucion'
 ## 🧪 Pruebas Recomendadas
 
 ### 1. Probar Rechazo de Persona
+
 ```bash
 # 1. Registrar usuario persona
 # 2. Ir a Admin → Solicitudes de Acceso → Persona
@@ -210,6 +236,7 @@ ${userType === 'institucion'
 ```
 
 ### 2. Probar Rechazo de Institución
+
 ```bash
 # 1. Registrar usuario institución
 # 2. Ir a Admin → Solicitudes de Acceso → Empresa
@@ -223,6 +250,7 @@ ${userType === 'institucion'
 ```
 
 ### 3. Verificar Logs Backend
+
 ```
 [INFO] rejectUser - start { userId: 123, timestamp: '...' }
 [TIMING] rejectUserWithPersona tomó: 25ms
@@ -242,6 +270,7 @@ ${userType === 'institucion'
 ## 📱 Vista Previa del Email
 
 ### Desktop
+
 ```
 ┌─────────────────────────────────────────┐
 │          GreenBit Background            │
@@ -280,6 +309,7 @@ ${userType === 'institucion'
 ```
 
 ### Mobile (Responsive)
+
 - Texto se adapta
 - Botón CTA al 100% del ancho
 - Padding reducido
@@ -290,9 +320,11 @@ ${userType === 'institucion'
 ## ⚙️ Configuración
 
 ### URL del Botón
+
 **Actual:** `http://localhost:5173/register`
 
 **Para Producción:** Cambiar a:
+
 ```javascript
 <a href="https://greenbit.com/register" class="retry-button">
 ```
@@ -304,40 +336,47 @@ ${userType === 'institucion'
 ## 📝 Notas Importantes
 
 ### Sin Credenciales
+
 ✅ Este email NO incluye credenciales (correcto)  
 ✅ Solo se envía cuando se rechaza la solicitud  
-✅ El usuario debe volver a registrarse desde cero  
+✅ El usuario debe volver a registrarse desde cero
 
 ### Estado en DB
+
 - Usuario rechazado: `state = 2`
 - Usuario NO puede hacer login
 - Usuario NO tiene acceso al sistema
 
 ### Diferencia con Email de Aprobación
-| Rechazo | Aprobación |
-|---------|-----------|
-| Sin credenciales | Con credenciales |
-| Motiva a reintentar | Activa la cuenta |
-| State = 2 | State = 1 |
-| No puede login | Puede hacer login |
+
+| Rechazo             | Aprobación        |
+| ------------------- | ----------------- |
+| Sin credenciales    | Con credenciales  |
+| Motiva a reintentar | Activa la cuenta  |
+| State = 2           | State = 1         |
+| No puede login      | Puede hacer login |
 
 ---
 
 ## 🔮 Mejoras Futuras Sugeridas
 
 1. **Razón específica de rechazo**
+
    - Admin puede seleccionar razón al rechazar
    - Email muestra la razón exacta
 
 2. **Feedback estructurado**
+
    - Campo de comentarios del admin
    - Se incluye en el email
 
 3. **Tracking**
+
    - Registrar si el usuario hace clic en "Volver a Intentar"
    - Analytics de conversión de rechazados
 
 4. **Email de seguimiento**
+
    - Enviar recordatorio después de 7 días
    - "¿Sigues interesado? Vuelve a intentar"
 

@@ -14,12 +14,14 @@
 **Archivo modificado:** `back/Controllers/userController.js`
 
 Se optimizaron 4 funciones para enviar emails de forma NO bloqueante:
+
 - ✅ `approveInstitution` - Aprobar institución
 - ✅ `approveUser` - Aprobar persona
-- ❌ `rejectInstitution` - Rechazar institución  
+- ❌ `rejectInstitution` - Rechazar institución
 - ❌ `rejectUser` - Rechazar persona
 
-**Mejora clave:** 
+**Mejora clave:**
+
 ```javascript
 // ANTES (bloqueante - esperaba 2-5 segundos al email):
 await sendCredentialsEmail(...);
@@ -37,9 +39,11 @@ res.json({ success: true }); // ⚡ Responde inmediatamente
 **Resultado:** La respuesta al frontend ahora toma ~50-200ms en lugar de 2-5 segundos.
 
 ### 4. **Logs de timing agregados**
+
 **Propósito:** Monitorear y optimizar el rendimiento
 
 **Logs implementados:**
+
 - `[TIMING] approveUserWithInstitution tomó: XXms` - Tiempo de operación DB
 - `[TIMING] Email enviado exitosamente en: XXms` - Tiempo de envío email
 - `[TIMING] approveInstitution - tiempo total: XXms` - Tiempo total de endpoint
@@ -47,11 +51,14 @@ res.json({ success: true }); // ⚡ Responde inmediatamente
 - Stack traces para debugging (detectar llamadas duplicadas)
 
 ### 5. **Logs de debugging mejorados**
+
 **Archivo modificado:**
+
 - `back/Models/userModel.js` (función `approveUserWithInstitution`)
 - `back/Services/emailService.js` (función `sendCredentialsEmail`)
 
 **Información rastreada:**
+
 - Password generado (plaintext y hash)
 - Datos de userData retornados
 - Parámetros completos de sendCredentialsEmail
@@ -60,6 +67,7 @@ res.json({ success: true }); // ⚡ Responde inmediatamente
 ## 📊 Comparación de Tiempos
 
 ### ANTES:
+
 ```
 Usuario hace clic → "Procesando..." → Espera 3-6 segundos → Modal de éxito
 |_______________________________________________________________|
@@ -67,6 +75,7 @@ Usuario hace clic → "Procesando..." → Espera 3-6 segundos → Modal de éxit
 ```
 
 ### DESPUÉS:
+
 ```
 Usuario hace clic → "Aprobando..." → Modal de éxito en ~200-500ms
 |_______________________________________________________________|
@@ -85,18 +94,21 @@ Usuario hace clic → "Aprobando..." → Modal de éxito en ~200-500ms
 ## 🧪 Cómo Probar las Mejoras
 
 1. **Iniciar el backend:**
+
    ```bash
    cd back
    npm run dev
    ```
 
 2. **Iniciar el frontend:**
+
    ```bash
    cd front
    npm run dev
    ```
 
 3. **Probar flujo completo:**
+
    - Ir al módulo de Admin → Solicitudes de Acceso
    - Cambiar entre tabs "Persona" y "Empresa"
    - Aprobar una solicitud:
@@ -124,10 +136,12 @@ Usuario hace clic → "Aprobando..." → Modal de éxito en ~200-500ms
 Si el modal no aparece o hay problemas:
 
 1. **Verificar importaciones:**
+
    - LoadingModal está en `front/src/components/CommonComp/`
    - CSS debe estar importado correctamente
 
 2. **Revisar logs de backend:**
+
    - Buscar `[TIMING]` para ver tiempos reales
    - Buscar `[ERROR]` para detectar problemas
    - Verificar que emails se envían (ver logs después de respuesta)
@@ -140,17 +154,20 @@ Si el modal no aparece o hay problemas:
 ## 📝 Notas Técnicas
 
 ### Envío de Emails Asíncrono
+
 - Los emails se envían en background usando Promises sin `await`
 - El endpoint responde inmediatamente después de actualizar la DB
 - Si el email falla, se registra en logs pero no afecta la UX
 - El usuario ve éxito porque la operación DB fue exitosa
 
 ### Seguridad
+
 - No se compromete la seguridad al enviar emails en background
 - La contraseña ya está hasheada y guardada en DB
 - El email es una notificación, no afecta la transacción principal
 
 ### Compatibilidad
+
 - Funciona en Chrome, Firefox, Safari, Edge
 - Responsive para móviles y tablets
 - Animaciones optimizadas con CSS puro (no JS)
@@ -158,6 +175,7 @@ Si el modal no aparece o hay problemas:
 ## 🎨 Personalización
 
 Para cambiar colores o textos del modal, editar:
+
 - **Textos:** `front/src/components/CommonComp/LoadingModal.tsx` (líneas 28-59)
 - **Colores:** `front/src/components/CommonComp/LoadingModal.css` (variables CSS)
 - **Velocidad animaciones:** CSS animations (duración en segundos)
