@@ -179,9 +179,12 @@ const FormComp: React.FC = () => {
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    
     // Limitar a 150 caracteres
     if (value.length <= 150) {
+      // Reemplazar múltiples espacios con un solo espacio
+      value = value.replace(/\s+/g, ' ');
       setFormData({ ...formData, description: value });
     }
   };
@@ -269,6 +272,10 @@ const FormComp: React.FC = () => {
   const handleLocationSelect = (lat: number, lng: number, address?: string) => {
     setSelectedLocation({ lat, lng, address });
     setShowMap(false);
+  };
+
+  const handleBack = () => {
+    window.history.back();
   };
 
   const handleSubmit = async () => {
@@ -369,6 +376,10 @@ const FormComp: React.FC = () => {
   return (
     <div className="recycle-form-container">
       <h1 className="form-title">Registra tu material de reciclaje</h1>
+
+      <button className="btn-back-top btn btn-outline-success" onClick={handleBack}>
+        ← Volver
+      </button>
 
       {apiError && (
         <div className="alert alert-warning mb-3">

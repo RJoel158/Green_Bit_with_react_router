@@ -43,7 +43,7 @@ export class PhoneValidator {
     CHILE: {
       code: '56',
       name: 'Chile',
-      regex: /^(\+56|56|0)([0-9]{7,8})$/,    // +56XXXXXXXX o 56XXXXXXXX
+      regex: /^(\+56|56|0)([0-9]{8,9})$/,    // +56XXXXXXXX o 56XXXXXXXX
       minDigits: 8,
       maxDigits: 8
     }

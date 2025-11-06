@@ -97,6 +97,19 @@ export class Validator {
     return "";
   }
 
+  // Valida descripción (sin múltiples espacios)
+  static validateDescription(description: string, maxLength: number = 150): string {
+    const normalized = this.normalizeSpaces(description);
+    if (!normalized) return "La descripción es requerida";
+    if (normalized.length > maxLength) return `La descripción no puede exceder ${maxLength} caracteres`;
+    return "";
+  }
+
+  // Normaliza descripción (quita espacios múltiples)
+  static normalizeDescription(description: string): string {
+    return this.normalizeSpaces(description);
+  }
+
   // Utilidad para saber si el objeto de errores está vacío
   static isValid(errors: Record<string, string>): boolean {
     return Object.values(errors).every((e) => e === "");

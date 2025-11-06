@@ -332,10 +332,16 @@ export const changePassword = async (req, res) => {
 export const createUserWithInstitution = async (req, res) => {
   try {
     const { companyName, nit, email, phone, role_id } = req.body;
-    if (!companyName || !nit || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        error: "Campos requeridos: companyName, nit, email, phone",
+    
+    // Validar campos con Validator
+    const errors = Validator.validateUserInstitution({ companyName, nit, email, phone });
+    
+    if (!Validator.isValid(errors)) {
+      console.warn("[WARN] createUserWithInstitution - validation error", { errors, body: req.body });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Validación fallida",
+        details: errors 
       });
     }
 
@@ -343,10 +349,10 @@ export const createUserWithInstitution = async (req, res) => {
 
     // El modelo genera y guarda una contraseña temporal para cumplir con NOT NULL
     const result = await UserModel.createWithInstitution(
-      companyName,
-      nit,
-      email,
-      phone,
+      Validator.capitalizeWords(companyName),
+      nit.trim().toUpperCase(),
+      email.toLowerCase().trim(),
+      phone.trim(),
       roleIdParsed,
       3 // state pendiente
     );
@@ -373,10 +379,16 @@ export const createUserWithInstitution = async (req, res) => {
 export const createUserWithInstitutionByAdmin = async (req, res) => {
   try {
     const { companyName, nit, email, phone, role_id } = req.body;
-    if (!companyName || !nit || !email || !phone) {
-      return res.status(400).json({
-        success: false,
-        error: "Campos requeridos: companyName, nit, email, phone",
+    
+    // Validar campos con Validator
+    const errors = Validator.validateUserInstitution({ companyName, nit, email, phone });
+    
+    if (!Validator.isValid(errors)) {
+      console.warn("[WARN] createUserWithInstitutionByAdmin - validation error", { errors, body: req.body });
+      return res.status(400).json({ 
+        success: false, 
+        error: "Validación fallida",
+        details: errors 
       });
     }
 
@@ -384,10 +396,10 @@ export const createUserWithInstitutionByAdmin = async (req, res) => {
 
     // Crear con estado 1 (aprobado directamente por admin)
     const result = await UserModel.createWithInstitution(
-      companyName,
-      nit,
-      email,
-      phone,
+      Validator.capitalizeWords(companyName),
+      nit.trim().toUpperCase(),
+      email.toLowerCase().trim(),
+      phone.trim(),
       roleIdParsed,
       1 // state aprobado
     );
