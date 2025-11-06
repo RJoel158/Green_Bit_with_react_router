@@ -522,7 +522,7 @@ export const getInstitutionById = async (id) => {
 
 /**
  * Aprobar usuario con institución
- * Genera contraseña temporal, actualiza estado y retorna datos para enviar email
+ * Genera NUEVA contraseña temporal al aprobar y la envía por email
  */
 export const approveUserWithInstitution = async (userId) => {
   const conn = await db.getConnection();
@@ -548,17 +548,23 @@ export const approveUserWithInstitution = async (userId) => {
 
     const userData = rows[0];
 
-    // Generar contraseña temporal
+    // Generar NUEVA contraseña temporal para enviar por correo al aprobar
     const tempPassword = passwordGenerater(12);
+    console.log("[DEBUG] approveUserWithInstitution - password generado:", tempPassword);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
+    console.log("[DEBUG] approveUserWithInstitution - password hasheado (primeros 20 chars):", hashedPassword.substring(0, 20));
 
-    // Actualizar usuario: contraseña y estado a 1 (activo, debe cambiar contraseña)
+    // Actualizar usuario: nueva contraseña y estado a 1 (activo, debe cambiar contraseña)
     await conn.query("UPDATE users SET password = ?, state = 1 WHERE id = ?", [hashedPassword, userId]);
 
     await conn.commit();
-    console.log("[INFO] approveUserWithInstitution - committed", { userId });
+    console.log("[INFO] approveUserWithInstitution - committed with new temp password", { 
+      userId, 
+      tempPasswordReturned: tempPassword,
+      tempPasswordLength: tempPassword.length
+    });
     
-    // Retornar datos para enviar email (incluyendo contraseña sin hash)
+    // Retornar datos con la nueva contraseña temporal para enviar por email
     return {
       ...userData,
       tempPassword
@@ -573,20 +579,26 @@ export const approveUserWithInstitution = async (userId) => {
 };
 
 /**
- * Crear user + institution con contraseña temporal.
+ * Crear user + institution con contraseña temporal generada.
  * @param {number} state - Estado del usuario (por defecto 3 = pendiente)
- * @param {string|null} password - Contraseña hasheada (opcional, por defecto null)
+ * @returns {Object} - { userId, institutionId, tempPassword }
  */
-export const createWithInstitution = async (companyName, nit, email, phone, roleId, state = 3, password = null) => {
+export const createWithInstitution = async (companyName, nit, email, phone, roleId, state = 3) => {
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // Crear usuario(estado 3 - solicitud pendiente)
+    // Generar contraseña temporal (se usará al aprobar)
+    const tempPassword = passwordGenerater(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    console.log("[INFO] createWithInstitution - generated temp password for pending user");
+
+    // Crear usuario con contraseña temporal (estado 3 - solicitud pendiente)
     const [userRes] = await conn.query(
       `INSERT INTO users (email, phone, roleId, state, password)
        VALUES (?, ?, ?, ?, ?)`,
-      [ email, phone, roleId || null, state, password]
+      [ email, phone, roleId || null, state, hashedPassword]
     );
     const userId = userRes.insertId;
 
@@ -598,6 +610,7 @@ export const createWithInstitution = async (companyName, nit, email, phone, role
     return {
       userId,
       institutionId,
+      tempPassword // Devolver la contraseña sin hashear para el email
     };
   } catch (err) {
     await conn.rollback();

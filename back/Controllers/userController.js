@@ -315,7 +315,7 @@ export const changePassword = async (req, res) => {
 
 //Insitution User Model
 
-/** POST /users/institution -> crea user + institution (pendiente, sin contraseña) */
+/** POST /users/institution -> crea user + institution (pendiente, CON contraseña temporal) */
 export const createUserWithInstitution = async (req, res) => {
   try {
     const { companyName, nit, email, phone, role_id } = req.body;
@@ -328,25 +328,28 @@ export const createUserWithInstitution = async (req, res) => {
 
     const roleIdParsed = role_id !== undefined ? Number(role_id) : 2; // default: recolector
 
-    // El modelo debe crear el usuario con password: null y state: 3 (pendiente)
+    // El modelo genera y guarda una contraseña temporal para cumplir con NOT NULL
     const result = await UserModel.createWithInstitution(
       companyName,
       nit,
       email,
       phone,
       roleIdParsed,
-      3, // state pendiente
-      null // sin contraseña
+      3 // state pendiente
     );
+
+    console.log("[INFO] createUserWithInstitution - user created with temp password (email will be sent on approval)", { userId: result.userId });
+
+    // NO enviar correo aquí - se enviará cuando el admin apruebe
 
     res.status(201).json({
       success: true,
       id: result.userId,
       institutionId: result.institutionId,
-      state: 0
+      state: 3, // pendiente
+      message: "Institución registrada. Espera la aprobación del administrador para recibir tus credenciales."
     });
 
-    // No enviar correo ni contraseña aquí
   } catch (err) {
     console.error("[ERROR] createUserWithInstitution:", { body: req.body, message: err.message });
     res.status(500).json({ success: false, error: "Error al registrar usuario con institución" });
@@ -366,29 +369,31 @@ export const createUserWithInstitutionByAdmin = async (req, res) => {
 
     const roleIdParsed = role_id !== undefined ? Number(role_id) : 2; // default: recolector
 
-    // Generar contraseña temporal
-    const tempPassword = Math.random().toString(36).slice(-8);
-    const hashedPassword = await bcrypt.hash(tempPassword, 10);
-
-    // Crear usuario con estado 1 (aprobado)
+    // Crear con estado 1 (aprobado directamente por admin)
     const result = await UserModel.createWithInstitution(
       companyName,
       nit,
       email,
       phone,
       roleIdParsed,
-      1, // state aprobado
-      hashedPassword
+      1 // state aprobado
     );
 
+    console.log("[INFO] createUserWithInstitutionByAdmin - institution created and approved", { userId: result.userId });
+
     // Enviar correo con credenciales
-    await sendCredentialsEmail(email, companyName, email, tempPassword);
+    try {
+      await sendCredentialsEmail(email, companyName, '', email, result.tempPassword);
+      console.log("[INFO] createUserWithInstitutionByAdmin - credentials email sent", { email });
+    } catch (emailErr) {
+      console.error("[ERROR] createUserWithInstitutionByAdmin - failed to send email:", emailErr.message);
+    }
 
     res.status(201).json({
       success: true,
       id: result.userId,
       institutionId: result.institutionId,
-      message: "Institución creada y correo enviado"
+      message: "Institución creada y aprobada. Se envió correo con credenciales."
     });
 
   } catch (err) {
@@ -753,30 +758,39 @@ export const approveUser = async (req, res) => {
   }
 };
 
-/** POST /users/institution/approve/:id - Aprobar usuario institución con generación de contraseña y envío de email */
+/** POST /users/institution/approve/:id - Aprobar usuario institución y enviar credenciales */
 export const approveInstitution = async (req, res) => {
   try {
     const id = req.params.id;
     console.log("[INFO] approveInstitution - start", { userId: id });
+    console.log("[DEBUG] approveInstitution - función llamada desde:", new Error().stack);
     
-    // Aprobar institución, generar contraseña y obtener datos
+    // Aprobar institución y generar NUEVA contraseña temporal
     const userData = await UserModel.approveUserWithInstitution(id);
+    
+    console.log("[DEBUG] approveInstitution - userData recibido:", {
+      email: userData?.email,
+      companyName: userData?.companyName,
+      hasTempPassword: !!userData?.tempPassword,
+      tempPasswordLength: userData?.tempPassword?.length
+    });
     
     if (!userData) {
       return res.status(404).json({ success: false, error: "Institución no encontrada" });
     }
     
-    // Enviar email con credenciales si tiene datos completos
+    // Enviar email con las credenciales (AHORA sí se envía)
     if (userData.companyName && userData.email && userData.tempPassword) {
       try {
+        console.log("[DEBUG] approveInstitution - ANTES de enviar email con password:", userData.tempPassword);
         await sendCredentialsEmail(
           userData.email,           // to: email destino
           userData.companyName,     // nombre (companyName para instituciones)
           '',                       // apellidos (vacío para instituciones)
           userData.email,           // username: el email es el usuario
-          userData.tempPassword     // password: contraseña temporal
+          userData.tempPassword     // password: contraseña temporal NUEVA
         );
-        console.log(`✅ Email de credenciales enviado a ${userData.email}`);
+        console.log(`✅ Email de credenciales enviado a ${userData.email} con password: ${userData.tempPassword}`);
       } catch (emailError) {
         console.error("⚠️ No se pudo enviar el email de credenciales:", emailError.message);
         // Continuar aunque falle el email
@@ -785,7 +799,7 @@ export const approveInstitution = async (req, res) => {
     
     res.json({ 
       success: true, 
-      message: "Institución aprobada exitosamente y credenciales enviadas" 
+      message: "Institución aprobada exitosamente y credenciales enviadas por correo" 
     });
   } catch (err) {
     console.error("[ERROR] approveInstitution controller:", { 

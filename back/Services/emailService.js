@@ -219,6 +219,17 @@ const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
 
 // Función para enviar credenciales por email
 export const sendCredentialsEmail = async (to, nombre, apellidos, username, password, emailType=0) => {
+  console.log("[DEBUG] sendCredentialsEmail - INICIO", {
+    to,
+    nombre,
+    apellidos,
+    username,
+    passwordReceived: password,
+    passwordLength: password?.length,
+    emailType,
+    timestamp: new Date().toISOString()
+  });
+  
   // Verificar si el transporter está configurado
   if (!transporter) {
     const error = "❌ No se puede enviar email: falta configurar GMAIL_USER y GMAIL_APP_PASSWORD en .env";
@@ -236,7 +247,8 @@ export const sendCredentialsEmail = async (to, nombre, apellidos, username, pass
       html: html,
     });
 
-    console.log(`✅ Email de credenciales enviado a ${to}:`, info.messageId);
+    console.log(`✅ Email de credenciales ENVIADO EXITOSAMENTE a ${to}:`, info.messageId);
+    console.log(`[DEBUG] sendCredentialsEmail - Password en el email enviado: ${password}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("❌ Error enviando email de credenciales:", error);
