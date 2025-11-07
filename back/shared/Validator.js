@@ -133,7 +133,7 @@ export class Validator {
     if (password.length < 8) return "Debe tener al menos 8 caracteres";
     if (!/[A-Z]/.test(password)) return "Debe tener al menos una mayúscula";
     if (!/[0-9]/.test(password)) return "Debe tener al menos un número";
-    if (!/[!#$%&*().:]/.test(password)) return "Debe tener al menos un carácter especial";
+    if (!/[!@#$%&*()_\-+=\[\]{};:'",.<>?/\\|`~]/.test(password)) return "Debe tener al menos un carácter especial";
     return "";
   }
 

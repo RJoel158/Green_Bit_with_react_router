@@ -224,7 +224,7 @@ export default function CreateUserModal({
   }
 
   return (
-    <div className="modalCreateUserOverlay" onClick={handleClose}>
+    <div className="modalCreateUserOverlay">
       <div className="modalCreateUserContainer" onClick={(e) => e.stopPropagation()}>
         <div className="modalCreateUserHeader">
           <h2 className="modalCreateUserTitle">Crear Usuario</h2>
