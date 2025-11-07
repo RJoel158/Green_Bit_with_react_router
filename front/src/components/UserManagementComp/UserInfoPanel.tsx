@@ -276,6 +276,12 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
             value={selectedRole || user.role} 
             onChange={(e) => setSelectedRole(e.target.value)}
             className="user-management-info-select"
+            disabled={isInstitution}
+            style={isInstitution ? { 
+              backgroundColor: '#f3f4f6', 
+              cursor: 'not-allowed',
+              color: '#6b7280'
+            } : {}}
           >
             <option value="Reciclador">Reciclador</option>
             <option value="Recolector">Recolector</option>
@@ -294,6 +300,12 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
         <button 
           className="user-management-info-save-btn"
           onClick={handleSaveClick}
+          disabled={isInstitution}
+          style={isInstitution ? { 
+            opacity: 0.5, 
+            cursor: 'not-allowed' 
+          } : {}}
+          title={isInstitution ? 'No se puede cambiar el rol de una empresa' : ''}
         >
           Guardar Cambios
         </button>
