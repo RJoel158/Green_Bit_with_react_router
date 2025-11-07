@@ -15,14 +15,22 @@ export const getMaterialesReport = async (req, res) => {
       params.push(userId);
     }
 
+    // Filtrado de fechas - usar DATE() para comparar solo la fecha sin hora
     if (dateFrom) {
-      whereClause += ' AND r.registerDate >= ?';
+      whereClause += ' AND DATE(r.registerDate) >= ?';
       params.push(dateFrom);
+      console.log('[DEBUG] Agregado filtro dateFrom:', dateFrom);
     }
 
     if (dateTo) {
-      whereClause += ' AND r.registerDate <= ?';
-      params.push(dateTo);
+      // Sumar un día a dateTo para incluir todo el día (hasta 23:59:59)
+      const dateToNext = new Date(dateTo);
+      dateToNext.setDate(dateToNext.getDate() + 1);
+      const dateToNextStr = dateToNext.toISOString().split('T')[0];
+      
+      whereClause += ' AND DATE(r.registerDate) < ?';
+      params.push(dateToNextStr);
+      console.log('[DEBUG] Agregado filtro dateTo (incluye todo el día):', { dateTo, dateToNextStr });
     }
 
     const query = `
@@ -37,8 +45,12 @@ export const getMaterialesReport = async (req, res) => {
       ORDER BY cantidad DESC
     `;
 
+    console.log('[DEBUG] Query SQL:', query);
+    console.log('[DEBUG] Params:', params);
+
     const [rows] = await db.query(query, params);
     console.log('[INFO] getMaterialesReport - Found', rows.length, 'materials');
+    console.log('[DEBUG] Rows:', rows);
 
     const total = rows.reduce((sum, row) => sum + (row.cantidad || 0), 0);
 
