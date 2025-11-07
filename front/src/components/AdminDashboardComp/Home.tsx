@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import RecyclingChart from './RecyclingCharts';
@@ -15,8 +16,21 @@ import RankingPeriodsAdmin from './RankingPeriodsAdmin';
 import './AdminDashboard.css';
 
 export default function AdminDashboard() {
+  const [searchParams] = useSearchParams();
   const [activeMenu, setActiveMenu] = useState('control');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Leer el parámetro ?menu de la URL
+  useEffect(() => {
+    const menuFromQuery = searchParams.get('menu');
+    // Si no viene un valor válido en la URL usar 'control'
+    const validMenus = ['control', 'reportes', 'usuarios', 'materiales', 'anuncios', 'accesos', 'ranking'];
+    if (menuFromQuery && validMenus.includes(menuFromQuery)) {
+      setActiveMenu(menuFromQuery);
+    } else {
+      setActiveMenu('control');
+    }
+  }, [searchParams]);
 
   // Navegar a reportes desde otros componentes
   useEffect(() => {
