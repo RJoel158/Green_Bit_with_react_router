@@ -112,9 +112,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="dashboard">
-      {/* Botón para móvil */}
+      {/* Botón hamburguesa global para móvil - posicionado para no tapar usuario */}
       <button 
-        className="hamburger-button" 
+        className={`hamburger-button hamburger-global ${sidebarOpen ? 'hidden-hamburger' : ''}`} 
         onClick={() => setSidebarOpen(true)}
         aria-label="Abrir menú"
       >

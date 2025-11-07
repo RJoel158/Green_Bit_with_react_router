@@ -51,11 +51,6 @@ export default function Sidebar({ onMenuSelect, activeMenu, isOpen, onClose }: S
       
       
       <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
-      {/* Botón de cerrar para móvil */}
-      <button className="sidebar-close" onClick={onClose} aria-label="Cerrar menú">
-        <i className="bi bi-x-lg"></i>
-      </button>
-
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-container">

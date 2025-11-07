@@ -32,24 +32,25 @@ body {
 /* Botón hamburguesa para móvil */
 .hamburger-button {
   position: fixed;
-  top: 1rem;
+  bottom: 1.5rem;
   left: 1rem;
-  z-index: 1001;
+  z-index: 900;
   display: none;
   background-color: #16a34a;
   border: none;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
+  border-radius: 50%;
+  width: 3.5rem;
+  height: 3.5rem;
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   transition: all 0.3s;
 }
 
 .hamburger-button:hover {
   background-color: #15803d;
-  transform: scale(1.05);
+  transform: scale(1.1);
 }
 
 .hamburger-button:active {
@@ -64,7 +65,7 @@ body {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 2050;
   animation: fadeIn 0.3s ease-in-out;
   display: none;
 }
@@ -98,7 +99,7 @@ body {
   overflow-y: auto;
   position: relative;
   transition: transform 0.3s ease-in-out;
-  z-index: 1000;
+  z-index: 2100;
 }
 
 /* Botón de cerrar el sidebar */
@@ -219,10 +220,11 @@ body {
   flex: 1;
   display: flex !important;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   min-width: 0;
   max-width: calc(100vw - 256px);
   height: 100vh;
+  position: relative;
 }
 
 /* Header Styles */
@@ -234,6 +236,9 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
 .dashboard-header-title {
@@ -755,9 +760,12 @@ body {
     transform: translateX(0);
   }
 
-  /* Mostrar botón de cerrar en móvil */
   .sidebar-close {
-    display: block;
+    display: none;
+  }
+
+  .hamburger-button.hidden-hamburger {
+    display: none !important;
   }
 
   /* Ajustar el contenido principal para que ocupe todo el ancho */
