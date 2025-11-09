@@ -883,6 +883,17 @@ body {
   margin-top: 0.25rem;
 }
 
+
+.modalCreateUserFormGroup .phone-wrapper > div > div[style*="color"],
+.modalCreateUserFormGroup .phone-wrapper > div > small {
+  display: none !important;
+}
+
+
+.modalCreateUserFormGroup .phone-wrapper.has-error input.form-control {
+  border-color: #ef4444 !important;
+}
+
 .modalCreateUserInputDisabled {
   background-color: #f3f4f6;
   cursor: not-allowed;
