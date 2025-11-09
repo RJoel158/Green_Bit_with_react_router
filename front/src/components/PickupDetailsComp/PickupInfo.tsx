@@ -10,6 +10,8 @@ import './PickupDetails.css';
 import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
 import ComplaintModal from '../ComplaintModalComp/ComplaintModal';
+import CheckModal from '../CommonComp/CheckModal';
+import SuccessModal from '../CommonComp/SuccesModal';
 import { checkUserRated } from '../../services/scoreService';
 
 interface PickupInfoProps {
@@ -64,6 +66,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [hasRated, setHasRated] = useState(false);
   const [hasComplained, setHasComplained] = useState(false);
   const [deleting, setDeleting] = useState(false); // <-- move here, above all logic
+  const [showRejectCheckModal, setShowRejectCheckModal] = useState(false);
+  const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -391,17 +395,19 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar RECHAZO (no cancelación)
-    if (!window.confirm('❌ ¿Desea RECHAZAR esta solicitud de recolección?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para que otros recolectores puedan tomarla.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowRejectCheckModal(true);
+  };
 
+  // Función que se ejecuta cuando se confirma el rechazo
+  const confirmRejectAppointment = async () => {
+    setShowRejectCheckModal(false);
     setRejecting(true);
 
     try {
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
-      const userId = user?.id || appointmentData.recyclerId;
+      const userId = user?.id || appointmentData?.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/reject`);
       console.log('[INFO] POST ->', url);
@@ -422,9 +428,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
-        alert('✓ Cita rechazada. La solicitud estará disponible nuevamente.');
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.REJECTED } : prev);
-        onCancel();
+        setShowRejectSuccessModal(true);
       } else {
         throw new Error(result.error || 'Error al rechazar la cita');
       }
@@ -945,6 +950,28 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleComplaintModalClose}
           onSuccess={handleComplaintSuccess}
+        />
+      )}
+
+      {/* Modal de confirmación para rechazar cita */}
+      {showRejectCheckModal && (
+        <CheckModal
+          title="Rechazar Solicitud"
+          message="¿Está seguro que desea rechazar esta solicitud de recolección? La solicitud volverá a estar disponible en el mapa para otros recolectores."
+          onConfirm={confirmRejectAppointment}
+          onCancel={() => setShowRejectCheckModal(false)}
+        />
+      )}
+
+      {/* Modal de éxito después de rechazar */}
+      {showRejectSuccessModal && (
+        <SuccessModal
+          title="Solicitud Rechazada"
+          message="La cita ha sido rechazada exitosamente. La solicitud estará disponible nuevamente en el mapa."
+          onClose={() => {
+            setShowRejectSuccessModal(false);
+            onCancel();
+          }}
         />
       )}
     </div>
