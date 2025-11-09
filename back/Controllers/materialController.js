@@ -149,9 +149,9 @@ export const createMaterial = async (req, res) => {
 export const updateMaterial = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, state } = req.body;
     
-    console.log("[INFO] updateMaterial controller called:", { id, name, description });
+    console.log("[INFO] updateMaterial controller called:", { id, name, description, state });
     
     if (!id || isNaN(parseInt(id))) {
       return res.status(400).json({
@@ -166,16 +166,25 @@ export const updateMaterial = async (req, res) => {
         error: "El nombre del material es requerido"
       });
     }
+
+    // Validar state si se proporciona
+    if (state !== undefined && ![0, 1].includes(parseInt(state))) {
+      return res.status(400).json({
+        success: false,
+        error: "El estado debe ser 0 o 1"
+      });
+    }
     
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
       
-      const updated = await MaterialModel.update(
+      const updated = await MaterialModel.updateWithState(
         conn,
         parseInt(id),
         name.trim(),
         description?.trim() || null,
+        state !== undefined ? parseInt(state) : null,
         null // modifiedBy
       );
       
@@ -189,7 +198,7 @@ export const updateMaterial = async (req, res) => {
       
       await conn.commit();
       
-      console.log("[INFO] updateMaterial controller - material updated:", { id, name });
+      console.log("[INFO] updateMaterial controller - material updated:", { id, name, state });
       
       res.json({
         success: true,

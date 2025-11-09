@@ -66,7 +66,7 @@ export const getAll = async () => {
 };
 
 /**
- * Obtener todos los materiales activos - versión completa
+ * Obtener todos los materiales activos - versión completa (ya filtra por state=1)
  */
 export const getAllComplete = async () => {
   try {
@@ -79,6 +79,23 @@ export const getAllComplete = async () => {
     return rows;
   } catch (err) {
     console.error("[ERROR] MaterialModel.getAllComplete:", { message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
+/**
+ * Obtener todos los materiales incluyendo eliminados (para admin si es necesario)
+ */
+export const getAllIncludingDeleted = async () => {
+  try {
+    const [rows] = await db.query(
+      `SELECT id, name, description, createdDate, modifiedBy, modifiedDate, state
+       FROM material
+       ORDER BY name ASC`
+    );
+    return rows;
+  } catch (err) {
+    console.error("[ERROR] MaterialModel.getAllIncludingDeleted:", { message: err.message, stack: err.stack });
     throw err;
   }
 };
@@ -115,6 +132,31 @@ export const update = async (conn, id, name, description, modifiedBy = null) => 
     return res.affectedRows > 0;
   } catch (err) {
     console.error("[ERROR] MaterialModel.update:", { id, message: err.message, stack: err.stack });
+    throw err;
+  }
+};
+
+/**
+ * Actualizar material con state
+ */
+export const updateWithState = async (conn, id, name, description, state = null, modifiedBy = null) => {
+  try {
+    let query = `UPDATE material SET name = ?, description = ?, modifiedBy = ?, modifiedDate = NOW()`;
+    const params = [name, description, modifiedBy];
+    
+    // Si se proporciona state, incluirlo en la actualización
+    if (state !== null && state !== undefined) {
+      query += `, state = ?`;
+      params.push(state);
+    }
+    
+    query += ` WHERE id = ?`;
+    params.push(id);
+    
+    const [res] = await conn.query(query, params);
+    return res.affectedRows > 0;
+  } catch (err) {
+    console.error("[ERROR] MaterialModel.updateWithState:", { id, message: err.message, stack: err.stack });
     throw err;
   }
 };
