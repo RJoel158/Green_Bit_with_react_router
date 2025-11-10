@@ -13,14 +13,8 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || "reciclaje2024*",
   database: process.env.DB_NAME || "reciclaje_365377",
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  // Configuraciones de timeout para manejar mejor la conectividad
-  acquireTimeout: 10000, // 10 segundos para obtener conexión
-  timeout: 10000, // 10 segundos para queries
-  reconnect: true,
-  // Configuración SSL si es necesaria
-  ssl: false
+  connectionLimit: 20,
+  queueLimit: 0
 });
 
 console.log(`🔗 Pool de MySQL inicializado para ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`);

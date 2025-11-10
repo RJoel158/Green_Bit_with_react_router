@@ -85,16 +85,21 @@ app.use('/uploads', express.static(uploadDir));
 
 // Usar rutas de usuarios
 import rankingRoutes from './Routes/rankingRoutes.js';
+import personRoutes from './Routes/personRoutes.js';
+import institutionRoutes from './Routes/InstitutionRoutes.js';
+
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
-app.use("/api/appointments", requestAppointmentRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/scores", scoreRoutes);
-app.use("/api/announcement", announcementRoutes);
+app.use("/api/appointment", requestAppointmentRoutes);
+app.use("/api/notification", notificationRoutes);
+app.use("/api/score", scoreRoutes);
+app.use("/api/announcements", announcementRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/ranking", rankingRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/person", personRoutes);
+app.use("/api/institution", institutionRoutes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {

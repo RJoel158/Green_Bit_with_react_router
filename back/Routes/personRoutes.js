@@ -1,20 +1,20 @@
-// routes/institutionRoutes.js
+// routes/personRoutes.js
 import express from "express";
 import {
-  getInstitutions,
-  getInstitutionById,
-  createInstitution,
-  updateInstitution,
-  deleteInstitution,
-} from "../Controllers/institutionController.js";
+  getPersons,
+  getPersonById,
+  createPerson,
+  updatePerson,
+  deletePerson,
+} from "../Controllers/personController.js";
 
 const router = express.Router();
 
-// Rutas CRUD para instituciones
-router.get("/", getInstitutions);          // Obtener todas
-router.get("/:id", getInstitutionById);   // Obtener por ID
-router.post("/", createInstitution);      // Crear nueva
-router.put("/:id", updateInstitution);    // Actualizar
-router.delete("/:id", deleteInstitution); // Borrado lógico
+// Rutas CRUD para personas
+router.get("/", getPersons);          // Obtener todas
+router.get("/:id", getPersonById);   // Obtener por ID
+router.post("/", createPerson);      // Crear nueva
+router.put("/:id", updatePerson);    // Actualizar
+router.delete("/:id", deletePerson); // Borrado lógico
 
 export default router;
