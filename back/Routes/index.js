@@ -4,11 +4,11 @@
  * Este archivo contiene TODAS las rutas del backend organizadas en un único lugar.
  * Incluye SOLO los endpoints que se usan realmente en el frontend.
  * 
- * NOTA: Las rutas NO incluyen el prefijo /api/ porque se montan con app.use('', routes)
+ * NOTA: Las rutas NO incluyen el prefijo /api/ porque se montan con app.use('/api', routes)
  * El prefijo /api/ se agregará en server.js
  * 
  * Estructura:
- * - 11 rutas de USUARIOS
+ * - 17 rutas de USUARIOS (login, registro, obtener, aprobar, rechazar)
  * - 1 ruta de MATERIALES
  * - 2 rutas de SOLICITUDES
  * - 2 rutas de CITAS
@@ -19,7 +19,7 @@
  * - 7 rutas de RANKING
  * - 3 rutas de REPORTES
  * - 1 ruta de SISTEMA
- * = 43 rutas totales
+ * = 49 rutas totales
  */
 
 import express from 'express';
@@ -39,7 +39,7 @@ import * as reportController from '../Controllers/reportController.js';
 const router = express.Router();
 
 // ==========================================
-// USUARIOS (11 rutas)
+// USUARIOS (17 rutas)
 // ==========================================
 
 // Auth
@@ -55,6 +55,16 @@ router.post('/users/register-institution-admin', userController.createUserWithIn
 router.get('/users/:id', userController.getUserById);
 router.get('/users/person/:id', userController.getUsersPerson);
 router.get('/users/institution/:id', userController.getUserWithInstitutionById);
+router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
+router.get('/users/collectors/pending/institution', userController.getCollectorsPendingWithInstitution);
+
+// Aprobar/Rechazar usuarios (personas)
+router.post('/users/approve/:id', userController.approveUser);
+router.post('/users/reject/:id', userController.rejectUser);
+
+// Aprobar/Rechazar instituciones
+router.post('/users/institution/approve/:id', userController.approveInstitution);
+router.post('/users/institution/reject/:id', userController.rejectInstitution);
 
 // Actualizar
 router.put('/users/:id/role', userController.updateUserRole);
@@ -71,7 +81,7 @@ router.get('/material', materialController.getMaterials);
 // ==========================================
 // SOLICITUDES (2 rutas)
 // ==========================================
-router.post('/request', requestController.createRequest);
+router.post('/request', requestController.upload.array('photos'), requestController.createRequest);
 router.post('/request/:id/schedule', appointmentController.createNewAppointment);
 
 // ==========================================
