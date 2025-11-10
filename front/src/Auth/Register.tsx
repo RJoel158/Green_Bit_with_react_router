@@ -7,6 +7,7 @@ import { Validator } from "../common/Validator";
 import SuccessModal from "../components/CommonComp/SuccesModal";
 import api from "../services/api";
 import { API_ENDPOINTS } from "../config/endpoints";
+import CountryPhoneSelector from "../components/Auth/CountryPhoneSelector";
 
 type FormData = {
   nombres: string;
@@ -20,7 +21,7 @@ const Register: React.FC = () => {
     nombres: "",
     apellidos: "",
     email: "",
-    phone: "",
+    phone: "+591 ",
   });
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -111,11 +112,6 @@ const Register: React.FC = () => {
               { name: "nombres", placeholder: "Nombres", type: "text" },
               { name: "apellidos", placeholder: "Apellidos", type: "text" },
               { name: "email", placeholder: "Correo electrónico", type: "email" },
-              {
-                name: "phone",
-                placeholder: "Número celular (+591XXXXXXXXXX)",
-                type: "text",
-              },
             ].map((field) => (
               <div className="mb-3" key={field.name}>
                 <input
@@ -135,6 +131,17 @@ const Register: React.FC = () => {
                 )}
               </div>
             ))}
+
+            {/* Selector de país con teléfono */}
+            <div className="mb-3">
+              <CountryPhoneSelector
+                phone={form.phone}
+                onPhoneChange={(newPhone) =>
+                  setForm((f) => ({ ...f, phone: newPhone }))
+                }
+                error={errors.phone}
+              />
+            </div>
 
             <button
               type="submit"

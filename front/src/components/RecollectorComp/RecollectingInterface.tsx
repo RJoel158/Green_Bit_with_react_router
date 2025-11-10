@@ -121,8 +121,8 @@ const RecollectingInterface: React.FC = () => {
                 .slice(0, 5)
                 .map((recycler, idx) => (
                   <div key={recycler.user_id || recycler.id || idx} className="recycler-item">
-                    <div className="recycler-avatar">
-                      <img src={recycler.avatar || `https://i.pravatar.cc/40?img=${idx+1}`} alt={recycler.name || recycler.email || 'Recolector'} />
+                    <div className={`recycler-avatar recycler-avatar-letter recycler-avatar-color-${idx % 5}`}>
+                      {(recycler.email || recycler.name || 'U').charAt(0).toUpperCase()}
                     </div>
                     <span className="recycler-name">{recycler.name || recycler.email || 'Recolector'}</span>
                     <span className="recycler-points">{recycler.puntaje_final || recycler.points || 0}</span>

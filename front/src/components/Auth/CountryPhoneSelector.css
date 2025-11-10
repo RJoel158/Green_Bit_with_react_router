@@ -1,0 +1,205 @@
+/* CountryPhoneSelector.css */
+
+.country-phone-selector {
+  width: 100%;
+}
+
+.phone-input-wrapper {
+  display: flex;
+  gap: 0;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.phone-input-wrapper:focus-within {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.phone-input-wrapper.is-invalid {
+  border-color: #dc3545;
+}
+
+.phone-input-wrapper.is-invalid:focus-within {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Selector de país */
+.country-dropdown-wrapper {
+  position: relative;
+}
+
+.country-selector-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 12px;
+  background-color: #f8f9fa;
+  border: none;
+  border-right: 1px solid #dee2e6;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: background-color 0.15s ease-in-out;
+  min-width: 120px;
+}
+
+.country-selector-btn:hover {
+  background-color: #e9ecef;
+}
+
+.country-selector-btn:active {
+  background-color: #dee2e6;
+}
+
+.country-selector-btn .flag {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.country-selector-btn .dial-code {
+  font-weight: 600;
+  color: #1f7e1f;
+}
+
+.country-selector-btn .chevron {
+  font-size: 0.75rem;
+  margin-left: auto;
+  transition: transform 0.15s ease-in-out;
+}
+
+.country-dropdown-wrapper:has(.country-dropdown-menu) .country-selector-btn .chevron {
+  transform: rotate(180deg);
+}
+
+/* Dropdown menu */
+.country-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 0.375rem 0.375rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.country-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: left;
+  transition: background-color 0.15s ease-in-out;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.country-option:last-child {
+  border-bottom: none;
+}
+
+.country-option:hover {
+  background-color: #f8f9fa;
+}
+
+.country-option.active {
+  background-color: #d4edda;
+  font-weight: 600;
+}
+
+.country-option .flag {
+  font-size: 1.5rem;
+  line-height: 1;
+  min-width: 30px;
+}
+
+.country-option .name {
+  flex: 1;
+  color: #333;
+}
+
+.country-option .code {
+  font-weight: 600;
+  color: #1f7e1f;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Input del teléfono */
+.phone-input {
+  flex: 1;
+  border: none;
+  padding: 0.75rem 12px;
+  font-size: 1rem;
+}
+
+.phone-input:focus {
+  outline: none;
+  box-shadow: none;
+  background-color: white;
+}
+
+.phone-input::placeholder {
+  color: #999;
+}
+
+.phone-input.is-invalid {
+  background-color: #fff5f5;
+}
+
+/* Mensaje de error */
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  animation: slideDown 0.2s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .country-selector-btn {
+    min-width: 100px;
+    padding: 0.5rem 8px;
+  }
+
+  .country-selector-btn .dial-code {
+    display: none;
+  }
+
+  .country-selector-btn .flag {
+    font-size: 1.25rem;
+  }
+
+  .country-option {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .country-option .flag {
+    font-size: 1.25rem;
+  }
+}

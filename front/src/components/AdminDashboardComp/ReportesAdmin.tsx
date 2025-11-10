@@ -159,36 +159,56 @@ export default function ReportesAdmin() {
       const originalOverflow = element.style.overflow;
       const originalHeight = element.style.height;
       const originalWidth = element.style.width;
+      const originalMinWidth = element.style.minWidth;
+      const originalMaxHeight = element.style.maxHeight;
       
-      // Contenedor muestra todo su contenido con ancho fijo
+      // Guardar overflow del contenedor padre también
+      const container = element.closest('.admin-reports-container') as HTMLElement;
+      const originalContainerOverflow = container?.style.overflow;
+      
+      // Detectar si estamos en móvil
+      const isMobile = window.innerWidth < 768;
+      const captureWidth = isMobile ? Math.max(window.innerWidth, 600) : 1200;
+      
+      // Contenedor y elemento muestran todo sin restricciones
+      if (container) {
+        container.style.overflow = 'visible';
+      }
       element.style.overflow = 'visible';
       element.style.height = 'auto';
-      element.style.width = '1200px'; 
-      element.style.minWidth = '1200px';
+      element.style.maxHeight = 'none';
+      element.style.width = `${captureWidth}px`; 
+      element.style.minWidth = `${captureWidth}px`;
       
       // Scroll al inicio para la captura
       window.scrollTo(0, 0);
 
-      // Esperar un momento para que el DOM se actualice
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Esperar un momento para que el DOM se actualice completamente
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const canvas = await html2canvas(element, {
         backgroundColor: '#FAF8F1',
-        scale: 2,
+        scale: isMobile ? 1.5 : 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
-        scrollY: 0,
-        scrollX: 0,
-        width: 1200,
-        windowWidth: 1200
+        scrollY: -window.scrollY,
+        scrollX: -window.scrollX,
+        width: captureWidth,
+        windowWidth: captureWidth,
+        height: element.scrollHeight,
+        windowHeight: element.scrollHeight
       });
 
       // Restaurar estilos y scroll originales
+      if (container) {
+        container.style.overflow = originalContainerOverflow || '';
+      }
       element.style.overflow = originalOverflow;
       element.style.height = originalHeight;
       element.style.width = originalWidth;
-      element.style.minWidth = '';
+      element.style.minWidth = originalMinWidth;
+      element.style.maxHeight = originalMaxHeight;
       window.scrollTo(0, originalScrollTop);
 
       const imgData = canvas.toDataURL('image/png');

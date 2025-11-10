@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Validator } from '../../common/Validator';
 import SuccessModal from '../CommonComp/SuccesModal';
+import CountryPhoneSelector from '../Auth/CountryPhoneSelector';
 import './UserManagement.css';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../config/endpoints';
@@ -47,7 +48,7 @@ export default function CreateUserModal({
     nombres: '',
     apellidos: '',
     email: '',
-    phone: '',
+    phone: '+591 ',
     roleId: 2,
   });
   
@@ -56,7 +57,7 @@ export default function CreateUserModal({
     companyName: '',
     nit: '',
     email: '',
-    phone: '',
+    phone: '+591 ',
     roleId: 2,
   });
   
@@ -181,8 +182,8 @@ export default function CreateUserModal({
   };
 
   const handleClose = () => {
-    setPersonForm({ nombres: '', apellidos: '', email: '', phone: '', roleId: 2 });
-    setInstitutionForm({ companyName: '', nit: '', email: '', phone: '', roleId: 2 });
+    setPersonForm({ nombres: '', apellidos: '', email: '', phone: '+591 ', roleId: 2 });
+    setInstitutionForm({ companyName: '', nit: '', email: '', phone: '+591 ', roleId: 2 });
     setPersonErrors({});
     setInstitutionErrors({});
     setMensaje('');
@@ -201,8 +202,8 @@ export default function CreateUserModal({
         message={successMessage.message}
         onClose={() => {
           // Limpiar formularios
-          setPersonForm({ nombres: '', apellidos: '', email: '', phone: '', roleId: 2 });
-          setInstitutionForm({ companyName: '', nit: '', email: '', phone: '', roleId: 2 });
+          setPersonForm({ nombres: '', apellidos: '', email: '', phone: '+591 ', roleId: 2 });
+          setInstitutionForm({ companyName: '', nit: '', email: '', phone: '+591 ', roleId: 2 });
           setPersonErrors({});
           setInstitutionErrors({});
           setMensaje('');
@@ -216,7 +217,7 @@ export default function CreateUserModal({
   }
 
   return (
-    <div className="modalCreateUserOverlay" onClick={handleClose}>
+    <div className="modalCreateUserOverlay">
       <div className="modalCreateUserContainer" onClick={(e) => e.stopPropagation()}>
         <div className="modalCreateUserHeader">
           <h2 className="modalCreateUserTitle">Crear Usuario</h2>
@@ -304,18 +305,17 @@ export default function CreateUserModal({
                   <label htmlFor="phone" className="modalCreateUserLabel">
                     Teléfono *
                   </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="text"
-                    className={`modalCreateUserInput ${personErrors.phone ? 'modalCreateUserInputError' : ''}`}
-                    value={personForm.phone}
-                    onChange={handlePersonChange}
-                    placeholder="+591XXXXXXXXX"
-                  />
-                  {personErrors.phone && (
-                    <span className="modalCreateUserErrorMessage">{personErrors.phone}</span>
-                  )}
+                  <div className={`phone-wrapper ${personErrors.phone ? 'has-error' : ''}`}>
+                    <CountryPhoneSelector
+                      phone={personForm.phone}
+                      onPhoneChange={(newPhone) =>
+                        setPersonForm((prev) => ({ ...prev, phone: newPhone }))
+                      }
+                    />
+                    {personErrors.phone && (
+                      <span className="modalCreateUserErrorMessage">{personErrors.phone}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="modalCreateUserFormGroup">
@@ -394,18 +394,17 @@ export default function CreateUserModal({
                   <label htmlFor="phone-inst" className="modalCreateUserLabel">
                     Teléfono *
                   </label>
-                  <input
-                    id="phone-inst"
-                    name="phone"
-                    type="text"
-                    className={`modalCreateUserInput ${institutionErrors.phone ? 'modalCreateUserInputError' : ''}`}
-                    value={institutionForm.phone}
-                    onChange={handleInstitutionChange}
-                    placeholder="+591XXXXXXXXX"
-                  />
-                  {institutionErrors.phone && (
-                    <span className="modalCreateUserErrorMessage">{institutionErrors.phone}</span>
-                  )}
+                  <div className={`phone-wrapper ${institutionErrors.phone ? 'has-error' : ''}`}>
+                    <CountryPhoneSelector
+                      phone={institutionForm.phone}
+                      onPhoneChange={(newPhone) =>
+                        setInstitutionForm((prev) => ({ ...prev, phone: newPhone }))
+                      }
+                    />
+                    {institutionErrors.phone && (
+                      <span className="modalCreateUserErrorMessage">{institutionErrors.phone}</span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="modalCreateUserFormGroup">

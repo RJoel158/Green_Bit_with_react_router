@@ -120,15 +120,8 @@ export default function MaterialesAdmin() {
         state
       );
 
-      // Actualizar la lista local
-      const updatedMateriales = materiales.map(m =>
-        m.id === selectedMaterial.id
-          ? { ...m, name: formData.name, description: formData.description, state }
-          : m
-      );
-
-      setMateriales(updatedMateriales);
-      handleSearch(searchTerm); // Reaplica el filtro
+      // Recargar la lista desde el backend para asegurar sincronización
+      await loadMaterials();
 
       // Si el material se inactivó, deseleccionarlo
       if (state === 0) {
@@ -164,10 +157,8 @@ export default function MaterialesAdmin() {
 
       await materialService.deleteMaterial(selectedMaterial.id);
 
-      // Actualizar lista
-      const updatedMateriales = materiales.filter(m => m.id !== selectedMaterial.id);
-      setMateriales(updatedMateriales);
-      handleSearch(searchTerm); // Reaplica el filtro
+      // Recargar la lista desde el backend para asegurar sincronización
+      await loadMaterials();
 
       handleCloseFormData();
       alert('✅ Material eliminado correctamente');

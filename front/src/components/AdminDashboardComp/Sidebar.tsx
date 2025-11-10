@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import './AdminDashboard.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import logo from '../../assets/logo.png'
@@ -10,6 +11,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onMenuSelect, activeMenu, isOpen, onClose }: SidebarProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const menuItems = [
     { id: 'control', label: 'Panel de Control', icon: 'bi-grid-fill' },
     { id: 'reportes', label: 'Reportes', icon: 'bi-graph-up' },
@@ -22,6 +25,17 @@ export default function Sidebar({ onMenuSelect, activeMenu, isOpen, onClose }: S
 
   const handleMenuClick = (menuId: string) => {
     onMenuSelect(menuId);
+    
+    // Actualizar la URL con el parámetro ?menu=
+    const params = new URLSearchParams(searchParams.toString());
+    if (menuId === 'control') {
+      // Si se vuelve al panel de control, eliminar el parámetro para limpiar la URL
+      params.delete('menu');
+    } else {
+      params.set('menu', menuId);
+    }
+    setSearchParams(params);
+    
     // Cerrar el sidebar en móvil después de seleccionar
     if (window.innerWidth < 768) {
       onClose();
@@ -37,11 +51,6 @@ export default function Sidebar({ onMenuSelect, activeMenu, isOpen, onClose }: S
       
       
       <div className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
-      {/* Botón de cerrar para móvil */}
-      <button className="sidebar-close" onClick={onClose} aria-label="Cerrar menú">
-        <i className="bi bi-x-lg"></i>
-      </button>
-
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-container">

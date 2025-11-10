@@ -7,6 +7,7 @@ import { Validator } from "../common/Validator";
 import SuccessModal from "../components/CommonComp/SuccesModal";
 import api from "../services/api";
 import { API_ENDPOINTS } from "../config/endpoints";
+import CountryPhoneSelector from "../components/Auth/CountryPhoneSelector";
 
 /**
  * Formulario de registro para instituciones.
@@ -59,7 +60,7 @@ const RegisterInstitution: React.FC = () => {
     companyName: "",
     nit: "",
     email: "",
-    phone: "",
+    phone: "+591 ",
   });
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -172,13 +173,17 @@ const RegisterInstitution: React.FC = () => {
               error={errors.email}
               onChange={onChange}
             />
-            <InputField
-              name="phone"
-              placeholder="Teléfono"
-              value={form.phone}
-              error={errors.phone}
-              onChange={onChange}
-            />
+
+            {/* Selector de país con teléfono */}
+            <div className="mb-3">
+              <CountryPhoneSelector
+                phone={form.phone}
+                onPhoneChange={(newPhone) =>
+                  setForm((f) => ({ ...f, phone: newPhone }))
+                }
+                error={errors.phone}
+              />
+            </div>
 
             <button
               type="submit"

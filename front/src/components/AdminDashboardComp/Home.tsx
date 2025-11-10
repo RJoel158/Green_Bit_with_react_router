@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import RecyclingChart from './RecyclingCharts';
@@ -12,11 +13,57 @@ import ReportesAdmin from './ReportesAdmin';
 import UserManagement from '../UserManagementComp/UserManagement';
 import CollectorRequests from '../CollectorRequestsComp/CollectorRequests';
 import RankingPeriodsAdmin from './RankingPeriodsAdmin';
+import ChangePasswordModal from '../PasswordComp/ChangePasswordModal';
 import './AdminDashboard.css';
 
+// Definición de la interfaz User
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  role: string;
+  state: number;
+  avatar?: string;
+}
+
 export default function AdminDashboard() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState('control');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Verificar usuario y estado al cargar
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    const u = JSON.parse(userStr);
+    u.state = Number(u.state);
+    if (!u.email) {
+      u.email = "";
+    }
+    setUser(u as User);
+    // Si state === 1, mostrar modal de cambio de contraseña
+    if (u.state === 1) {
+      setShowModal(true);
+    }
+  }, [navigate]);
+
+  // Leer el parámetro ?menu de la URL
+  useEffect(() => {
+    const menuFromQuery = searchParams.get('menu');
+    // Si no viene un valor válido en la URL usar 'control'
+    const validMenus = ['control', 'reportes', 'usuarios', 'materiales', 'anuncios', 'accesos', 'ranking'];
+    if (menuFromQuery && validMenus.includes(menuFromQuery)) {
+      setActiveMenu(menuFromQuery);
+    } else {
+      setActiveMenu('control');
+    }
+  }, [searchParams]);
 
   // Navegar a reportes desde otros componentes
   useEffect(() => {
@@ -98,9 +145,17 @@ export default function AdminDashboard() {
 
   return (
     <div className="dashboard">
-      {/* Botón para móvil */}
+      {/* Modal de cambio de contraseña */}
+      {showModal && user && (
+        <ChangePasswordModal
+          userId={user.id}
+          role={user.role}
+        />
+      )}
+
+      {/* Botón hamburguesa global para móvil - posicionado para no tapar usuario */}
       <button 
-        className="hamburger-button" 
+        className={`hamburger-button hamburger-global ${sidebarOpen ? 'hidden-hamburger' : ''}`} 
         onClick={() => setSidebarOpen(true)}
         aria-label="Abrir menú"
       >

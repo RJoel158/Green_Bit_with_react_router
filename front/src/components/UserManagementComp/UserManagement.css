@@ -57,6 +57,8 @@ body {
   flex-direction: column; 
   gap: 0.75rem; 
   flex-shrink: 0;
+  overflow: visible;
+  position: relative;
 }
 
 .user-management-header-top {
@@ -79,6 +81,8 @@ body {
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  overflow: visible;
+  position: relative;
 }
 
 .user-management-header-search-box {
@@ -194,6 +198,7 @@ body {
 /* User dropdown */
 .user-management-header-user-wrapper {
   position: relative;
+  overflow: visible;
 }
 
 .user-management-header-user-trigger {
@@ -218,7 +223,9 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   min-width: 180px;
-  z-index: 1000;
+  z-index: 2000;
+  max-height: none;
+  overflow: visible;
 }
 
 .user-management-header-dropdown-item {
@@ -632,6 +639,20 @@ body {
 
   .user-management-header {
     padding: 0.5rem 0.75rem;
+    overflow: visible;
+    z-index: 100;
+  }
+
+  .user-management-header-user-wrapper {
+    overflow: visible;
+    z-index: 100;
+  }
+
+  .user-management-header-dropdown {
+    position: fixed;
+    right: 0.5rem;
+    top: auto;
+    margin-top: 0.5rem;
   }
 
   .user-management-header-title {
@@ -860,6 +881,17 @@ body {
   color: #ef4444;
   font-size: 0.875rem;
   margin-top: 0.25rem;
+}
+
+
+.modalCreateUserFormGroup .phone-wrapper > div > div[style*="color"],
+.modalCreateUserFormGroup .phone-wrapper > div > small {
+  display: none !important;
+}
+
+
+.modalCreateUserFormGroup .phone-wrapper.has-error input.form-control {
+  border-color: #ef4444 !important;
 }
 
 .modalCreateUserInputDisabled {

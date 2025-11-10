@@ -2,7 +2,7 @@
 import db from "../Config/DBConnect.js";
 
 /**
- * Obtener todos los anuncios activos
+ * Obtener todos los anuncios activos (solo state = 1)
  */
 export const getAll = async () => {
   try {
@@ -18,6 +18,7 @@ export const getAll = async () => {
         a.createdDate,
         a.createdBy
        FROM announcement a
+       WHERE a.state = 1
        ORDER BY a.createdDate DESC`
     );
     
