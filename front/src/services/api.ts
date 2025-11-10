@@ -34,10 +34,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Solo redirigir a login si estamos en una ruta protegida (no en login)
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      const isLoginPage = currentPath === '/login' || currentPath === '/register';
+      
+      if (!isLoginPage) {
+        // Token expirado o inválido en una ruta protegida
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+      // Si estamos en login, dejar que el componente maneje el 401
     }
     return Promise.reject(error);
   }
