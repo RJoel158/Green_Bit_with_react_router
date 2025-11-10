@@ -77,12 +77,15 @@ export default function UserManagement() {
       
       if (data.success) {
         setUsers(data.users);
+        return data.users; 
       } else {
         setError('Error al obtener usuarios');
+        return [];
       }
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Error de conexión con el servidor');
+      return [];
     } finally {
       setLoading(false);
     }
@@ -157,6 +160,37 @@ export default function UserManagement() {
     fetchUsers(userType);
   };
 
+  // Función para actualizar el usuario y refrescar el selectedUser
+  const handleUserUpdated = async () => {
+    const currentUserId = selectedUser?.userId;
+    
+    if (!currentUserId) return;
+    
+    // Recargar la lista de usuarios y obtener los datos nuevos
+    const freshUsers = await fetchUsers(userType);
+    
+    // Buscar el usuario actualizado en los datos nuevos
+    const updatedUser = freshUsers.find((u: User) => u.userId === currentUserId);
+    
+    if (updatedUser) {
+      const formattedUser = {
+        userId: updatedUser.userId,
+        fullName: userType === 'Persona'
+          ? `${updatedUser.firstname || ''} ${updatedUser.lastname || ''}`.trim()
+          : updatedUser.companyName || '',
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        registrationDate: new Date(updatedUser.registerDate).toLocaleDateString('es-ES'),
+        role: getRoleName(updatedUser.roleId),
+        firstname: updatedUser.firstname,
+        lastname: updatedUser.lastname,
+        companyName: updatedUser.companyName,
+        nit: updatedUser.nit,
+      };
+      setSelectedUser(formattedUser);
+    }
+  };
+
   return (
     <div className="user-management-dashboard">
       <div className="user-management-main">
@@ -200,7 +234,7 @@ export default function UserManagement() {
               <UserInfoPanel 
                 user={selectedUser}
                 userType={userType}
-                onUserUpdated={() => fetchUsers(userType)}
+                onUserUpdated={handleUserUpdated}
               />
             </div>
           )}
