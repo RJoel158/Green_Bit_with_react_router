@@ -1,5 +1,5 @@
 // back/Models/rankingHistoryModel.js
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 const RankingHistory = {
   async getByPeriod(periodo_id) {

@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import routes from './Routes/index.js';
 import { verifyEmailConnection } from './Services/emailService.js';
-import { checkConnection } from './Config/DBConnect.js';
+import DBConnect from './config/DBConnect.js';
 
 // Cargar variables de entorno
 dotenv.config();

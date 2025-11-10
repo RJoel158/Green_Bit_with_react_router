@@ -26,6 +26,7 @@
 ## 🔐 USUARIOS (17 rutas)
 
 ### Autenticación
+
 - `POST /api/users/login` - Iniciar sesión
 - `POST /api/users/register` - Registro básico
 - `POST /api/users/register-collector` - Registro recolector
@@ -33,20 +34,24 @@
 - `POST /api/users/register-institution-admin` - Registro admin institución
 
 ### Contraseñas
+
 - `POST /api/users/forgotpassword` - Recuperar contraseña
 - `PUT /api/users/changePassword/:userId` - Cambiar contraseña
 
 ### Gestión de Recolectores (ESPECÍFICAS PRIMERO)
+
 - `GET /api/users/collectors/pending/institution` - Recolectores institucionales pendientes
 - `GET /api/users/collectors/pending` - Recolectores personas pendientes
 
 ### Gestión de Instituciones (ESPECÍFICAS PRIMERO)
+
 - `POST /api/users/institution/approve/:id` - Aprobar institución
 - `POST /api/users/institution/reject/:id` - Rechazar institución
 - `DELETE /api/users/institution/:id` - Eliminar institución
 - `GET /api/users/institution/:id` - Obtener institución
 
 ### Gestión General de Usuarios (ESPECÍFICAS PRIMERO)
+
 - `POST /api/users/approve/:id` - Aprobar usuario
 - `POST /api/users/reject/:id` - Rechazar usuario
 - `PUT /api/users/:id/role` - Actualizar rol
@@ -60,9 +65,11 @@
 ## 📦 MATERIALES (5 rutas)
 
 ### ESPECÍFICAS PRIMERO
+
 - `GET /api/material/:materialId` - Obtener material por ID
 
 ### GENÉRICAS DESPUÉS
+
 - `GET /api/material` - Obtener todos los materiales
 - `POST /api/material` - Crear material
 - `PUT /api/material/:materialId` - Actualizar material
@@ -73,6 +80,7 @@
 ## 📋 SOLICITUDES (7 rutas)
 
 ### ESPECÍFICAS PRIMERO
+
 - `GET /api/request/user/:userId/state` - Obtener solicitudes por usuario y estado
 - `POST /api/request/:id/schedule` - Crear cita para solicitud
 - `GET /api/request/:id/schedule` - Obtener horarios disponibles
@@ -80,6 +88,7 @@
 - `GET /api/request/:id` - Obtener solicitud por ID
 
 ### GENÉRICAS DESPUÉS
+
 - `POST /api/request` - Crear solicitud (con multer para fotos)
 - `GET /api/request` - Obtener todas las solicitudes
 
@@ -88,6 +97,7 @@
 ## 📅 CITAS (12 rutas)
 
 ### ESPECÍFICAS PRIMERO
+
 - `POST /api/appointments/schedule` - Agendar cita
 - `GET /api/appointments/collector/:collectorId` - Obtener citas del recolector
 - `GET /api/appointments/recycler/:recyclerId` - Obtener citas del reciclador
@@ -97,6 +107,7 @@
 - `PUT /api/appointments/:id/complete` - Completar cita
 
 ### GENÉRICAS DESPUÉS
+
 - `GET /api/appointments/:id` - Obtener cita por ID
 - `PUT /api/appointments/:id` - Actualizar cita (genérica)
 - `POST /api/appointments` - Crear cita
@@ -124,10 +135,12 @@
 ## 📢 ANUNCIOS (6 rutas)
 
 ### ESPECÍFICAS PRIMERO
+
 - `GET /api/announcements/role/:role` - Obtener anuncios por rol
 - `GET /api/announcements/:id` - Obtener anuncio por ID
 
 ### GENÉRICAS DESPUÉS
+
 - `GET /api/announcements` - Obtener todos los anuncios
 - `POST /api/announcements` - Crear anuncio
 - `PUT /api/announcements/:id` - Actualizar anuncio
@@ -146,6 +159,7 @@
 ## 🏆 RANKING (7 rutas)
 
 ### ESPECÍFICAS PRIMERO
+
 - `GET /api/ranking/periods/active-or-last` - Obtener período activo o último
 - `POST /api/ranking/periods/:id/close` - Cerrar período
 - `GET /api/ranking/live/:periodo_id` - Obtener ranking en vivo
@@ -153,6 +167,7 @@
 - `GET /api/ranking/history/:periodo_id` - Obtener historial
 
 ### GENÉRICAS DESPUÉS
+
 - `GET /api/ranking/periods` - Obtener períodos
 - `POST /api/ranking/periods` - Crear período
 
@@ -175,6 +190,7 @@
 ## 🎯 Principios de Ordenamiento
 
 ### ✅ ORDEN CORRECTO (Específicas → Genéricas)
+
 ```javascript
 // ❌ MALO - Genérica primero
 router.get('/users/:id', ...);
@@ -186,6 +202,7 @@ router.get('/users/:id', ...);         // Genérica
 ```
 
 ### Razón
+
 Express evalúa las rutas en ORDEN. Si una ruta genérica (`/users/:id`) va primero, `/users/withPerson` será capturada como `{id: 'withPerson'}` y nunca llegará a la ruta específica.
 
 ---
@@ -250,6 +267,7 @@ TOTAL: 67 RUTAS ✅
 ## 🚀 Cómo Verificar
 
 ### 1. Listar todas las rutas
+
 ```bash
 cd back
 grep -E "^router\.(get|post|put|delete)" Routes/index.js | wc -l
@@ -257,12 +275,14 @@ grep -E "^router\.(get|post|put|delete)" Routes/index.js | wc -l
 ```
 
 ### 2. Verificar que una ruta específica existe
+
 ```bash
 grep "/users/withPerson" Routes/index.js
 # Debe encontrarse
 ```
 
 ### 3. Verificar orden correcto
+
 ```bash
 grep -n "router.get" Routes/index.js | head -20
 # Las rutas específicas deben aparecer ANTES de las genéricas
@@ -273,16 +293,19 @@ grep -n "router.get" Routes/index.js | head -20
 ## 🔗 Sincronización Frontend-Backend
 
 ### Endpoints.ts (Frontend)
+
 - Todos los ENDPOINTS deben estar aquí
 - Los URLs deben COINCIDIR exactamente con Routes/index.js
 - Se usan en los servicios (notificationService.ts, scoreService.ts, etc.)
 
 ### Routes/index.js (Backend)
+
 - TODAS las rutas esperadas por el frontend están aquí
 - Ordenadas por especificidad (específicas primero)
 - Usan los controllers correspondientes
 
 ### Ejemplo de Sincronización
+
 ```typescript
 // endpoints.ts (FRONTEND)
 USERS: {

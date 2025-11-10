@@ -12,6 +12,7 @@ Exitosas: 14 (77%)
 Fallidas: 4 (22%)
 
 IMPORTANTE: De los 4 endpoints que fallan:
+
 - GET /api/users → NO se usa en frontend (huérfano)
 - GET /api/person → NO se usa en frontend (huérfano)
 - GET /api/institution → NO se usa en frontend (huérfano)
@@ -64,16 +65,19 @@ ENDPOINTS CON ERRORES (4)
 Los siguientes endpoints devuelven HTTP 500 pero NO se usan:
 
 1. GET /api/users (Huérfano)
+
    - Error: SQL query con alias incorrecto
    - Impacto: NINGUNO
    - Ubicación en código: No encontrado
 
 2. GET /api/person (Huérfano)
+
    - Error: SQL query error
    - Impacto: NINGUNO
    - Ubicación en código: No encontrado
 
 3. GET /api/institution (Huérfano)
+
    - Error: SQL query error
    - Impacto: NINGUNO
    - Ubicación en código: No encontrado
@@ -114,14 +118,17 @@ RECOMENDACIONES OPCIONALES
 Si quieres limpiar el código antes de hosting:
 
 Opción A: Dejar como está
+
 - Ventaja: Funciona perfectamente
 - Desventaja: 4 endpoints legados sin usar
 
 Opción B: Arreglar los 4 endpoints SQL
+
 - Ventaja: Código más limpio
 - Desventaja: Requiere revisión de BD y queries
 
 Opción C: Remover los 4 endpoints
+
 - Ventaja: Código muy limpio
 - Desventaja: Algunos podrían necesitarse en el futuro
 

@@ -15,6 +15,7 @@ Generado: $(date)
 ## USUARIOS - /api/users
 
 ### USADOS ✅
+
 - **LOGIN**: `POST /api/users/login` - Auth/Login.tsx
 - **REGISTER**: `POST /api/users/register` - Auth/Register.tsx, UserManagement.tsx
 - **REGISTER_COLLECTOR**: `POST /api/users/register-collector` - Auth/registerCollector.tsx
@@ -28,6 +29,7 @@ Generado: $(date)
 - **DELETE_INSTITUTION**: `DELETE /api/users/institution/:id` - UserInfoPanel.tsx
 
 ### NO USADOS ❌
+
 - GET_ALL (singular o plural)
 - UPDATE, etc.
 
@@ -36,9 +38,11 @@ Generado: $(date)
 ## MATERIALES - /api/material
 
 ### USADOS ✅
+
 - **GET_ALL**: `GET /api/materials` - FormComp.tsx (buscar materiales disponibles)
 
 ### NO USADOS ❌
+
 - CREATE, UPDATE, DELETE, etc.
 
 ---
@@ -46,10 +50,12 @@ Generado: $(date)
 ## SOLICITUDES - /api/requests
 
 ### USADOS ✅
+
 - **CREATE**: `POST /api/requests` - FormComp.tsx (crear nueva solicitud)
 - **SCHEDULE**: `PUT /api/requests/:id/schedule` - SchedulePickupModal.tsx
 
 ### NO USADOS ❌
+
 - GET_ALL, GET_BY_ID, UPDATE, DELETE, etc.
 
 ---
@@ -57,10 +63,12 @@ Generado: $(date)
 ## CITAS - /api/appointments
 
 ### USADOS ✅
+
 - **GET_BY_COLLECTOR**: `GET /api/appointments/collector/:collectorId` - appointmentService.ts
 - **GET_BY_RECYCLER**: `GET /api/appointments/recycler/:recyclerId` - appointmentService.ts
 
 ### NO USADOS ❌
+
 - CREATE, UPDATE, DELETE, etc.
 
 ---
@@ -68,12 +76,14 @@ Generado: $(date)
 ## NOTIFICACIONES - /api/notifications
 
 ### USADOS ✅
+
 - **GET_BY_USER**: `GET /api/notifications/user/:userId` - notificationService.ts
 - **GET_UNREAD**: `GET /api/notifications/unread/:userId` - notificationService.ts
 - **MARK_AS_READ**: `PUT /api/notifications/read` - notificationService.ts
 - **Socket.IO connection** para eventos en tiempo real
 
 ### NO USADOS ❌
+
 - CREATE, etc.
 
 ---
@@ -81,12 +91,14 @@ Generado: $(date)
 ## PUNTUACIONES - /api/scores
 
 ### USADOS ✅
+
 - **CREATE**: `POST /api/scores` - scoreService.ts
 - **CHECK**: `GET /api/scores/check/:appointmentId/:userId` - scoreService.ts
 - **GET_BY_APPOINTMENT**: `GET /api/scores/appointment/:appointmentId` - scoreService.ts
 - **GET_USER_AVERAGE**: `GET /api/scores/user/:userId/average` - scoreService.ts
 
 ### NO USADOS ❌
+
 - UPDATE, DELETE, etc.
 
 ---
@@ -94,6 +106,7 @@ Generado: $(date)
 ## ANUNCIOS - /api/announcements
 
 ### USADOS ✅
+
 - **GET_ALL**: `GET /api/announcements` - announcementService.ts
 - **GET_BY_ID**: `GET /api/announcements/:id` - announcementService.ts
 - **GET_BY_ROLE**: `GET /api/announcements/role/:targetRole` - announcementService.ts
@@ -102,6 +115,7 @@ Generado: $(date)
 - **DELETE**: `DELETE /api/announcements/:id` - announcementService.ts
 
 ### NO USADOS ❌
+
 - Ninguno, están todos usados
 
 ---
@@ -109,11 +123,13 @@ Generado: $(date)
 ## UPLOAD - /api/upload
 
 ### USADOS ✅
+
 - **ANNOUNCEMENT_IMAGE**: `POST /api/upload/announcement` - uploadService.ts
 - Image deletion: `DELETE /api/upload/announcement/:filename`
 - Image info: `GET /api/upload/announcement/:filename`
 
 ### NO USADOS ❌
+
 - IMAGE (parece que no se usa, solo ANNOUNCEMENT_IMAGE)
 
 ---
@@ -121,6 +137,7 @@ Generado: $(date)
 ## RANKING - /api/ranking
 
 ### USADOS ✅
+
 - **GET_PERIODS**: `GET /api/ranking/periods` - RankingPeriodsAdmin.tsx, LiveRankingAdmin.tsx
 - **GET_ACTIVE_OR_LAST**: `GET /api/ranking/active-or-last` - rankingService.ts
 - **GET_LIVE**: `GET /api/ranking/live/:periodId` - rankingService.ts, RankingPeriodsAdmin.tsx
@@ -130,6 +147,7 @@ Generado: $(date)
 - **CLOSE_PERIOD**: `POST /api/ranking/periods/:id/close` - RankingPeriodsAdmin.tsx
 
 ### NO USADOS ❌
+
 - Ninguno, están todos usados
 
 ---
@@ -137,11 +155,13 @@ Generado: $(date)
 ## REPORTES - /api/reports
 
 ### USADOS ✅
+
 - **MATERIALS**: `GET /api/reports/materiales` - reportService.ts
 - **SCORES**: `GET /api/reports/scores` - reportService.ts
 - **COLLECTIONS**: `GET /api/reports/recolecciones` - reportService.ts
 
 ### NO USADOS ❌
+
 - Ninguno, están todos usados
 
 ---
@@ -149,9 +169,11 @@ Generado: $(date)
 ## SISTEMA - /api/system
 
 ### USADOS ✅
+
 - **HEALTH**: `GET /api/system/health` - FormComp.tsx (verificar conexión al servidor)
 
 ### NO USADOS ❌
+
 - DB_STATUS, etc.
 
 ---
@@ -161,6 +183,7 @@ Generado: $(date)
 ### Rutas requeridas en backend (44 endpoints):
 
 #### USUARIOS (11)
+
 - `/api/users/login` - POST
 - `/api/users/register` - POST
 - `/api/users/register-collector` - POST
@@ -174,29 +197,35 @@ Generado: $(date)
 - `/api/users/institution/:id` - DELETE
 
 #### MATERIALES (1)
+
 - `/api/materials` - GET (lista completa)
 
 #### SOLICITUDES (2)
+
 - `/api/requests` - POST
 - `/api/requests/:id/schedule` - PUT
 
 #### CITAS (2)
+
 - `/api/appointments/collector/:collectorId` - GET
 - `/api/appointments/recycler/:recyclerId` - GET
 
 #### NOTIFICACIONES (3)
+
 - `/api/notifications/user/:userId` - GET
 - `/api/notifications/unread/:userId` - GET
 - `/api/notifications/read` - PUT
 - Socket.IO eventos en tiempo real
 
 #### PUNTUACIONES (4)
+
 - `/api/scores` - POST
 - `/api/scores/check/:appointmentId/:userId` - GET
 - `/api/scores/appointment/:appointmentId` - GET
 - `/api/scores/user/:userId/average` - GET
 
 #### ANUNCIOS (6)
+
 - `/api/announcements` - GET
 - `/api/announcements/:id` - GET
 - `/api/announcements/role/:targetRole` - GET
@@ -205,11 +234,13 @@ Generado: $(date)
 - `/api/announcements/:id` - DELETE
 
 #### UPLOAD (3)
+
 - `/api/upload/announcement` - POST
 - `/api/upload/announcement/:filename` - GET
 - `/api/upload/announcement/:filename` - DELETE
 
 #### RANKING (7)
+
 - `/api/ranking/periods` - GET
 - `/api/ranking/active-or-last` - GET
 - `/api/ranking/live/:periodId` - GET
@@ -219,14 +250,17 @@ Generado: $(date)
 - `/api/ranking/periods/:id/close` - POST
 
 #### REPORTES (3)
+
 - `/api/reports/materiales` - GET
 - `/api/reports/scores` - GET
 - `/api/reports/recolecciones` - GET
 
 #### SISTEMA (1)
+
 - `/api/system/health` - GET
 
 ### Rutas a ELIMINAR:
+
 - `/api/users` - GET (nunca se usa)
 - `/api/person` - GET (nunca se usa)
 - `/api/institution` - GET (nunca se usa)

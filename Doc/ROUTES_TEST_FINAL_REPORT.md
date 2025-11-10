@@ -3,50 +3,61 @@
 **Fecha:** 10 de Noviembre de 2025  
 **Total de pruebas:** 18  
 **Exitosas:** 14 (77%)  
-**Fallidas:** 5 (23% - HTTP 500 por queries SQL)  
+**Fallidas:** 5 (23% - HTTP 500 por queries SQL)
 
 ---
 
 ## ✅ RUTAS FUNCIONANDO CORRECTAMENTE
 
 ### 📋 USERS (3/4)
+
 - ✅ `GET /api/users/withPerson` → 200 OK
 - ✅ `GET /api/users/collectors/pending` → 200 OK
 - ✅ `GET /api/users/collectors/pending/institution` → 200 OK
 - ❌ `GET /api/users` → 500 (Error en query SQL)
 
 ### 🏆 RANKING (3/3) - 100%
+
 - ✅ `GET /api/ranking/periods` → 200 OK
 - ✅ `GET /api/ranking/periods/closed` → 200 OK
 - ✅ `GET /api/ranking/periods/active-or-last` → 200 OK
 
 ### 📦 MATERIALS (1/1) - 100%
+
 - ✅ `GET /api/material` → 200 OK
 
 ### 📢 ANNOUNCEMENTS (1/1) - 100%
+
 - ✅ `GET /api/announcements` → 200 OK
 
 ### 🔗 REQUESTS (1/1) - 100%
+
 - ✅ `GET /api/request` → 200 OK
 
 ### ⭐ SCORES (1/1) - 100%
+
 - ✅ `GET /api/score` → 200 OK
 
 ### 📅 APPOINTMENTS (0/1)
+
 - ❌ `GET /api/appointment` → 500 (Error en query SQL)
 
 ### 📊 REPORTS (3/3) - 100%
+
 - ✅ `GET /api/reports/materials` → 200 OK
 - ✅ `GET /api/reports/collections` → 200 OK
 - ✅ `GET /api/reports/appointments` → 200 OK
 
 ### 🔔 NOTIFICATIONS (1/1) - 100%
+
 - ✅ `GET /api/notification` → 200 OK
 
 ### 👤 PERSONS (0/1)
+
 - ❌ `GET /api/person` → 500 (Error en query SQL)
 
 ### 🏢 INSTITUTIONS (0/1)
+
 - ❌ `GET /api/institution` → 500 (Error en query SQL)
 
 ---
@@ -56,15 +67,18 @@
 Hay 5 endpoints que devuelven **HTTP 500** por errores en las queries SQL:
 
 1. **GET /api/users**
+
    - Error: `Unknown column 'p.id' in 'SELECT'`
    - Ubicación: `userModel.js:34` (query SQL mal formada)
    - Status: Requiere revisión de la tabla person
 
 2. **GET /api/appointment**
+
    - Error: `Error al obtener citas`
    - Status: Requiere revisión del controlador appointmentController
 
 3. **GET /api/person**
+
    - Error: `Error al obtener personas`
    - Status: Requiere revisión de personController
 
@@ -77,6 +91,7 @@ Hay 5 endpoints que devuelven **HTTP 500** por errores en las queries SQL:
 ## 🎯 Conclusión para Hosting
 
 ### ✅ LISTO PARA HOSTING
+
 - ✅ **77% de rutas funcionando sin problemas**
 - ✅ Todas las rutas principales (rankings, materials, reports, requests) están 100% funcionales
 - ✅ Las rutas críticas (login, auth, scoring) están operativas
@@ -85,6 +100,7 @@ Hay 5 endpoints que devuelven **HTTP 500** por errores en las queries SQL:
 - ✅ Base de datos conectada
 
 ### ⚠️ ANTES DE HOSTING
+
 Necesitas corregir 5 queries SQL que tienen errores. Todos son errores de consulta (`Unknown column`) que indican un problema en cómo se está escribiendo el SQL.
 
 ---
@@ -92,11 +108,13 @@ Necesitas corregir 5 queries SQL que tienen errores. Todos son errores de consul
 ## 🔧 Recomendaciones
 
 1. **Revisar estructura de tablas**
+
    - Ejecutar: `DESCRIBE person;` en la BD
    - Ejecutar: `DESCRIBE appointment;` en la BD
    - Ejecutar: `DESCRIBE institution;` en la BD
 
 2. **Corregir queries SQL**
+
    - Los errores indican que hay columnas mal nombradas
    - Verificar alias de tablas (p.id vs p.userId)
 
@@ -214,4 +232,4 @@ UPLOADS:
 
 El proyecto está en excelentes condiciones con 77% de rutas funcionando perfectamente. Los 5 errores son problemas específicos de queries SQL que se pueden corregir en poco tiempo.
 
-*Reporte generado: 10 de Noviembre de 2025*
+_Reporte generado: 10 de Noviembre de 2025_

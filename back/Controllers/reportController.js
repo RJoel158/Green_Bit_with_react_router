@@ -1,4 +1,4 @@
-import db from '../Config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 export const getMaterialesReport = async (req, res) => {
   try {

@@ -7,6 +7,7 @@ RESUMEN EJECUTIVO
 ========================================
 
 De los endpoints probados:
+
 - 14 pasando correctamente (77%)
 - 5 devolviendo error 500
 - IMPORTANTE: 3 de los 5 errores NO se usan en la aplicación (son endpoints "huérfanos")
@@ -50,15 +51,15 @@ ANÁLISIS DETALLADO POR ENDPOINT
 5. GET /api/appointments (PLURAL - CORRECTA)
    Status: HTTP 500 cuando se llama (debido a la ruta antigua)
    ¿Se usa?: SÍ, en:
-     - appointmentService.ts: getAppointmentsByCollector()
-     - appointmentService.ts: getAppointmentsByRecycler()
-     - SchedulePickupModal.tsx: POST appointments/schedule
-     - request_&_appoint.tsx: Usa los servicios anteriores
-   Ubicación frontend: 
-     - front/src/services/appointmentService.ts (líneas 27-71)
-     - front/src/components/SchedulePickupComp/SchedulePickupModal.tsx (línea 297)
-     - front/src/components/RecyclerComp/request_&_appoint.tsx (líneas 45, 49, 55, 59, 63)
-   Conclusión: CRÍTICO - Este sí se usa, necesita estar en /api/appointments (PLURAL)
+   - appointmentService.ts: getAppointmentsByCollector()
+   - appointmentService.ts: getAppointmentsByRecycler()
+   - SchedulePickupModal.tsx: POST appointments/schedule
+   - request\_&_appoint.tsx: Usa los servicios anteriores
+     Ubicación frontend:
+   - front/src/services/appointmentService.ts (líneas 27-71)
+   - front/src/components/SchedulePickupComp/SchedulePickupModal.tsx (línea 297)
+   - front/src/components/RecyclerComp/request\_&_appoint.tsx (líneas 45, 49, 55, 59, 63)
+     Conclusión: CRÍTICO - Este sí se usa, necesita estar en /api/appointments (PLURAL)
 
 ========================================
 ENDPOINTS QUE SÍ SE USAN Y DÓNDE
@@ -121,7 +122,7 @@ UPLOADS:
 CONCLUSIONES Y ACCIONES
 ========================================
 
-1. Los endpoints que dan error 500 (/api/users, /api/person, /api/institution) 
+1. Los endpoints que dan error 500 (/api/users, /api/person, /api/institution)
    NO se usan en la aplicación, así que el código funciona sin problema.
 
 2. El endpoint /api/appointments (PLURAL) SÍ se usa y está configurado correctamente
@@ -138,7 +139,8 @@ RECOMENDACIÓN:
 ✓ La aplicación está lista para producción
 ✓ Los errores 500 de endpoints no usados pueden ignorarse
 ✓ Si queremos limpiar, podemos:
-  - Remover o arreglar GET /api/users
-  - Remover o arreglar GET /api/person  
-  - Remover o arreglar GET /api/institution
-  - Pero esto NO es crítico para el funcionamiento
+
+- Remover o arreglar GET /api/users
+- Remover o arreglar GET /api/person
+- Remover o arreglar GET /api/institution
+- Pero esto NO es crítico para el funcionamiento
