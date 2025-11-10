@@ -16,10 +16,10 @@ import {
 
 const router = express.Router();
 
-router.post("/appointments", createAppointment);
+router.post("/", createAppointment);
 router.post("/schedule", createNewAppointment);
-router.get("/appointments", getAppointments);
-router.patch("/appointments/:id/status", updateAppointmentStatus);
+router.get("/", getAppointments);
+router.patch("/:id/status", updateAppointmentStatus);
 
 // Rutas para acciones sobre appointments
 router.post("/:id/cancel", cancelAppointment);

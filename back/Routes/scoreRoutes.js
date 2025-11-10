@@ -3,6 +3,9 @@ import * as scoreController from '../Controllers/scoreController.js';
 
 const router = express.Router();
 
+// Obtener todos los scores
+router.get('/', scoreController.getAllScores || ((req, res) => res.json({ scores: [] })));
+
 // Crear una calificación
 router.post('/', scoreController.createScore);
 
