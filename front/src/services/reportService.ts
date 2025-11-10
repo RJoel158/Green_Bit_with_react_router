@@ -1,7 +1,8 @@
 /**
  * Report Service - Reportes de materiales y calificaciones
  */
-import { apiUrl } from '../config/environment';
+import api from './api';
+import { API_ENDPOINTS } from '../config/endpoints';
 
 export interface MaterialReport {
   name: string;
@@ -55,25 +56,15 @@ export const getMaterialesReport = async (dateFrom?: string, dateTo?: string, us
   try {
     console.log('📊 reportService.getMaterialesReport - Obteniendo...');
 
-    const url = new URL(apiUrl('/api/reports/materiales'));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
-    if (userId) url.searchParams.append('userId', userId.toString());
+    const params: Record<string, string> = {};
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
+    if (userId) params.userId = userId.toString();
 
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
+    const response = await api.get(API_ENDPOINTS.REPORTS.MATERIALS, { params });
+    console.log('✅ reportService.getMaterialesReport - Éxito:', response.data);
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ reportService.getMaterialesReport - Éxito:', data);
-
-    return data.data || [];
+    return response.data.data || [];
   } catch (error) {
     console.error('❌ reportService.getMaterialesReport - Error:', error);
     return [];
@@ -87,23 +78,13 @@ export const getScoresReport = async (userId?: number): Promise<ScoresReport | n
   try {
     console.log('⭐ reportService.getScoresReport - Obteniendo...');
 
-    const url = new URL(apiUrl('/api/reports/scores'));
-    if (userId) url.searchParams.append('userId', userId.toString());
+    const params: Record<string, string> = {};
+    if (userId) params.userId = userId.toString();
 
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
+    const response = await api.get(API_ENDPOINTS.REPORTS.SCORES, { params });
+    console.log('✅ reportService.getScoresReport - Éxito:', response.data);
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ reportService.getScoresReport - Éxito:', data);
-
-    return data;
+    return response.data;
   } catch (error) {
     console.error('❌ reportService.getScoresReport - Error:', error);
     return null;
@@ -117,24 +98,14 @@ export const getCollectionsReport = async (dateFrom?: string, dateTo?: string): 
   try {
     console.log('🚛 reportService.getCollectionsReport - Obteniendo...');
 
-    const url = new URL(apiUrl('/api/reports/recolecciones'));
-    if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
-    if (dateTo) url.searchParams.append('dateTo', dateTo);
+    const params: Record<string, string> = {};
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
 
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
+    const response = await api.get(API_ENDPOINTS.REPORTS.COLLECTIONS, { params });
+    console.log('✅ reportService.getCollectionsReport - Éxito:', response.data);
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ reportService.getCollectionsReport - Éxito:', data);
-
-    return data;
+    return response.data;
   } catch (error) {
     console.error('❌ reportService.getCollectionsReport - Error:', error);
     return null;

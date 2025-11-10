@@ -1,6 +1,8 @@
 // services/notificationService.ts
+import api from './api';
 import { io, Socket } from 'socket.io-client';
 import { apiUrl } from '../config/environment';
+import { API_ENDPOINTS } from '../config/endpoints';
 
 export interface Notification {
   id: number;
@@ -65,14 +67,8 @@ export const onNotificationReceived = (callback: (notification: Notification) =>
  */
 export const fetchNotifications = async (userId: number, limit: number = 20): Promise<Notification[]> => {
   try {
-    const response = await fetch(apiUrl(`/api/notifications/user/${userId}?limit=${limit}`));
-    const data = await response.json();
-    
-    if (data.success) {
-      return data.data;
-    } else {
-      throw new Error(data.error || 'Error al obtener notificaciones');
-    }
+    const response = await api.get(API_ENDPOINTS.NOTIFICATIONS.GET_BY_USER(userId, limit));
+    return response.data.data || [];
   } catch (error) {
     console.error('[NotificationService] Error fetching notifications:', error);
     return [];
@@ -84,14 +80,8 @@ export const fetchNotifications = async (userId: number, limit: number = 20): Pr
  */
 export const fetchUnreadCount = async (userId: number): Promise<number> => {
   try {
-    const response = await fetch(apiUrl(`/api/notifications/unread/${userId}`));
-    const data = await response.json();
-    
-    if (data.success) {
-      return data.unreadCount;
-    } else {
-      throw new Error(data.error || 'Error al obtener contador');
-    }
+    const response = await api.get(API_ENDPOINTS.NOTIFICATIONS.GET_UNREAD(userId));
+    return response.data.unreadCount || 0;
   } catch (error) {
     console.error('[NotificationService] Error fetching unread count:', error);
     return 0;
@@ -103,19 +93,11 @@ export const fetchUnreadCount = async (userId: number): Promise<number> => {
  */
 export const markAsRead = async (notificationId: number, userId: number): Promise<boolean> => {
   try {
-    const response = await fetch(apiUrl('/api/notifications/read'), {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        id: notificationId,
-        userId: userId,
-      }),
+    const response = await api.put(API_ENDPOINTS.NOTIFICATIONS.MARK_AS_READ, {
+      id: notificationId,
+      userId: userId,
     });
-
-    const data = await response.json();
-    return data.success;
+    return response.data.success || true;
   } catch (error) {
     console.error('[NotificationService] Error marking as read:', error);
     return false;

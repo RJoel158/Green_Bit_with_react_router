@@ -1,5 +1,6 @@
 // services/requestService.ts
-import { apiUrl } from '../config/environment';
+import api from './api';
+import { API_ENDPOINTS } from '../config/endpoints';
 
 export interface Request {
   id: number;
@@ -22,28 +23,17 @@ export const getRequestsByUserAndState = async (
   limit?: number
 ): Promise<Request[]> => {
   try {
-    let url = apiUrl(`/api/request/user/${userId}/state`);
-    const params = new URLSearchParams();
+    const params: Record<string, string> = {};
     
     if (state !== undefined) {
-      params.append('state', state.toString());
+      params.state = state.toString();
     }
     if (limit !== undefined) {
-      params.append('limit', limit.toString());
+      params.limit = limit.toString();
     }
     
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
-    
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.success ? data.data : [];
+    const response = await api.get(API_ENDPOINTS.REQUESTS.GET_BY_USER_STATE(userId), { params });
+    return response.data.success ? response.data.data : [];
   } catch (error) {
     console.error('Error fetching requests by user and state:', error);
     throw error;
