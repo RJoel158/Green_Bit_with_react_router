@@ -10,8 +10,8 @@
  * Estructura:
  * - 17 rutas de USUARIOS (login, registro, obtener, aprobar, rechazar)
  * - 1 ruta de MATERIALES
- * - 2 rutas de SOLICITUDES
- * - 2 rutas de CITAS
+ * - 7 rutas de SOLICITUDES (crear, obtener, actualizar estado, schedule)
+ * - 12 rutas de CITAS (crear, obtener, aceptar, rechazar, cancelar, completar)
  * - 3 rutas de NOTIFICACIONES
  * - 4 rutas de PUNTUACIONES
  * - 6 rutas de ANUNCIOS
@@ -19,7 +19,7 @@
  * - 7 rutas de RANKING
  * - 3 rutas de REPORTES
  * - 1 ruta de SISTEMA
- * = 49 rutas totales
+ * = 64 rutas totales
  */
 
 import express from 'express';
@@ -54,6 +54,7 @@ router.post('/users/register-institution-admin', userController.createUserWithIn
 // Obtener usuarios
 router.get('/users/:id', userController.getUserById);
 router.get('/users/person/:id', userController.getUsersPerson);
+router.get('/users/withPerson', userController.getUsersPerson);
 router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 router.get('/users/collectors/pending/institution', userController.getCollectorsPendingWithInstitution);
@@ -79,23 +80,37 @@ router.delete('/users/institution/:id', userController.deleteUserWithInstitution
 router.get('/material', materialController.getMaterials);
 
 // ==========================================
-// SOLICITUDES (2 rutas)
+// SOLICITUDES (7 rutas)
 // ==========================================
 router.post('/request', requestController.upload.array('photos'), requestController.createRequest);
+router.get('/request', requestController.getAllRequests);
+router.get('/request/:id', requestController.getRequestById);
+router.get('/request/:id/schedule', requestController.getRequestWithSchedule);
+router.get('/request/user/:userId/state', requestController.getRequestsByUserAndState);
+router.put('/request/:id/state', requestController.updateRequestState);
 router.post('/request/:id/schedule', appointmentController.createNewAppointment);
 
 // ==========================================
-// CITAS (2 rutas)
+// CITAS (12 rutas)
 // ==========================================
+router.post('/appointments', appointmentController.createAppointment);
+router.post('/appointments/schedule', appointmentController.createNewAppointment);
+router.get('/appointments', appointmentController.getAppointments);
+router.get('/appointments/:id', appointmentController.getAppointmentById);
 router.get('/appointments/collector/:collectorId', appointmentController.getAppointmentsByCollector);
 router.get('/appointments/recycler/:recyclerId', appointmentController.getAppointmentsByRecycler);
+router.put('/appointments/:id/accept', appointmentController.acceptAppointmentEndpoint);
+router.put('/appointments/:id/reject', appointmentController.rejectAppointmentEndpoint);
+router.put('/appointments/:id/cancel', appointmentController.cancelAppointment);
+router.put('/appointments/:id/complete', appointmentController.completeAppointmentEndpoint);
+router.put('/appointments/:id', appointmentController.updateAppointmentStatus);
 
 // ==========================================
 // NOTIFICACIONES (3 rutas)
 // ==========================================
-router.get('/notification/user/:userId', notificationController.getUserNotifications);
-router.get('/notification/unread/:userId', notificationController.getUnreadCount);
-router.put('/notification/read', notificationController.markNotificationAsRead);
+router.get('/notifications/user/:userId', notificationController.getUserNotifications);
+router.get('/notifications/unread/:userId', notificationController.getUnreadCount);
+router.put('/notifications/read', notificationController.markNotificationAsRead);
 
 // ==========================================
 // PUNTUACIONES (4 rutas)

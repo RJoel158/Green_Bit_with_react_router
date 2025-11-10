@@ -95,28 +95,28 @@ export const API_ENDPOINTS = {
   },
 
   // ============================================
-  // PUNTUACIONES - /api/scores
+  // PUNTUACIONES - /api/score
   // ============================================
   SCORES: {
-    CREATE: '/api/scores',                                       // POST - Crear puntuación
+    CREATE: '/api/score',                                       // POST - Crear puntuación
     CHECK: (appointmentId: number, userId: number) => 
-      `/api/scores/check/${appointmentId}/${userId}`,            // GET - Verificar si existe
+      `/api/score/check/${appointmentId}/${userId}`,            // GET - Verificar si existe
     GET_BY_APPOINTMENT: (appointmentId: number) => 
-      `/api/scores/appointment/${appointmentId}`,                // GET - Por cita
+      `/api/score/appointment/${appointmentId}`,                // GET - Por cita
     GET_USER_AVERAGE: (userId: number) => 
-      `/api/scores/user/${userId}/average`,                      // GET - Promedio del usuario
+      `/api/score/user/${userId}/average`,                      // GET - Promedio del usuario
   },
 
   // ============================================
-  // ANUNCIOS - /api/announcement
+  // ANUNCIOS - /api/announcements
   // ============================================
   ANNOUNCEMENTS: {
-    GET_ALL: '/api/announcement',                                // GET - Obtener todos
-    CREATE: '/api/announcement',                                 // POST - Crear anuncio
-    GET_BY_ID: (announcementId: number) => `/api/announcement/${announcementId}`,  // GET
-    UPDATE: (announcementId: number) => `/api/announcement/${announcementId}`,     // PUT
-    DELETE: (announcementId: number) => `/api/announcement/${announcementId}`,     // DELETE
-    GET_BY_ROLE: (targetRole: string) => `/api/announcement/role/${targetRole}`,   // GET - Por rol
+    GET_ALL: '/api/announcements',                                // GET - Obtener todos
+    CREATE: '/api/announcements',                                 // POST - Crear anuncio
+    GET_BY_ID: (announcementId: number) => `/api/announcements/${announcementId}`,  // GET
+    UPDATE: (announcementId: number) => `/api/announcements/${announcementId}`,     // PUT
+    DELETE: (announcementId: number) => `/api/announcements/${announcementId}`,     // DELETE
+    GET_BY_ROLE: (targetRole: string) => `/api/announcements/role/${targetRole}`,   // GET - Por rol
   },
 
   // ============================================
