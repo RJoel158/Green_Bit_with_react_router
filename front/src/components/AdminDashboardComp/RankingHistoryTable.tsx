@@ -6,8 +6,8 @@ interface Period {
   estado: string;
 }
 import CommonHeader from '../CommonComp/CommonHeader';
-import axios from 'axios';
-const api = axios.create({ baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000' });
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface RankingHistoryTableProps {
   periodoId: number;
@@ -37,7 +37,7 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
   const fetchRanking = async (periodId: number) => {
     setLoadingRanking(true);
     try {
-      const res = await api.get(`/api/ranking/history/${periodId}`);
+      const res = await api.get(API_ENDPOINTS.RANKING.GET_HISTORY(periodId));
       const rankingData = res.data.ranking ? res.data.ranking.slice(0, 10) : [];
       setRanking(rankingData);
       // Obtener info de usuario para cada user_id
@@ -45,7 +45,7 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
       const info: Record<number, {name: string, email: string}> = {};
       await Promise.all(ids.map(async (id: number) => {
         try {
-          const userRes = await api.get(`/api/users/${id}`);
+          const userRes = await api.get(API_ENDPOINTS.USERS.GET_USER(id));
           info[Number(id)] = {
             name: userRes.data.user?.name || '',
             email: userRes.data.user?.email || ''
@@ -65,7 +65,7 @@ export default function RankingHistoryTable({ periodoId }: RankingHistoryTablePr
 
   const fetchPeriods = async () => {
     try {
-      const res = await api.get('/api/ranking/periods');
+      const res = await api.get(API_ENDPOINTS.RANKING.GET_PERIODS);
       setPeriods(res.data.periods || []);
     } catch (err) {
       setPeriods([]);

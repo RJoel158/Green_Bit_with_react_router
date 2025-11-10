@@ -237,7 +237,7 @@ const getRejectionEmailTemplate = (nombre, apellidos, userType) => {
                     </ul>
                     
                     <div align="center" style="margin: 24px 0;">
-                      <a href="http://localhost:5173/register" class="retry-button">
+                      <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/register" class="retry-button">
                         🔄 Volver a Intentar
                       </a>
                     </div>

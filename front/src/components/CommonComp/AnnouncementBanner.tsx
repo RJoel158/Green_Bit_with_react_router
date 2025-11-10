@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getAnnouncementsByRole } from '../../services/announcementService';
+import { config } from '../../config/environment';
 
 interface Announcement {
   id: number;
@@ -70,8 +71,8 @@ const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ role, position 
       return imagePath;
     }
     
-    // Si es relativa, agregar el backend
-    return `http://localhost:3000${imagePath}`;
+    // Si es relativa, agregar el backend desde config
+    return `${config.api.baseUrl}${imagePath}`;
   };
 
   const bannerClass = position === 'left' ? 'banner-left' : 'banner-right';

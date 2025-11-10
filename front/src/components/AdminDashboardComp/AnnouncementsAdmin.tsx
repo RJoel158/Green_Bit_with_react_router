@@ -9,6 +9,7 @@ import {
 } from '../../services/announcementService.ts';
 import { uploadAnnouncementImage } from '../../services/uploadService.ts';
 import CommonHeader from '../CommonComp/CommonHeader';
+import { config } from '../../config/environment';
 
 interface Announcement {
   id: number;
@@ -102,10 +103,10 @@ const AnnouncementsAdmin: React.FC = () => {
         createdBy: fullData.createdBy
       });
       
-      // Convertir URL relativa a absoluta apuntando al backend (puerto 3000)
+      // Convertir URL relativa a absoluta apuntando al backend usando config
       let imageUrl = fullData.imagePath;
       if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `http://localhost:3000${imageUrl}`;
+        imageUrl = `${config.api.baseUrl}${imageUrl}`;
       }
       
       setPreviewImage(imageUrl || null);
@@ -143,9 +144,9 @@ const AnnouncementsAdmin: React.FC = () => {
       // Obtener la URL correcta
       let imageUrl = uploadedData?.url || uploadedData;
       
-      // Convertir URL relativa a absoluta apuntando al backend (puerto 3000)
+      // Convertir URL relativa a absoluta apuntando al backend usando config
       if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `http://localhost:3000${imageUrl}`;
+        imageUrl = `${config.api.baseUrl}${imageUrl}`;
         console.log('🔗 URL convertida a absoluta (backend):', imageUrl);
       }
       

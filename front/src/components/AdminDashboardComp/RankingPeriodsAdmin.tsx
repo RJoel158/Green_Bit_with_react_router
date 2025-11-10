@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CommonHeader from '../CommonComp/CommonHeader';
-import axios from 'axios';
-const api = axios.create({ baseURL: 'http://localhost:3000' });
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface Period {
   id: number;
@@ -67,7 +67,7 @@ const RankingPeriodsAdmin: React.FC = () => {
   const fetchPeriods = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/api/ranking/periods');
+      const res = await api.get(API_ENDPOINTS.RANKING.GET_PERIODS);
       setPeriods(res.data.periods || []);
       setError(null);
     } catch (err) {
@@ -81,7 +81,7 @@ const RankingPeriodsAdmin: React.FC = () => {
   const fetchLiveRanking = async (periodId: number) => {
     setLoadingRanking(true);
     try {
-      const res = await api.get(`/api/ranking/live/${periodId}`);
+      const res = await api.get(API_ENDPOINTS.RANKING.GET_LIVE(periodId));
       setRanking({
         recicladores: res.data.recicladores || [],
         recolectores: res.data.recolectores || []
@@ -97,7 +97,7 @@ const RankingPeriodsAdmin: React.FC = () => {
   const fetchHistoricalRanking = async (periodId: number) => {
     setLoadingRanking(true);
     try {
-      const res = await api.get(`/api/ranking/tops/${periodId}`);
+      const res = await api.get(API_ENDPOINTS.RANKING.GET_TOPS(periodId));
       // Agrupa por rol
       const recicladores = res.data.tops.filter((r: any) => r.rol === 'reciclador');
       const recolectores = res.data.tops.filter((r: any) => r.rol === 'recolector');
@@ -112,7 +112,7 @@ const RankingPeriodsAdmin: React.FC = () => {
   const handleStartPeriod = async () => {
     setMensaje('');
     try {
-      await api.post('/api/ranking/periods', {
+      await api.post(API_ENDPOINTS.RANKING.CREATE_PERIOD, {
         fecha_inicio: new Date().toISOString().slice(0, 19).replace('T', ' '),
         estado: 'activo'
       });
@@ -128,7 +128,7 @@ const RankingPeriodsAdmin: React.FC = () => {
     setMensaje('');
     setLoadingRanking(true);
     try {
-      await api.post('/api/ranking/periods/close', { periodo_id: id });
+      await api.post(API_ENDPOINTS.RANKING.CLOSE_PERIOD, { periodo_id: id });
       await fetchPeriods();
       setMensaje('Periodo cerrado y ranking guardado');
     } catch (err) {

@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 import './AdminDashboard.css';
 
 interface Period {
@@ -22,27 +24,31 @@ export default function LiveRankingAdmin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/ranking/periods')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) setPeriods(data.periods);
-      });
+    api.get(API_ENDPOINTS.RANKING.GET_PERIODS)
+      .then(res => {
+        if (res.data.success) setPeriods(res.data.periods);
+      })
+      .catch(() => setPeriods([]));
   }, []);
 
   useEffect(() => {
     if (!selectedPeriod) return;
     setLoading(true);
-    fetch(`/api/ranking/live/${selectedPeriod}`)
-      .then(res => res.json())
-      .then(data => {
+    api.get(API_ENDPOINTS.RANKING.GET_LIVE(selectedPeriod))
+      .then(res => {
         setLoading(false);
-        if (data.success) {
-          setRecicladores(data.recicladores);
-          setRecolectores(data.recolectores);
+        if (res.data.success) {
+          setRecicladores(res.data.recicladores);
+          setRecolectores(res.data.recolectores);
         } else {
           setRecicladores([]);
           setRecolectores([]);
         }
+      })
+      .catch(() => {
+        setLoading(false);
+        setRecicladores([]);
+        setRecolectores([]);
       });
   }, [selectedPeriod]);
 

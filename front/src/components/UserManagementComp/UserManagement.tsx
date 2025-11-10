@@ -5,6 +5,8 @@ import UserTable from './UserTable';
 import UserInfoPanel from './UserInfoPanel';
 import CreateUserModal from './CreateUserModal';
 import './UserManagement.css';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface User {
   userId: number;
@@ -66,12 +68,12 @@ export default function UserManagement() {
     setError(null);
     
     try {
-      const endpoint = type === 'Persona' 
-        ? 'http://localhost:3000/api/users/withPerson' 
-        : 'http://localhost:3000/api/users/withInstitution';
+      const url = type === 'Persona' 
+        ? API_ENDPOINTS.USERS.GET_USER_WITH_PERSON
+        : API_ENDPOINTS.USERS.GET_USER_WITH_INSTITUTION(0);
       
-      const response = await fetch(endpoint);
-      const data = await response.json();
+      const response = await api.get(url);
+      const data = response.data;
       
       if (data.success) {
         setUsers(data.users);
