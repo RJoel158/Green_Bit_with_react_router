@@ -7,15 +7,7 @@ import { Server } from 'socket.io';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import userRoutes from './Routes/userRoutes.js';
-import materialRoutes from './Routes/materialRoutes.js';
-import requestRoutes from './Routes/requestRoutes.js';
-import requestAppointmentRoutes from './Routes/requestAppointmentRoutes.js';
-import notificationRoutes from './Routes/notificationRoutes.js';
-import scoreRoutes from './Routes/scoreRoutes.js';
-import announcementRoutes from './Routes/announcementRoutes.js';
-import uploadRoutes from './Routes/uploadRoutes.js';
-import reportRoutes from './Routes/reportRoutes.js';
+import routes from './Routes/index.js';
 import { verifyEmailConnection } from './Services/emailService.js';
 import { checkConnection } from './Config/DBConnect.js';
 
@@ -83,23 +75,12 @@ app.use(express.json({
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 app.use('/uploads', express.static(uploadDir));
 
-// Usar rutas de usuarios
-import rankingRoutes from './Routes/rankingRoutes.js';
-import personRoutes from './Routes/personRoutes.js';
-import institutionRoutes from './Routes/InstitutionRoutes.js';
-
-app.use("/api/users", userRoutes);
-app.use("/api/material", materialRoutes);
-app.use("/api/request", requestRoutes);
-app.use("/api/appointments", requestAppointmentRoutes);
-app.use("/api/notification", notificationRoutes);
-app.use("/api/score", scoreRoutes);
-app.use("/api/announcements", announcementRoutes);
-app.use("/api/upload", uploadRoutes);
-app.use("/api/ranking", rankingRoutes);
-app.use("/api/reports", reportRoutes);
-app.use("/api/person", personRoutes);
-app.use("/api/institution", institutionRoutes);
+// ========================================
+// RUTAS CENTRALIZADAS
+// ========================================
+// Todas las rutas están organizadas en un único lugar: Routes/index.js
+// Se montan aquí con los prefijos de API correspondientes
+app.use('/api', routes);
 
 // Ruta de health check
 app.get('/health', (req, res) => {
