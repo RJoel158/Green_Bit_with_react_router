@@ -57,38 +57,45 @@ const Login: React.FC = () => {
 
       const data = res.data;
 
-      if (res.status !== 200) {
+      // Login exitoso
+      if (data.success) {
+        setMensaje("✅ Bienvenido, " + data.user.email);
+        //Guardado de sesión
+        localStorage.setItem("user", JSON.stringify(data.user));
+        //Limpieza del formulario y erores
+        setForm({ email: "", password: "" });
+        setErrors({});
+        //Redirección segun el rol
+        switch (data.user.role) {
+          case "admin":
+            window.location.href = "/adminDashboard";
+            break;
+          case "recolector":
+            window.location.href = "/recolectorIndex";
+            break;
+          case "reciclador":
+            window.location.href = "/recicladorIndex";
+            break;
+          default:
+            window.location.href = "/main";
+        }
+      } else {
         console.error("Error de login:", data.error);
         setMensaje("❌ " + (data.error || "Email o contraseña incorrectos"));
         setForm((f) => ({ ...f, password: "" })); // resetea la contraseña
-        return;
       }
 
-      // Login exitoso
-      setMensaje("✅ Bienvenido, " + data.user.email);
-      //Guardado de sesión
-      localStorage.setItem("user", JSON.stringify(data.user));
-      //Limpieza del formulario y erores
-      setForm({ email: "", password: "" });
-      setErrors({});
-      //Redirección segun el rol
-      switch (data.user.role) {
-        case "admin":
-          window.location.href = "/adminDashboard";
-          break;
-        case "recolector":
-          window.location.href = "/recolectorIndex";
-          break;
-        case "reciclador":
-          window.location.href = "/recicladorIndex";
-          break;
-        default:
-          window.location.href = "/main";
-      }
-
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error de conexión:", err);
-      setMensaje("❌ No se pudo conectar al servidor.");
+      
+      // Manejar errores HTTP (401, 400, etc.)
+      if (err.response?.status === 401 || err.response?.status === 400) {
+        const errorMessage = err.response?.data?.error || "Usuario o contraseña incorrectos";
+        setMensaje("❌ " + errorMessage);
+        setForm((f) => ({ ...f, password: "" })); // resetea la contraseña
+      } else {
+        setMensaje("❌ No se pudo conectar al servidor.");
+      }
     } finally {
       setLoading(false);
     }
