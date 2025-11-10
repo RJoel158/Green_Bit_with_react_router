@@ -91,7 +91,7 @@ import institutionRoutes from './Routes/InstitutionRoutes.js';
 app.use("/api/users", userRoutes);
 app.use("/api/material", materialRoutes);
 app.use("/api/request", requestRoutes);
-app.use("/api/appointment", requestAppointmentRoutes);
+app.use("/api/appointments", requestAppointmentRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/score", scoreRoutes);
 app.use("/api/announcements", announcementRoutes);
