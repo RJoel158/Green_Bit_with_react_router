@@ -1,5 +1,7 @@
 import './AdminDashboard.css';
 import { useEffect, useState } from 'react';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 export default function PendingApprovals({ setActiveMenu }: { setActiveMenu?: (menu: string) => void }) {
   const [requests, setRequests] = useState([]);
@@ -7,10 +9,9 @@ export default function PendingApprovals({ setActiveMenu }: { setActiveMenu?: (m
   useEffect(() => {
     async function fetchRequests() {
       try {
-        const response = await fetch('http://localhost:3000/api/users/collectors/pending');
-        const data = await response.json();
-        if (data.success) {
-          setRequests(data.collectors || []);
+        const response = await api.get(API_ENDPOINTS.USERS.GET_COLLECTORS_PENDING);
+        if (response.data.success) {
+          setRequests(response.data.collectors || []);
         } else {
           setRequests([]);
         }

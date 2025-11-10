@@ -3,6 +3,8 @@ import './FormComp.css';
 import MapPopup from "./MapPopup"; // importar el componente del mapa
 import MiniMapPreview from "./MiniMapPreview"; // importar el mini mapa
 import { REQUEST_STATE } from '../../shared/constants';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface Material {
   id: number;
@@ -69,25 +71,18 @@ const FormComp: React.FC = () => {
   const checkServerHealth = async () => {
     try {
       console.log("Verificando salud del servidor...");
-      const response = await fetch("http://localhost:3000/health", { 
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.get(API_ENDPOINTS.SYSTEM.HEALTH);
       
       console.log("Respuesta del health check:", {
-        ok: response.ok,
         status: response.status,
         statusText: response.statusText
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Datos del health check:", data);
+      if (response.status === 200) {
+        console.log("Datos del health check:", response.data);
       }
       
-      return response.ok;
+      return response.status === 200;
     } catch (error) {
       console.error("Error en health check:", error);
       return false;
@@ -114,23 +109,17 @@ const FormComp: React.FC = () => {
         }
 
         // Intentar obtener materiales reales
-        const response = await fetch("http://localhost:3000/api/material", {
-          method: 'GET',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Accept': 'application/json' 
-          },
+        const response = await api.get(API_ENDPOINTS.MATERIALS.GET_ALL, {
           signal: AbortSignal.timeout(10000)
         });
 
         console.log("Respuesta de materiales:", {
-          ok: response.ok,
           status: response.status,
           statusText: response.statusText
         });
 
-        if (response.ok) {
-          const materialsData = await response.json();
+        if (response.status === 200) {
+          const materialsData = response.data;
           console.log("Materiales recibidos:", materialsData);
           
           if (Array.isArray(materialsData) && materialsData.length > 0) {
@@ -322,22 +311,18 @@ const FormComp: React.FC = () => {
 
       console.log("Enviando solicitud con FormData...");
 
-      const response = await fetch("http://localhost:3000/api/request", {
-        method: 'POST',
-        body: formDataToSend, // No establecer Content-Type, el navegador lo hace automáticamente
+      const response = await api.post(API_ENDPOINTS.REQUESTS.CREATE, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       console.log("Respuesta de solicitud:", {
-        ok: response.ok,
         status: response.status,
         statusText: response.statusText
       });
 
-      if (!response.ok) {
-        throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = response.data;
       console.log("Datos de respuesta:", data);
 
       if (data.success) {

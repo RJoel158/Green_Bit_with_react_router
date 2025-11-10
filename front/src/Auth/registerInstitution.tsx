@@ -5,6 +5,8 @@ import logo from "../assets/logo.png";
 import cardBg from "../assets/SideBarImg.png";
 import { Validator } from "../common/Validator";
 import SuccessModal from "../components/CommonComp/SuccesModal";
+import api from "../services/api";
+import { API_ENDPOINTS } from "../config/endpoints";
 
 /**
  * Formulario de registro para instituciones.
@@ -101,21 +103,15 @@ const RegisterInstitution: React.FC = () => {
     setMensaje("");
 
     try {
-      // POST a /api/users/collector
-      const res = await fetch("http://localhost:3000/api/users/institution", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          companyName: Validator.normalizeSpaces(form.companyName),
-          nit: form.nit.toUpperCase(),
-          email: form.email.toLowerCase(),
-          phone: form.phone,
-          role_id: 2, // recolector institución
-          // state: 1, // pendiente (opcional, si quieres forzar)
-        }),
+      const res = await api.post(API_ENDPOINTS.USERS.REGISTER_INSTITUTION, {
+        companyName: Validator.normalizeSpaces(form.companyName),
+        nit: form.nit.toUpperCase(),
+        email: form.email.toLowerCase(),
+        phone: form.phone,
+        role_id: 2, // recolector institución
       });
 
-      const data = await res.json();
+      const data = res.data;
       if (data.success) {
         setMensaje("✅ Registro exitoso.");
         setForm({ companyName: "", nit: "", email: "", phone: "" });

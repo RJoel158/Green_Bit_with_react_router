@@ -5,6 +5,8 @@ import cardBg from "../assets/SideBarImg.png";
 import logo from "../assets/logo.png";
 import { Validator } from "../common/Validator";
 import ForgotPasswordModal from "../components/PasswordComp/ForgotPasswordModal";
+import api from "../services/api";
+import { API_ENDPOINTS } from "../config/endpoints";
 
 //Estructura del formulario del login
 type FormData = {
@@ -48,15 +50,14 @@ const Login: React.FC = () => {
     setMensaje("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password: form.password }),
+      const res = await api.post(API_ENDPOINTS.USERS.LOGIN, {
+        email: form.email,
+        password: form.password
       });
 
-      const data = await res.json();
+      const data = res.data;
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         console.error("Error de login:", data.error);
         setMensaje("❌ " + (data.error || "Email o contraseña incorrectos"));
         setForm((f) => ({ ...f, password: "" })); // resetea la contraseña

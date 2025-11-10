@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./ChangePasswordModal.css";
 import { Validator } from "../../common/Validator";
 import SuccessModal from "../CommonComp/SuccesModal";
+import api from "../../services/api";
+import { API_ENDPOINTS } from "../../config/endpoints";
 
 interface ChangePasswordModalProps {
   userId: number;
@@ -26,14 +28,11 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
     if (!Validator.isValid(validationErrors)) return;
 
     try {
-      
-      const res = await fetch(`http://localhost:3000/api/users/changePassword/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+      const res = await api.put(API_ENDPOINTS.USERS.CHANGE_PASSWORD(userId), { 
+        password 
       });
 
-      const data = await res.json();
+      const data = res.data;
       if (!data.success) throw new Error(data.error || "Error al cambiar la contraseña");
 
       const userStr = localStorage.getItem("user");

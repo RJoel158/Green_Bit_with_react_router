@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./UserInfo.css";
 import HeaderUserInfo from "./HeaderUserInfo";
 import { useNavigate } from "react-router-dom";
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 //Estructura del usuario
 interface User {
@@ -40,21 +42,19 @@ const UserInfo: React.FC = () => {
       const userId = parsedUser.id;
       
       // Buscar id como persona
-      fetch(`http://localhost:3000/api/users/${userId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success && data.user) {
+      api.get(API_ENDPOINTS.USERS.GET_USER(userId))
+        .then((response) => {
+          if (response.data.success && response.data.user) {
             // Si firstname y lastname no son null, es persona
-            if (data.user.firstname !== null && data.user.lastname !== null) {
-              setUser(data.user);
+            if (response.data.user.firstname !== null && response.data.user.lastname !== null) {
+              setUser(response.data.user);
               setLoading(false);
             } else {
               // firstname y lastname son null, intentar como institución
-              fetch(`http://localhost:3000/api/users/withInstitution/${userId}`)
-                .then((res) => res.json())
-                .then((institutionData) => {
-                  if (institutionData.success && institutionData.user) {
-                    setUser(institutionData.user);
+              api.get(API_ENDPOINTS.USERS.GET_USER_WITH_INSTITUTION(userId))
+                .then((institutionResponse) => {
+                  if (institutionResponse.data.success && institutionResponse.data.user) {
+                    setUser(institutionResponse.data.user);
                   }
                   setLoading(false);
                 })

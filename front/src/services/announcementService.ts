@@ -1,27 +1,15 @@
-import { apiUrl, config } from '../config/environment';
+import api from './api';
+import { API_ENDPOINTS } from '../config/endpoints';
 
-const ANNOUNCEMENT_API = apiUrl(config.api.endpoints.announcements);
-
-console.log('[announcementService] API Base URL:', ANNOUNCEMENT_API);
+console.log('[announcementService] Using centralized API');
 
 // Obtener todos los anuncios
 export const getAllAnnouncements = async () => {
   try {
     console.log('[announcementService] Obteniendo todos los anuncios');
-    const response = await fetch(`${ANNOUNCEMENT_API}/`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncios obtenidos:', data.data);
-    return data.data;
+    const response = await api.get(API_ENDPOINTS.ANNOUNCEMENTS.GET_ALL);
+    console.log('[announcementService] Anuncios obtenidos:', response.data.data);
+    return response.data.data;
   } catch (error) {
     console.error('[announcementService] Error en getAllAnnouncements:', error);
     throw error;
@@ -32,20 +20,9 @@ export const getAllAnnouncements = async () => {
 export const getAnnouncementById = async (id: number) => {
   try {
     console.log('[announcementService] Obteniendo anuncio:', id);
-    const response = await fetch(`${ANNOUNCEMENT_API}/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncio obtenido:', data.data);
-    return data.data;
+    const response = await api.get(API_ENDPOINTS.ANNOUNCEMENTS.GET_BY_ID(id));
+    console.log('[announcementService] Anuncio obtenido:', response.data.data);
+    return response.data.data;
   } catch (error) {
     console.error('[announcementService] Error en getAnnouncementById:', error);
     throw error;
@@ -57,26 +34,15 @@ export const createAnnouncement = async (title: string, imagePath: string, targe
   try {
     console.log('[announcementService] Creando anuncio:', { title, imagePath, targetRole, createdBy });
     
-    const response = await fetch(`${ANNOUNCEMENT_API}/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title,
-        imagePath,
-        targetRole,
-        createdBy
-      })
+    const response = await api.post(API_ENDPOINTS.ANNOUNCEMENTS.CREATE, {
+      title,
+      imagePath,
+      targetRole,
+      createdBy
     });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncio creado:', data);
-    return data.data;
+    console.log('[announcementService] Anuncio creado:', response.data);
+    return response.data.data;
   } catch (error) {
     console.error('[announcementService] Error en createAnnouncement:', error);
     throw error;
@@ -88,26 +54,15 @@ export const updateAnnouncement = async (id: number, title: string, imagePath: s
   try {
     console.log('[announcementService] Actualizando anuncio:', { id, title, imagePath, targetRole, state });
     
-    const response = await fetch(`${ANNOUNCEMENT_API}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title,
-        imagePath,
-        targetRole,
-        state
-      })
+    const response = await api.put(API_ENDPOINTS.ANNOUNCEMENTS.UPDATE(id), {
+      title,
+      imagePath,
+      targetRole,
+      state
     });
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncio actualizado:', data);
-    return data;
+    console.log('[announcementService] Anuncio actualizado:', response.data);
+    return response.data;
   } catch (error) {
     console.error('[announcementService] Error en updateAnnouncement:', error);
     throw error;
@@ -119,20 +74,10 @@ export const deleteAnnouncement = async (id: number) => {
   try {
     console.log('[announcementService] Eliminando anuncio:', id);
     
-    const response = await fetch(`${ANNOUNCEMENT_API}/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await api.delete(API_ENDPOINTS.ANNOUNCEMENTS.DELETE(id));
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncio eliminado:', data);
-    return data;
+    console.log('[announcementService] Anuncio eliminado:', response.data);
+    return response.data;
   } catch (error) {
     console.error('[announcementService] Error en deleteAnnouncement:', error);
     throw error;
@@ -144,20 +89,10 @@ export const getAnnouncementsByRole = async (targetRole: string) => {
   try {
     console.log('[announcementService] Obteniendo anuncios por rol:', targetRole);
     
-    const response = await fetch(`${ANNOUNCEMENT_API}/role/${targetRole}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await api.get(API_ENDPOINTS.ANNOUNCEMENTS.GET_BY_ROLE(targetRole));
 
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[announcementService] Anuncios obtenidos por rol:', data.data);
-    return data.data;
+    console.log('[announcementService] Anuncios obtenidos por rol:', response.data.data);
+    return response.data.data;
   } catch (error) {
     console.error('[announcementService] Error en getAnnouncementsByRole:', error);
     throw error;

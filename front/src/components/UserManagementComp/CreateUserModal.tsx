@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Validator } from '../../common/Validator';
 import SuccessModal from '../CommonComp/SuccesModal';
 import './UserManagement.css';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -112,27 +114,22 @@ export default function CreateUserModal({
       try {
         // Admin crea usuarios ya aprobados (estado 1) con correo de credenciales
         // Todos usan el mismo endpoint /api/users
-        const res = await fetch('http://localhost:3000/api/users', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombres: Validator.normalizeName(personForm.nombres),
-            apellidos: Validator.normalizeName(personForm.apellidos),
-            email: personForm.email.trim().toLowerCase(),
-            phone: personForm.phone,
-            role_id: personForm.roleId,
-          }),
+        const response = await api.post(API_ENDPOINTS.USERS.REGISTER, {
+          nombres: Validator.normalizeName(personForm.nombres),
+          apellidos: Validator.normalizeName(personForm.apellidos),
+          email: personForm.email.trim().toLowerCase(),
+          phone: personForm.phone,
+          role_id: personForm.roleId,
         });
 
-        const data = await res.json();
-        if (data.success) {
+        if (response.data.success) {
           setSuccessMessage({
             title: '¡Usuario Creado!',
             message: 'Usuario creado exitosamente. Se envió un correo con las credenciales.'
           });
           setShowSuccessModal(true);
         } else {
-          setMensaje(data.error || 'Error al crear usuario');
+          setMensaje(response.data.error || 'Error al crear usuario');
         }
       } catch (err) {
         setMensaje('No se pudo conectar al servidor');
@@ -158,27 +155,22 @@ export default function CreateUserModal({
       try {
         // Admin crea instituciones ya aprobadas (estado 1) con correo de credenciales
         // Usa el endpoint /api/users/institution-admin (nuevo endpoint que aprobaremos directamente)
-        const res = await fetch('http://localhost:3000/api/users/institution-admin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            companyName: institutionForm.companyName.trim(),
-            nit: institutionForm.nit.trim().toUpperCase(),
-            email: institutionForm.email.trim().toLowerCase(),
-            phone: institutionForm.phone,
-            role_id: 2,
-          }),
+        const response = await api.post(API_ENDPOINTS.USERS.REGISTER_INSTITUTION_ADMIN, {
+          companyName: institutionForm.companyName.trim(),
+          nit: institutionForm.nit.trim().toUpperCase(),
+          email: institutionForm.email.trim().toLowerCase(),
+          phone: institutionForm.phone,
+          role_id: 2,
         });
 
-        const data = await res.json();
-        if (data.success) {
+        if (response.data.success) {
           setSuccessMessage({
             title: '¡Institución Creada!',
             message: 'Institución creada exitosamente. Se envió un correo con las credenciales.'
           });
           setShowSuccessModal(true);
         } else {
-          setMensaje(data.error || 'Error al crear institución');
+          setMensaje(response.data.error || 'Error al crear institución');
         }
       } catch (err) {
         setMensaje('No se pudo conectar al servidor');

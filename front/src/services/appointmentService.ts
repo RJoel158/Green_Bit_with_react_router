@@ -1,5 +1,6 @@
 // services/appointmentService.ts
-import { apiUrl } from '../config/environment';
+import api from './api';
+import { API_ENDPOINTS } from '../config/endpoints';
 
 export interface Appointment {
   id: number;
@@ -27,7 +28,6 @@ export const getAppointmentsByCollector = async (
   limit?: number
 ): Promise<Appointment[]> => {
   try {
-    let url = apiUrl(`/api/appointments/collector/${collectorId}`);
     const params = new URLSearchParams();
     
     if (state !== undefined) {
@@ -37,18 +37,12 @@ export const getAppointmentsByCollector = async (
       params.append('limit', limit.toString());
     }
     
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
+    const url = API_ENDPOINTS.APPOINTMENTS.GET_BY_COLLECTOR(collectorId);
+    const queryString = params.toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.success ? data.data : [];
+    const response = await api.get<{ success: boolean; data: Appointment[] }>(fullUrl);
+    return response.data.success ? response.data.data : [];
   } catch (error) {
     console.error('Error fetching appointments by collector:', error);
     throw error;
@@ -62,7 +56,6 @@ export const getAppointmentsByRecycler = async (
   limit?: number
 ): Promise<Appointment[]> => {
   try {
-    let url = apiUrl(`/api/appointments/recycler/${recyclerId}`);
     const params = new URLSearchParams();
     
     if (state !== undefined) {
@@ -72,18 +65,12 @@ export const getAppointmentsByRecycler = async (
       params.append('limit', limit.toString());
     }
     
-    if (params.toString()) {
-      url += `?${params.toString()}`;
-    }
+    const url = API_ENDPOINTS.APPOINTMENTS.GET_BY_RECYCLER(recyclerId);
+    const queryString = params.toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
     
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    return data.success ? data.data : [];
+    const response = await api.get<{ success: boolean; data: Appointment[] }>(fullUrl);
+    return response.data.success ? response.data.data : [];
   } catch (error) {
     console.error('Error fetching appointments by recycler:', error);
     throw error;

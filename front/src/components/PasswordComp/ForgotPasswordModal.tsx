@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./ForgotPasswordModal.css";
 import { Validator } from "../../common/Validator";
 import SuccessModal from "../CommonComp/SuccesModal";
+import api from "../../services/api";
+import { API_ENDPOINTS } from "../../config/endpoints";
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -32,16 +34,13 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setRecoveryMessage("");
 
     try {
-      const res = await fetch("http://localhost:3000/api/users/forgotpassword", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: recoveryEmail }),
+      const res = await api.post(API_ENDPOINTS.USERS.FORGOT_PASSWORD, { 
+        email: recoveryEmail 
       });
 
-      const data = await res.json();
+      const data = res.data;
 
-     
-      if (res.ok || res.status === 200) {
+      if (res.status === 200) {
         // Cerrar el modal actual y mostrar el SuccessModal
         setIsSuccessModalOpen(true);
       } else {

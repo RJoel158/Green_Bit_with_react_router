@@ -4,6 +4,8 @@ import Header from './Header';
 import RequestsTable from './RequestsTable';
 import SuccessModal from '../CommonComp/SuccesModal';
 import './CollectorRequests.css';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface CollectorRequest {
   userId: number;
@@ -54,15 +56,14 @@ export default function CollectorRequests() {
     
     try {
       const endpoint = type === 'Persona' 
-        ? 'http://localhost:3000/api/users/collectors/pending' 
-        : 'http://localhost:3000/api/users/collectors/pending/institution';
+        ? API_ENDPOINTS.USERS.GET_COLLECTORS_PENDING
+        : API_ENDPOINTS.USERS.GET_COLLECTORS_PENDING_INSTITUTION;
       
-      const response = await fetch(endpoint);
-      const data = await response.json();
+      const response = await api.get(endpoint);
       
-      if (data.success) {
+      if (response.data.success) {
        
-        setRequests(data.collectors || []);
+        setRequests(response.data.collectors || []);
       } else {
         setError('Error al obtener solicitudes');
       }
@@ -127,24 +128,20 @@ export default function CollectorRequests() {
     setProcessing(true); // Activar indicador de carga
     try {
       const endpoint = requestType === 'Persona' 
-        ? `http://localhost:3000/api/users/approve/${userId}`
-        : `http://localhost:3000/api/users/institution/approve/${userId}`;
+        ? API_ENDPOINTS.USERS.APPROVE_USER(userId)
+        : API_ENDPOINTS.USERS.APPROVE_INSTITUTION(userId);
       
-      const response = await fetch(endpoint, {
-        method: 'POST',
-      });
-
-      const data = await response.json();
+      const response = await api.post(endpoint);
       
-      if (data.success) {
+      if (response.data.success) {
         console.log('Solicitud aprobada exitosamente y credenciales enviadas');
         // Mostrar el modal de éxito
         setSuccessAction('approved');
         setShowSuccessModal(true);
         await fetchRequests(requestType);
       } else {
-        console.error('Error al aprobar solicitud:', data.error);
-        setError(data.error || 'Error al aprobar la solicitud');
+        console.error('Error al aprobar solicitud:', response.data.error);
+        setError(response.data.error || 'Error al aprobar la solicitud');
       }
     } catch (err) {
       console.error('Error al aprobar solicitud:', err);
@@ -160,24 +157,20 @@ export default function CollectorRequests() {
     try {
       // Determinar el endpoint según el tipo de solicitud
       const endpoint = requestType === 'Persona'
-        ? `http://localhost:3000/api/users/reject/${userId}`
-        : `http://localhost:3000/api/users/institution/reject/${userId}`;
+        ? API_ENDPOINTS.USERS.REJECT_USER(userId)
+        : API_ENDPOINTS.USERS.REJECT_INSTITUTION(userId);
       
-      const response = await fetch(endpoint, {
-        method: 'POST',
-      });
-
-      const data = await response.json();
+      const response = await api.post(endpoint);
       
-      if (data.success) {
+      if (response.data.success) {
         console.log('Solicitud rechazada exitosamente y email enviado');
         // Mostrar el modal de éxito
         setSuccessAction('rejected');
         setShowSuccessModal(true);
         await fetchRequests(requestType);
       } else {
-        console.error('Error al rechazar solicitud:', data.error);
-        setError(data.error || 'Error al rechazar la solicitud');
+        console.error('Error al rechazar solicitud:', response.data.error);
+        setError(response.data.error || 'Error al rechazar la solicitud');
       }
     } catch (err) {
       console.error('Error al rechazar solicitud:', err);

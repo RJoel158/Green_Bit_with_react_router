@@ -1,6 +1,7 @@
 import './AdminDashboard.css';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 export default function TopCollectors({ setActiveMenu }: { setActiveMenu?: (menu: string) => void }) {
   const [collectors, setCollectors] = useState([]);
@@ -9,7 +10,7 @@ export default function TopCollectors({ setActiveMenu }: { setActiveMenu?: (menu
   useEffect(() => {
     async function fetchRanking() {
       try {
-        const periodsRes = await axios.get('http://localhost:3000/api/ranking/periods');
+        const periodsRes = await api.get(API_ENDPOINTS.RANKING.GET_PERIODS);
         const periods = periodsRes.data.periods || [];
   let period = periods.find((p: any) => p.estado === 'activo');
         if (!period) {
@@ -20,10 +21,10 @@ export default function TopCollectors({ setActiveMenu }: { setActiveMenu?: (menu
         setPeriodLabel(period.estado === 'activo' ? 'Periodo activo' : `Temporada ${period.id}`);
         let rankingRes;
         if (period.estado === 'activo') {
-          rankingRes = await axios.get(`http://localhost:3000/api/ranking/live/${period.id}`);
+          rankingRes = await api.get(API_ENDPOINTS.RANKING.GET_LIVE(period.id));
           setCollectors(rankingRes.data.recolectores || []);
         } else {
-          rankingRes = await axios.get(`http://localhost:3000/api/ranking/tops/${period.id}`);
+          rankingRes = await api.get(API_ENDPOINTS.RANKING.GET_TOPS(period.id));
           setCollectors((rankingRes.data.tops || []).filter((r: any) => r.rol === 'recolector'));
         }
       } catch (err) {

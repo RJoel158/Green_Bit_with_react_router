@@ -5,6 +5,8 @@ import logo from "../assets/logo.png";
 import cardBg from "../assets/SideBarImg.png";
 import { Validator } from "../common/Validator";
 import SuccessModal from "../components/CommonComp/SuccesModal";
+import api from "../services/api";
+import { API_ENDPOINTS } from "../config/endpoints";
 
 type FormData = {
   nombres: string;
@@ -59,22 +61,15 @@ const Register: React.FC = () => {
     setMensaje("");
 
     try {
-      // POST a /api/users/collector
-      const res = await fetch("http://localhost:3000/api/users/collector", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombres: Validator.normalizeName(form.nombres),
-          apellidos: Validator.normalizeName(form.apellidos),
-          email: form.email.toLowerCase(),
-          phone: form.phone,
-          role_id: 2, // recolector
-          // state: 1, // pendiente (opcional)
-        }),
+      const res = await api.post(API_ENDPOINTS.USERS.REGISTER_COLLECTOR, {
+        nombres: Validator.normalizeName(form.nombres),
+        apellidos: Validator.normalizeName(form.apellidos),
+        email: form.email.toLowerCase(),
+        phone: form.phone,
+        role_id: 2, // recolector
       });
 
-      if (!res.ok) throw new Error(`Error del servidor: ${res.status}`);
-      const data = await res.json();
+      const data = res.data;
 
       if (data.success) {
         setMensaje("✅ Registro exitoso.");

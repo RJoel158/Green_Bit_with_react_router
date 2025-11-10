@@ -1,0 +1,558 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "GreenBit API - Complete Collection",
+  "collectionId": "greenbit-api-v1",
+  "dateExported": "2025-11-06",
+  "version": "1.0",
+  "folders": [
+    {
+      "name": "01 - Authentication",
+      "requests": [
+        {
+          "name": "Login",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/users/login",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+          }
+        },
+        {
+          "name": "Register User",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/users",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"roleId\": 3\n}"
+          }
+        },
+        {
+          "name": "Register Collector",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/users/collector",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"collector@example.com\",\n  \"password\": \"password123\",\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Perez\",\n  \"telefono\": \"123456789\"\n}"
+          }
+        },
+        {
+          "name": "Register Institution",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/users/institution",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"institution@example.com\",\n  \"password\": \"password123\",\n  \"nombre\": \"Eco Institute\",\n  \"direccion\": \"Av. Principal 123\",\n  \"telefono\": \"987654321\"\n}"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/users/forgotpassword",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"email\": \"user@example.com\"\n}"
+          }
+        },
+        {
+          "name": "Change Password",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/users/changePassword/{{userId}}",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"oldPassword\": \"oldpass123\",\n  \"newPassword\": \"newpass123\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Users Management",
+      "requests": [
+        {
+          "name": "Get User by ID",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/users/{{userId}}"
+        },
+        {
+          "name": "Get Users with Person",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/users/withPerson"
+        },
+        {
+          "name": "Get User with Institution",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/users/withInstitution/{{userId}}"
+        },
+        {
+          "name": "Get Pending Collectors",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/users/collectors/pending"
+        },
+        {
+          "name": "Approve User",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/users/approve/{{userId}}"
+        },
+        {
+          "name": "Reject User",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/users/reject/{{userId}}"
+        },
+        {
+          "name": "Update User Role",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/users/{{userId}}/role",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"roleId\": 2\n}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "method": "DELETE",
+          "url": "{{baseUrl}}/api/users/{{userId}}"
+        }
+      ]
+    },
+    {
+      "name": "03 - Materials",
+      "requests": [
+        {
+          "name": "Get All Materials",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/material"
+        },
+        {
+          "name": "Get Material by ID",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/material/{{materialId}}"
+        },
+        {
+          "name": "Create Material",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/material",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Plástico PET\",\n  \"description\": \"Botellas de plástico\",\n  \"unit\": \"kg\"\n}"
+          }
+        },
+        {
+          "name": "Update Material",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/material/{{materialId}}",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"name\": \"Plástico PET\",\n  \"description\": \"Botellas de plástico actualizadas\"\n}"
+          }
+        },
+        {
+          "name": "Delete Material",
+          "method": "DELETE",
+          "url": "{{baseUrl}}/api/material/{{materialId}}"
+        }
+      ]
+    },
+    {
+      "name": "04 - Requests",
+      "requests": [
+        {
+          "name": "Get All Requests",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/request"
+        },
+        {
+          "name": "Get Request by ID",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/request/{{requestId}}"
+        },
+        {
+          "name": "Get Requests by User and State",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/request/user/{{userId}}/state?state=1"
+        },
+        {
+          "name": "Create Request",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/material",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"userId\": 1,\n  \"materialId\": 1,\n  \"quantity\": 10,\n  \"description\": \"Solicitud de recolección\"\n}"
+          }
+        },
+        {
+          "name": "Update Request State",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/request/{{requestId}}/state",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"state\": 2\n}"
+          }
+        },
+        {
+          "name": "Get Request Schedule",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/request/{{requestId}}/schedule"
+        },
+        {
+          "name": "Delete Request",
+          "method": "DELETE",
+          "url": "{{baseUrl}}/api/request/{{requestId}}"
+        }
+      ]
+    },
+    {
+      "name": "05 - Appointments",
+      "requests": [
+        {
+          "name": "Get All Appointments",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/appointments"
+        },
+        {
+          "name": "Get Appointment by ID",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/appointments/{{appointmentId}}"
+        },
+        {
+          "name": "Get Appointments by Collector",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/appointments/collector/{{collectorId}}?state=1&limit=10"
+        },
+        {
+          "name": "Get Appointments by Recycler",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/appointments/recycler/{{recyclerId}}?state=1&limit=10"
+        },
+        {
+          "name": "Create Appointment",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/appointments",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"requestId\": 1,\n  \"collectorId\": 2,\n  \"date\": \"2025-11-10\",\n  \"hour\": \"14:00\"\n}"
+          }
+        },
+        {
+          "name": "Schedule Appointment",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/appointments/schedule",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"requestId\": 1,\n  \"scheduleId\": 5,\n  \"collectorId\": 2\n}"
+          }
+        },
+        {
+          "name": "Accept Appointment",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/accept"
+        },
+        {
+          "name": "Reject Appointment",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/reject"
+        },
+        {
+          "name": "Cancel Appointment",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/cancel"
+        },
+        {
+          "name": "Complete Appointment",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/complete",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"weight\": 15.5\n}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Notifications",
+      "requests": [
+        {
+          "name": "Get User Notifications",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/notifications/user/{{userId}}?limit=10"
+        },
+        {
+          "name": "Get Unread Notifications",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/notifications/unread/{{userId}}"
+        },
+        {
+          "name": "Mark as Read",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/notifications/read",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"notificationIds\": [1, 2, 3]\n}"
+          }
+        },
+        {
+          "name": "Create Notification",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/notifications",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"userId\": 1,\n  \"title\": \"Nueva notificación\",\n  \"message\": \"Mensaje de prueba\",\n  \"type\": \"info\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Scores",
+      "requests": [
+        {
+          "name": "Create Score",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/scores",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"appointmentId\": 1,\n  \"userId\": 2,\n  \"score\": 5,\n  \"comment\": \"Excelente servicio\"\n}"
+          }
+        },
+        {
+          "name": "Check Score Exists",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/scores/check/{{appointmentId}}/{{userId}}"
+        },
+        {
+          "name": "Get Scores by Appointment",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/scores/appointment/{{appointmentId}}"
+        },
+        {
+          "name": "Get User Average Score",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/scores/user/{{userId}}/average"
+        }
+      ]
+    },
+    {
+      "name": "08 - Announcements",
+      "requests": [
+        {
+          "name": "Get All Announcements",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/announcement"
+        },
+        {
+          "name": "Get Announcement by ID",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/announcement/{{announcementId}}"
+        },
+        {
+          "name": "Create Announcement",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/announcement",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"title\": \"Nuevo anuncio\",\n  \"content\": \"Contenido del anuncio\",\n  \"imageUrl\": \"https://example.com/image.jpg\"\n}"
+          }
+        },
+        {
+          "name": "Update Announcement",
+          "method": "PUT",
+          "url": "{{baseUrl}}/api/announcement/{{announcementId}}",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"title\": \"Anuncio actualizado\",\n  \"content\": \"Nuevo contenido\"\n}"
+          }
+        },
+        {
+          "name": "Delete Announcement",
+          "method": "DELETE",
+          "url": "{{baseUrl}}/api/announcement/{{announcementId}}"
+        }
+      ]
+    },
+    {
+      "name": "09 - Ranking",
+      "requests": [
+        {
+          "name": "Get All Periods",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/ranking/periods"
+        },
+        {
+          "name": "Get Active or Last Period",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/ranking/periods/active-or-last"
+        },
+        {
+          "name": "Create Period",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/ranking/periods",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"nombre\": \"Período Noviembre 2025\",\n  \"fecha_inicio\": \"2025-11-01\",\n  \"fecha_fin\": \"2025-11-30\"\n}"
+          }
+        },
+        {
+          "name": "Close Period",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/ranking/periods/close",
+          "headers": [{ "name": "Content-Type", "value": "application/json" }],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"periodo_id\": 1\n}"
+          }
+        },
+        {
+          "name": "Get Live Ranking",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/ranking/live/{{periodId}}?role=reciclador"
+        },
+        {
+          "name": "Get Tops Ranking",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/ranking/tops/{{periodId}}?role=recolector"
+        },
+        {
+          "name": "Get Ranking History",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/ranking/history/{{periodId}}"
+        }
+      ]
+    },
+    {
+      "name": "10 - Reports",
+      "requests": [
+        {
+          "name": "Materials Report",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/reports/materiales?startDate=2025-01-01&endDate=2025-12-31"
+        },
+        {
+          "name": "Scores Report",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/reports/scores?startDate=2025-01-01&endDate=2025-12-31&minScore=3"
+        },
+        {
+          "name": "Collections Report",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/reports/recolecciones?startDate=2025-01-01&endDate=2025-12-31&state=2"
+        }
+      ]
+    },
+    {
+      "name": "11 - Upload",
+      "requests": [
+        {
+          "name": "Upload Image",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/upload/image",
+          "headers": [{ "name": "Content-Type", "value": "multipart/form-data" }],
+          "body": {
+            "type": "formdata",
+            "formdata": [
+              {
+                "name": "image",
+                "value": "",
+                "type": "file"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Upload Announcement Image",
+          "method": "POST",
+          "url": "{{baseUrl}}/api/upload/announcement",
+          "headers": [{ "name": "Content-Type", "value": "multipart/form-data" }],
+          "body": {
+            "type": "formdata",
+            "formdata": [
+              {
+                "name": "image",
+                "value": "",
+                "type": "file"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - System",
+      "requests": [
+        {
+          "name": "Health Check",
+          "method": "GET",
+          "url": "{{baseUrl}}/health"
+        },
+        {
+          "name": "Database Status",
+          "method": "GET",
+          "url": "{{baseUrl}}/api/db-status"
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "baseUrl",
+      "value": "http://localhost:3000",
+      "description": "Base URL del servidor backend"
+    },
+    {
+      "name": "userId",
+      "value": "1",
+      "description": "ID de usuario para pruebas"
+    },
+    {
+      "name": "materialId",
+      "value": "1",
+      "description": "ID de material para pruebas"
+    },
+    {
+      "name": "requestId",
+      "value": "1",
+      "description": "ID de solicitud para pruebas"
+    },
+    {
+      "name": "appointmentId",
+      "value": "1",
+      "description": "ID de cita para pruebas"
+    },
+    {
+      "name": "collectorId",
+      "value": "2",
+      "description": "ID de recolector para pruebas"
+    },
+    {
+      "name": "recyclerId",
+      "value": "3",
+      "description": "ID de reciclador para pruebas"
+    },
+    {
+      "name": "announcementId",
+      "value": "1",
+      "description": "ID de anuncio para pruebas"
+    },
+    {
+      "name": "periodId",
+      "value": "1",
+      "description": "ID de período de ranking para pruebas"
+    }
+  ]
+}

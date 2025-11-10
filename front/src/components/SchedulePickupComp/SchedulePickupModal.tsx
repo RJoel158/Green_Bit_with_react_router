@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import './SchedulePickup.css';
 import SuccessModal from '../CommonComp/SuccesModal';
 import ImageCarousel from './ImageCarousel';
-import { config, apiUrl, debugLog } from '../../config/environment';
+import { debugLog } from '../../config/environment';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface SchedulePickupModalProps {
   show: boolean;
@@ -120,34 +122,28 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        `${config.api.baseUrl}/api/request/${selectedRequest.id}/schedule`
+      const response = await api.get(
+        API_ENDPOINTS.REQUESTS.SCHEDULE(selectedRequest.id)
       );
 
-      if (!response.ok) {
-        throw new Error('Error al cargar los datos de la solicitud');
-      }
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        debugLog('[INFO] SchedulePickupModal: Received request data:', result.data);
-        debugLog('[INFO] SchedulePickupModal: Images received:', result.data.images);
+      if (response.data.success && response.data.data) {
+        debugLog('[INFO] SchedulePickupModal: Received request data:', response.data.data);
+        debugLog('[INFO] SchedulePickupModal: Images received:', response.data.data.images);
         
         // Formatear las horas antes de guardar (remover segundos/milisegundos)
         const formattedData = {
-          ...result.data,
-          startHour: formatTime(result.data.startHour),
-          endHour: formatTime(result.data.endHour)
+          ...response.data.data,
+          startHour: formatTime(response.data.data.startHour),
+          endHour: formatTime(response.data.data.endHour)
         };
         
         debugLog('[INFO] SchedulePickupModal: Setting formatted data:', formattedData);
         setRequestData(formattedData);
 
         // Parsear daysAvailability
-        const daysData = typeof result.data.daysAvailability === 'string'
-          ? JSON.parse(result.data.daysAvailability)
-          : result.data.daysAvailability;
+        const daysData = typeof response.data.data.daysAvailability === 'string'
+          ? JSON.parse(response.data.data.daysAvailability)
+          : response.data.data.daysAvailability;
 
         // Crear array de disponibilidad de días en español
         const days: DayAvailability[] = Object.entries(dayMapping).map(([engDay, spanish]) => ({
@@ -298,18 +294,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       console.log('[INFO] Enviando cita:', appointmentData);
 
       // Realizar petición POST al endpoint de creación de citas
-      const response = await fetch('http://localhost:3000/api/appointments/schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(appointmentData)
-      });
+      const response = await api.post(API_ENDPOINTS.APPOINTMENTS.SCHEDULE, appointmentData);
 
-      const result = await response.json();
+      const result = response.data;
 
       // Verificar si la respuesta fue exitosa
-      if (!response.ok || !result.success) {
+      if (response.status !== 200 || !result.success) {
         throw new Error(result.error || 'Error al crear la cita');
       }
 

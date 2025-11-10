@@ -1,0 +1,378 @@
+### ===================================
+### GREENBIT API - REST CLIENT
+### ===================================
+### Variables
+@baseUrl = http://localhost:3000
+@userId = 1
+@materialId = 1
+@requestId = 1
+@appointmentId = 1
+@collectorId = 2
+@recyclerId = 3
+
+### ===================================
+### 01 - AUTHENTICATION
+### ===================================
+
+### Login
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+### Register User
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "password123",
+  "roleId": 3
+}
+
+### Register Collector
+POST {{baseUrl}}/api/users/collector
+Content-Type: application/json
+
+{
+  "email": "collector@example.com",
+  "password": "password123",
+  "nombre": "Juan",
+  "apellido": "Perez",
+  "telefono": "123456789"
+}
+
+### Register Institution
+POST {{baseUrl}}/api/users/institution
+Content-Type: application/json
+
+{
+  "email": "institution@example.com",
+  "password": "password123",
+  "nombre": "Eco Institute",
+  "direccion": "Av. Principal 123",
+  "telefono": "987654321"
+}
+
+### Forgot Password
+POST {{baseUrl}}/api/users/forgotpassword
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+### Change Password
+PUT {{baseUrl}}/api/users/changePassword/{{userId}}
+Content-Type: application/json
+
+{
+  "oldPassword": "oldpass123",
+  "newPassword": "newpass123"
+}
+
+### ===================================
+### 02 - USERS MANAGEMENT
+### ===================================
+
+### Get User by ID
+GET {{baseUrl}}/api/users/{{userId}}
+
+### Get Users with Person
+GET {{baseUrl}}/api/users/withPerson
+
+### Get User with Institution
+GET {{baseUrl}}/api/users/withInstitution/{{userId}}
+
+### Get Pending Collectors
+GET {{baseUrl}}/api/users/collectors/pending
+
+### Approve User
+PUT {{baseUrl}}/api/users/approve/{{userId}}
+
+### Reject User
+PUT {{baseUrl}}/api/users/reject/{{userId}}
+
+### Update User Role
+PUT {{baseUrl}}/api/users/{{userId}}/role
+Content-Type: application/json
+
+{
+  "roleId": 2
+}
+
+### Delete User
+DELETE {{baseUrl}}/api/users/{{userId}}
+
+### ===================================
+### 03 - MATERIALS
+### ===================================
+
+### Get All Materials
+GET {{baseUrl}}/api/material
+
+### Get Material by ID
+GET {{baseUrl}}/api/material/{{materialId}}
+
+### Create Material
+POST {{baseUrl}}/api/material
+Content-Type: application/json
+
+{
+  "name": "Plástico PET",
+  "description": "Botellas de plástico",
+  "unit": "kg"
+}
+
+### Update Material
+PUT {{baseUrl}}/api/material/{{materialId}}
+Content-Type: application/json
+
+{
+  "name": "Plástico PET Actualizado",
+  "description": "Botellas de plástico reciclables"
+}
+
+### Delete Material
+DELETE {{baseUrl}}/api/material/{{materialId}}
+
+### ===================================
+### 04 - REQUESTS
+### ===================================
+
+### Get All Requests
+GET {{baseUrl}}/api/request
+
+### Get Request by ID
+GET {{baseUrl}}/api/request/{{requestId}}
+
+### Get Requests by User and State
+GET {{baseUrl}}/api/request/user/{{userId}}/state?state=1
+
+### Create Request
+POST {{baseUrl}}/api/request
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "materialId": 1,
+  "quantity": 10,
+  "description": "Solicitud de recolección"
+}
+
+### Update Request State
+PUT {{baseUrl}}/api/request/{{requestId}}/state
+Content-Type: application/json
+
+{
+  "state": 2
+}
+
+### Get Request Schedule
+GET {{baseUrl}}/api/request/{{requestId}}/schedule
+
+### Delete Request
+DELETE {{baseUrl}}/api/request/{{requestId}}
+
+### ===================================
+### 05 - APPOINTMENTS
+### ===================================
+
+### Get All Appointments
+GET {{baseUrl}}/api/appointments
+
+### Get Appointment by ID
+GET {{baseUrl}}/api/appointments/{{appointmentId}}
+
+### Get Appointments by Collector
+GET {{baseUrl}}/api/appointments/collector/{{collectorId}}?state=1&limit=10
+
+### Get Appointments by Recycler
+GET {{baseUrl}}/api/appointments/recycler/{{recyclerId}}?state=1&limit=10
+
+### Create Appointment
+POST {{baseUrl}}/api/appointments
+Content-Type: application/json
+
+{
+  "requestId": 1,
+  "collectorId": 2,
+  "date": "2025-11-10",
+  "hour": "14:00"
+}
+
+### Schedule Appointment
+POST {{baseUrl}}/api/appointments/schedule
+Content-Type: application/json
+
+{
+  "requestId": 1,
+  "scheduleId": 5,
+  "collectorId": 2
+}
+
+### Accept Appointment
+PUT {{baseUrl}}/api/appointments/{{appointmentId}}/accept
+
+### Reject Appointment
+PUT {{baseUrl}}/api/appointments/{{appointmentId}}/reject
+
+### Cancel Appointment
+PUT {{baseUrl}}/api/appointments/{{appointmentId}}/cancel
+
+### Complete Appointment
+PUT {{baseUrl}}/api/appointments/{{appointmentId}}/complete
+Content-Type: application/json
+
+{
+  "weight": 15.5
+}
+
+### ===================================
+### 06 - NOTIFICATIONS
+### ===================================
+
+### Get User Notifications
+GET {{baseUrl}}/api/notifications/user/{{userId}}?limit=10
+
+### Get Unread Notifications
+GET {{baseUrl}}/api/notifications/unread/{{userId}}
+
+### Mark as Read
+PUT {{baseUrl}}/api/notifications/read
+Content-Type: application/json
+
+{
+  "notificationIds": [1, 2, 3]
+}
+
+### Create Notification
+POST {{baseUrl}}/api/notifications
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "title": "Nueva notificación",
+  "message": "Mensaje de prueba",
+  "type": "info"
+}
+
+### ===================================
+### 07 - SCORES
+### ===================================
+
+### Create Score
+POST {{baseUrl}}/api/scores
+Content-Type: application/json
+
+{
+  "appointmentId": 1,
+  "userId": 2,
+  "score": 5,
+  "comment": "Excelente servicio"
+}
+
+### Check Score Exists
+GET {{baseUrl}}/api/scores/check/{{appointmentId}}/{{userId}}
+
+### Get Scores by Appointment
+GET {{baseUrl}}/api/scores/appointment/{{appointmentId}}
+
+### Get User Average Score
+GET {{baseUrl}}/api/scores/user/{{userId}}/average
+
+### ===================================
+### 08 - ANNOUNCEMENTS
+### ===================================
+
+### Get All Announcements
+GET {{baseUrl}}/api/announcement
+
+### Get Announcement by ID
+GET {{baseUrl}}/api/announcement/1
+
+### Create Announcement
+POST {{baseUrl}}/api/announcement
+Content-Type: application/json
+
+{
+  "title": "Nuevo anuncio",
+  "content": "Contenido del anuncio",
+  "imageUrl": "https://example.com/image.jpg"
+}
+
+### Update Announcement
+PUT {{baseUrl}}/api/announcement/1
+Content-Type: application/json
+
+{
+  "title": "Anuncio actualizado",
+  "content": "Nuevo contenido"
+}
+
+### Delete Announcement
+DELETE {{baseUrl}}/api/announcement/1
+
+### ===================================
+### 09 - RANKING
+### ===================================
+
+### Get All Periods
+GET {{baseUrl}}/api/ranking/periods
+
+### Get Active or Last Period
+GET {{baseUrl}}/api/ranking/periods/active-or-last
+
+### Create Period
+POST {{baseUrl}}/api/ranking/periods
+Content-Type: application/json
+
+{
+  "nombre": "Período Noviembre 2025",
+  "fecha_inicio": "2025-11-01",
+  "fecha_fin": "2025-11-30"
+}
+
+### Close Period
+POST {{baseUrl}}/api/ranking/periods/close
+Content-Type: application/json
+
+{
+  "periodo_id": 1
+}
+
+### Get Live Ranking
+GET {{baseUrl}}/api/ranking/live/1?role=reciclador
+
+### Get Tops Ranking
+GET {{baseUrl}}/api/ranking/tops/1?role=recolector
+
+### Get Ranking History
+GET {{baseUrl}}/api/ranking/history/1
+
+### ===================================
+### 10 - REPORTS
+### ===================================
+
+### Materials Report
+GET {{baseUrl}}/api/reports/materiales?startDate=2025-01-01&endDate=2025-12-31
+
+### Scores Report
+GET {{baseUrl}}/api/reports/scores?startDate=2025-01-01&endDate=2025-12-31&minScore=3
+
+### Collections Report
+GET {{baseUrl}}/api/reports/recolecciones?startDate=2025-01-01&endDate=2025-12-31&state=2
+
+### ===================================
+### 11 - SYSTEM
+### ===================================
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Database Status
+GET {{baseUrl}}/api/db-status

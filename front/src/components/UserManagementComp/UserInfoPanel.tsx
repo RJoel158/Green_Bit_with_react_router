@@ -3,6 +3,8 @@ import { useState } from 'react';
 import './UserManagement.css';
 import CheckModal from '../CommonComp/CheckModal';
 import SuccessModal from '../CommonComp/SuccesModal';
+import api from '../../services/api';
+import { API_ENDPOINTS } from '../../config/endpoints';
 
 interface User {
   userId: number;
@@ -63,17 +65,12 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
     setProcessing(true); // Activar indicador de procesamiento
 
     try {
-      const response = await fetch(`http://localhost:3000/api/users/${user.userId}/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ roleId }),
-      });
+      const response = await api.put(
+        API_ENDPOINTS.USERS.UPDATE_ROLE(user.userId),
+        { roleId }
+      );
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         console.log('Rol actualizado exitosamente');
         setShowSuccessModal(true);
         // Notificar al padre para recargar los datos
@@ -81,8 +78,8 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
           onUserUpdated();
         }
       } else {
-        console.error('Error al actualizar el rol:', data.error);
-        alert('Error al actualizar el rol: ' + data.error);
+        console.error('Error al actualizar el rol:', response.data.error);
+        alert('Error al actualizar el rol: ' + response.data.error);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
@@ -98,28 +95,17 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
     // Usar userType como fuente de verdad, con fallback a detección por campos
     const isInstitution = userType === 'Empresa' || !!(user.companyName || user.nit);
 
-    let endpoint = '';
-    if (isInstitution) {
-      // Ruta para institución: DELETE /api/users/institution/:id
-      endpoint = `http://localhost:3000/api/users/institution/${user.userId}`;
-    } else {
-      // Ruta para persona: DELETE /api/users/:id
-      endpoint = `http://localhost:3000/api/users/${user.userId}`;
-    }
-
-    console.log(`[DELETE] Tipo: ${isInstitution ? 'Empresa' : 'Persona'}, Endpoint: ${endpoint}`);
+    console.log(`[DELETE] Tipo: ${isInstitution ? 'Empresa' : 'Persona'}`);
 
     setShowDeleteModal(false); // Cerrar modal de confirmación
     setProcessing(true); // Activar indicador de procesamiento
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'DELETE',
-      });
+      const response = isInstitution
+        ? await api.delete(API_ENDPOINTS.USERS.DELETE_INSTITUTION(user.userId))
+        : await api.delete(API_ENDPOINTS.USERS.DELETE_USER(user.userId));
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.data.success) {
         console.log('Usuario eliminado exitosamente');
         setShowDeleteSuccessModal(true);
         // Notificar al padre para recargar los datos
@@ -127,8 +113,8 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
           onUserUpdated();
         }
       } else {
-        console.error('Error al eliminar el usuario:', data.error);
-        alert('Error al eliminar el usuario: ' + data.error);
+        console.error('Error al eliminar el usuario:', response.data.error);
+        alert('Error al eliminar el usuario: ' + response.data.error);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
