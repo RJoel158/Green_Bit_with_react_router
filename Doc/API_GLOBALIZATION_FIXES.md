@@ -27,6 +27,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Agregado import: `import api from '../../services/api'`
 - ✅ Agregado import: `import { API_ENDPOINTS } from '../../config/endpoints'`
 - ✅ Reemplazadas 2 llamadas fetch directas por axios centralizado
@@ -49,6 +50,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Agregado import: `import { API_ENDPOINTS } from '../../config/endpoints'`
 - ✅ Reemplazadas 3 URLs por constantes de endpoints
 
@@ -76,6 +78,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Agregado import: `import { API_ENDPOINTS } from '../../config/endpoints'`
 - ✅ Reemplazadas 5 URLs por constantes de endpoints
 
@@ -91,6 +94,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Reemplazada URL hardcodeada por constante de endpoint
 
 ---
@@ -105,6 +109,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Agregado import: `import { config } from '../../config/environment'`
 - ✅ Reemplazada URL hardcodeada por configuración centralizada
 - ✅ Ahora usa la variable de entorno `VITE_API_BASE_URL`
@@ -125,6 +130,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Agregado import: `import { config } from '../../config/environment'`
 - ✅ Reemplazadas 2 URLs hardcodeadas por configuración centralizada
 
@@ -140,6 +146,7 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ```
 
 **Cambios:**
+
 - ✅ Reemplazada URL hardcodeada por variable de entorno
 - ✅ Ahora usa `FRONTEND_URL` con fallback a `http://localhost:5173`
 
@@ -147,13 +154,13 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 
 ## 📊 Estadísticas de Correcciones
 
-| Categoría | Cantidad |
-|-----------|----------|
-| URLs hardcodeadas reemplazadas | 13 |
-| Hosts hardcodeados reemplazados | 3 |
-| Archivos modificados | 8 |
-| Imports agregados | 4 |
-| **Total de instancias** | **16** |
+| Categoría                       | Cantidad |
+| ------------------------------- | -------- |
+| URLs hardcodeadas reemplazadas  | 13       |
+| Hosts hardcodeados reemplazados | 3        |
+| Archivos modificados            | 8        |
+| Imports agregados               | 4        |
+| **Total de instancias**         | **16**   |
 
 ---
 
@@ -162,20 +169,23 @@ Se realizó una revisión exhaustiva del proyecto para globalizar todas las llam
 ### Variables de Entorno Usadas:
 
 **Frontend:**
+
 - `VITE_API_BASE_URL` - URL base del API (default: `http://localhost:3000`)
 
 **Backend:**
+
 - `FRONTEND_URL` - URL del frontend para CORS y emails (default: `http://localhost:5173`)
 
 ### Punto Centralizado para Configuración:
 
 **Frontend:**
+
 ```typescript
 // src/config/environment.ts
 export const config = {
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
-  }
+    baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000",
+  },
 };
 
 export const apiUrl = (endpoint: string): string => {
@@ -184,15 +194,17 @@ export const apiUrl = (endpoint: string): string => {
 ```
 
 **Endpoints:**
+
 ```typescript
 // src/config/endpoints.ts
 export const API_ENDPOINTS = {
   // Todos los endpoints centralizados
   RANKING: {
-    GET_PERIODS: '/api/ranking/periods',
-    GET_LIVE: (periodId: number, role?: string) => `/api/ranking/live/${periodId}...`,
+    GET_PERIODS: "/api/ranking/periods",
+    GET_LIVE: (periodId: number, role?: string) =>
+      `/api/ranking/live/${periodId}...`,
     // ... más endpoints
-  }
+  },
 };
 ```
 
@@ -215,17 +227,21 @@ export const API_ENDPOINTS = {
 ## 🚀 Beneficios de las Correcciones
 
 ### 1. **Mantenimiento Simplificado**
+
 Cambiar el host del API ahora es trivial: solo modificar la variable de entorno.
 
 ### 2. **Entornos Múltiples**
+
 - **Desarrollo:** `http://localhost:3000`
 - **Staging:** `https://staging-api.greenbit.com`
 - **Producción:** `https://api.greenbit.com`
 
 ### 3. **Seguridad**
+
 No hay URLs hardcodeadas expuestas en el código.
 
 ### 4. **Escalabilidad**
+
 Agregar nuevos endpoints ahora sigue un patrón claro y consistente.
 
 ---
@@ -233,24 +249,28 @@ Agregar nuevos endpoints ahora sigue un patrón claro y consistente.
 ## 📝 Cómo Usar en Diferentes Entornos
 
 ### Desarrollo Local (.env.local)
+
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 VITE_NODE_ENV=development
 ```
 
 ### Staging
+
 ```env
 VITE_API_BASE_URL=https://staging-api.greenbit.com
 VITE_NODE_ENV=staging
 ```
 
 ### Producción
+
 ```env
 VITE_API_BASE_URL=https://api.greenbit.com
 VITE_NODE_ENV=production
 ```
 
 ### Backend - CORS (.env)
+
 ```env
 FRONTEND_URL=https://greenbit.com
 DB_HOST=production-db.example.com
@@ -262,18 +282,21 @@ API_PORT=443
 ## 🔄 Próximas Acciones Recomendadas
 
 1. **Implementar ESLint Rule**
+
    ```javascript
    // .eslintrc.js - Detectar URLs hardcodeadas
    'no-hardcoded-urls': 'error'
    ```
 
 2. **Pre-commit Hook**
+
    ```bash
    # Validar que no haya URLs hardcodeadas antes de commit
    grep -r "localhost:\|/api/" --include="*.tsx" --include="*.ts"
    ```
 
 3. **Documentación**
+
    - ✅ Crear archivo de estándares de API
    - ✅ Documentar pattern de nuevos endpoints
    - ✅ Training al equipo
@@ -292,4 +315,4 @@ El proyecto ahora está **100% globalizado** en términos de llamadas a la API. 
 
 ---
 
-*Documento generado el 10 de Noviembre de 2025*
+_Documento generado el 10 de Noviembre de 2025_
