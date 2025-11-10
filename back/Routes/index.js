@@ -7,19 +7,22 @@
  * NOTA: Las rutas NO incluyen el prefijo /api/ porque se montan con app.use('/api', routes)
  * El prefijo /api/ se agregará en server.js
  * 
+ * IMPORTANTE: Las rutas están ordenadas por especificidad (específicas PRIMERO, genéricas DESPUÉS)
+ * para evitar conflictos con parámetros dinámicos
+ * 
  * Estructura:
- * - 17 rutas de USUARIOS (login, registro, obtener, aprobar, rechazar)
- * - 1 ruta de MATERIALES
- * - 7 rutas de SOLICITUDES (crear, obtener, actualizar estado, schedule)
- * - 12 rutas de CITAS (crear, obtener, aceptar, rechazar, cancelar, completar)
+ * - 17 rutas de USUARIOS
+ * - 5 rutas de MATERIALES
+ * - 7 rutas de SOLICITUDES
+ * - 12 rutas de CITAS
  * - 3 rutas de NOTIFICACIONES
  * - 4 rutas de PUNTUACIONES
  * - 6 rutas de ANUNCIOS
- * - 3 rutas de UPLOAD
+ * - 2 rutas de UPLOAD
  * - 7 rutas de RANKING
  * - 3 rutas de REPORTES
  * - 1 ruta de SISTEMA
- * = 64 rutas totales
+ * = 67 rutas totales
  */
 
 import express from 'express';
@@ -51,59 +54,71 @@ router.post('/users/register-collector', userController.createCollectorUser);
 router.post('/users/register-institution', userController.createUserWithInstitution);
 router.post('/users/register-institution-admin', userController.createUserWithInstitutionByAdmin);
 
-// Obtener usuarios
-router.get('/users/:id', userController.getUserById);
-router.get('/users/person/:id', userController.getUsersPerson);
-router.get('/users/withPerson', userController.getUsersPerson);
-router.get('/users/institution/:id', userController.getUserWithInstitutionById);
-router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
+// Recuperar contraseña
+router.post('/users/forgotpassword', userController.forgotPassword);
+
+// Cambiar contraseña
+router.put('/users/changePassword/:userId', userController.changePassword);
+
+// Gestión de recolectores - ESPECÍFICAS PRIMERO
 router.get('/users/collectors/pending/institution', userController.getCollectorsPendingWithInstitution);
+router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
-// Aprobar/Rechazar usuarios (personas)
-router.post('/users/approve/:id', userController.approveUser);
-router.post('/users/reject/:id', userController.rejectUser);
-
-// Aprobar/Rechazar instituciones
+// Gestión de instituciones - ESPECÍFICAS PRIMERO
 router.post('/users/institution/approve/:id', userController.approveInstitution);
 router.post('/users/institution/reject/:id', userController.rejectInstitution);
-
-// Actualizar
-router.put('/users/:id/role', userController.updateUserRole);
-
-// Eliminar
-router.delete('/users/:id', userController.deleteUser);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
+router.get('/users/institution/:id', userController.getUserWithInstitutionById);
+
+// Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
+router.post('/users/approve/:id', userController.approveUser);
+router.post('/users/reject/:id', userController.rejectUser);
+router.put('/users/:id/role', userController.updateUserRole);
+router.get('/users/withPerson', userController.getUsersPerson);
+router.get('/users/person/:id', userController.getUsersPerson);
+router.get('/users/:id', userController.getUserById);
+router.delete('/users/:id', userController.deleteUser);
 
 // ==========================================
-// MATERIALES (1 ruta)
+// MATERIALES (5 rutas)
 // ==========================================
+// Rutas específicas PRIMERO
+router.get('/material/:materialId', materialController.getMaterialById);
+// Rutas genéricas DESPUÉS
 router.get('/material', materialController.getMaterials);
+router.post('/material', materialController.createMaterial);
+router.put('/material/:materialId', materialController.updateMaterial);
+router.delete('/material/:materialId', materialController.deleteMaterial);
 
 // ==========================================
 // SOLICITUDES (7 rutas)
 // ==========================================
+// Rutas específicas PRIMERO
+router.get('/request/user/:userId/state', requestController.getRequestsByUserAndState);
+router.post('/request/:id/schedule', appointmentController.createNewAppointment);
+router.get('/request/:id/schedule', requestController.getRequestWithSchedule);
+router.put('/request/:id/state', requestController.updateRequestState);
+router.get('/request/:id', requestController.getRequestById);
+// Rutas genéricas DESPUÉS
 router.post('/request', requestController.upload.array('photos'), requestController.createRequest);
 router.get('/request', requestController.getAllRequests);
-router.get('/request/:id', requestController.getRequestById);
-router.get('/request/:id/schedule', requestController.getRequestWithSchedule);
-router.get('/request/user/:userId/state', requestController.getRequestsByUserAndState);
-router.put('/request/:id/state', requestController.updateRequestState);
-router.post('/request/:id/schedule', appointmentController.createNewAppointment);
 
 // ==========================================
 // CITAS (12 rutas)
 // ==========================================
-router.post('/appointments', appointmentController.createAppointment);
+// Rutas específicas PRIMERO
 router.post('/appointments/schedule', appointmentController.createNewAppointment);
-router.get('/appointments', appointmentController.getAppointments);
-router.get('/appointments/:id', appointmentController.getAppointmentById);
 router.get('/appointments/collector/:collectorId', appointmentController.getAppointmentsByCollector);
 router.get('/appointments/recycler/:recyclerId', appointmentController.getAppointmentsByRecycler);
 router.put('/appointments/:id/accept', appointmentController.acceptAppointmentEndpoint);
 router.put('/appointments/:id/reject', appointmentController.rejectAppointmentEndpoint);
 router.put('/appointments/:id/cancel', appointmentController.cancelAppointment);
 router.put('/appointments/:id/complete', appointmentController.completeAppointmentEndpoint);
+// Rutas genéricas DESPUÉS
+router.get('/appointments/:id', appointmentController.getAppointmentById);
 router.put('/appointments/:id', appointmentController.updateAppointmentStatus);
+router.post('/appointments', appointmentController.createAppointment);
+router.get('/appointments', appointmentController.getAppointments);
 
 // ==========================================
 // NOTIFICACIONES (3 rutas)
@@ -123,9 +138,11 @@ router.get('/score/user/:userId/average', scoreController.getUserAverageRating);
 // ==========================================
 // ANUNCIOS (6 rutas)
 // ==========================================
-router.get('/announcements', announcementController.getAllAnnouncements);
-router.get('/announcements/:id', announcementController.getAnnouncementById);
+// Rutas específicas PRIMERO
 router.get('/announcements/role/:role', announcementController.getAnnouncementsByRole);
+router.get('/announcements/:id', announcementController.getAnnouncementById);
+// Rutas genéricas DESPUÉS
+router.get('/announcements', announcementController.getAllAnnouncements);
 router.post('/announcements', announcementController.createAnnouncement);
 router.put('/announcements/:id', announcementController.updateAnnouncement);
 router.delete('/announcements/:id', announcementController.deleteAnnouncement);
@@ -133,6 +150,7 @@ router.delete('/announcements/:id', announcementController.deleteAnnouncement);
 // ==========================================
 // UPLOAD (3 rutas)
 // ==========================================
+// Rutas específicas PRIMERO
 router.post('/upload/announcement', uploadController.uploadAnnouncementImage);
 router.get('/upload/announcement/:filename', uploadController.getAnnouncementImageInfo);
 router.delete('/upload/announcement/:filename', uploadController.deleteAnnouncementImage);
@@ -140,13 +158,15 @@ router.delete('/upload/announcement/:filename', uploadController.deleteAnnouncem
 // ==========================================
 // RANKING (7 rutas)
 // ==========================================
-router.get('/ranking/periods', rankingController.getPeriods);
-router.get('/ranking/active-or-last', rankingController.getActiveOrLastPeriod);
+// Rutas específicas PRIMERO
+router.get('/ranking/periods/active-or-last', rankingController.getActiveOrLastPeriod);
+router.post('/ranking/periods/:id/close', rankingController.closePeriod);
 router.get('/ranking/live/:periodo_id', rankingController.getLiveRankingByPeriod);
 router.get('/ranking/tops/:periodo_id', rankingController.getTopsByPeriod);
 router.get('/ranking/history/:periodo_id', rankingController.getHistory);
+// Rutas genéricas DESPUÉS
+router.get('/ranking/periods', rankingController.getPeriods);
 router.post('/ranking/periods', rankingController.createPeriod);
-router.post('/ranking/periods/:id/close', rankingController.closePeriod);
 
 // ==========================================
 // REPORTES (3 rutas)

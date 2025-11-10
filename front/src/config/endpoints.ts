@@ -91,7 +91,6 @@ export const API_ENDPOINTS = {
       `/api/notifications/user/${userId}${limit ? `?limit=${limit}` : ''}`,  // GET
     GET_UNREAD: (userId: number) => `/api/notifications/unread/${userId}`,    // GET - No leídas
     MARK_AS_READ: '/api/notifications/read',                                  // PUT - Marcar como leída
-    CREATE: '/api/notifications',                                             // POST - Crear notificación
   },
 
   // ============================================
@@ -123,7 +122,6 @@ export const API_ENDPOINTS = {
   // UPLOAD - /api/upload
   // ============================================
   UPLOAD: {
-    IMAGE: '/api/upload/image',                                  // POST - Subir imagen
     ANNOUNCEMENT_IMAGE: '/api/upload/announcement',              // POST - Imagen de anuncio
   },
 
