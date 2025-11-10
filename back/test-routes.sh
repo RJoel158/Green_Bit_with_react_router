@@ -114,7 +114,7 @@ test_endpoint "GET" "/api/announcements" "" "GET /api/announcements" && ((passed
 echo -e "\n${BLUE}📅 APPOINTMENTS${NC}"
 echo "─────────────────────────────────────────"
 
-test_endpoint "GET" "/api/appointment" "" "GET /api/appointment" && ((passed++)) || ((failed++))
+test_endpoint "GET" "/api/appointments" "" "GET /api/appointments" && ((passed++)) || ((failed++))
 ((total++))
 
 # ============================================
