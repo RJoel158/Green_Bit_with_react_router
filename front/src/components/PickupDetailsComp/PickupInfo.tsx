@@ -72,6 +72,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [deleting, setDeleting] = useState(false); // <-- move here, above all logic
   const [showRejectCheckModal, setShowRejectCheckModal] = useState(false);
   const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -236,11 +240,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
   const handleCancelAppointment = async () => {
     if (!appointmentId) {
-      alert('No se puede cancelar: ID de cita no disponible');
+      setErrorModalMessage('No se puede cancelar: ID de cita no disponible');
+      setShowErrorModal(true);
       return;
     }
     if (!appointmentData) {
-      alert('No se puede cancelar: Datos de la cita no disponibles');
+      setErrorModalMessage('No se puede cancelar: Datos de la cita no disponibles');
+      setShowErrorModal(true);
       return;
     }
 
@@ -257,7 +263,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       // Obtener el usuario actual (quien está cancelando)
       const currentUser = getCurrentUser();
       if (!currentUser || !currentUser.id) {
-        alert('Error: No se pudo identificar al usuario actual');
+        setErrorModalMessage('Error: No se pudo identificar al usuario actual');
+        setShowErrorModal(true);
         setCancelling(false);
         return;
       }
@@ -321,7 +328,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           console.log('[INFO] Marked as cancelled by user:', currentUser.id);
         }
         
-        alert('✓ Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.');
+        setSuccessMessage({
+          title: '✓ Éxito',
+          message: 'Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.'
+        });
+        setShowSuccessModal(true);
         
         // Actualiza estado local para reflejar la cancelación sin recargar
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
@@ -339,7 +350,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
     } catch (err) {
       console.error('[ERROR] Error cancelling appointment:', err);
-      alert(`Error al cancelar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setErrorModalMessage(`Error al cancelar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setShowErrorModal(true);
     } finally {
       setCancelling(false);
     }
@@ -348,7 +360,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Función para aceptar un appointment
   const handleAcceptAppointment = async () => {
     if (!appointmentId || !appointmentData) {
-      alert('No se puede aceptar: ID de cita no disponible');
+      setErrorModalMessage('No se puede aceptar: ID de cita no disponible');
+      setShowErrorModal(true);
       return;
     }
 
@@ -383,7 +396,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
-        alert('✓ Cita aceptada exitosamente.');
+        setSuccessMessage({
+          title: '✓ Éxito',
+          message: 'Cita aceptada exitosamente.'
+        });
+        setShowSuccessModal(true);
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.ACCEPTED } : prev);
         // Recargar datos
         window.location.reload();
@@ -392,7 +409,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
     } catch (err) {
       console.error('[ERROR] Error accepting appointment:', err);
-      alert(`Error al aceptar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setErrorModalMessage(`Error al aceptar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setShowErrorModal(true);
     } finally {
       setAccepting(false);
     }
@@ -401,7 +419,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Función para rechazar un appointment
   const handleRejectAppointment = async () => {
     if (!appointmentId || !appointmentData) {
-      alert('No se puede rechazar: ID de cita no disponible');
+      setErrorModalMessage('No se puede rechazar: ID de cita no disponible');
+      setShowErrorModal(true);
       return;
     }
 
@@ -445,7 +464,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
     } catch (err) {
       console.error('[ERROR] Error rejecting appointment:', err);
-      alert(`Error al rechazar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setErrorModalMessage(`Error al rechazar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setShowErrorModal(true);
     } finally {
       setRejecting(false);
     }
@@ -454,7 +474,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Función para completar un appointment
   const handleCompleteAppointment = async () => {
     if (!appointmentId || !appointmentData) {
-      alert('No se puede completar: ID de cita no disponible');
+      setErrorModalMessage('No se puede completar: ID de cita no disponible');
+      setShowErrorModal(true);
       return;
     }
 
@@ -489,7 +510,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
-        alert('✓ Recolección completada exitosamente.');
+        setSuccessMessage({
+          title: '✓ Éxito',
+          message: 'Recolección completada exitosamente.'
+        });
+        setShowSuccessModal(true);
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
         
         // Señalizar que se completó una cita para refrescar el historial
@@ -508,7 +533,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
     } catch (err) {
       console.error('[ERROR] Error completing appointment:', err);
-      alert(`Error al completar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setErrorModalMessage(`Error al completar la cita:\n\n${err instanceof Error ? err.message : JSON.stringify(err)}`);
+      setShowErrorModal(true);
     } finally {
       setCompleting(false);
     }
@@ -570,13 +596,19 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       });
       const result = await response.json();
       if (result.success) {
-        alert('Solicitud eliminada correctamente.');
+        setSuccessMessage({
+          title: '✓ Éxito',
+          message: 'Solicitud eliminada correctamente.'
+        });
+        setShowSuccessModal(true);
         onCancel();
       } else {
-        alert('No se pudo eliminar la solicitud.');
+        setErrorModalMessage('No se pudo eliminar la solicitud.');
+        setShowErrorModal(true);
       }
     } catch (err) {
-      alert('Error al eliminar la solicitud.');
+      setErrorModalMessage('Error al eliminar la solicitud.');
+      setShowErrorModal(true);
     } finally {
       setDeleting(false);
     }
@@ -1018,6 +1050,24 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               window.location.reload();
             }, 1000);
           }}
+        />
+      )}
+
+      {/* Modal de éxito general */}
+      {showSuccessModal && (
+        <SuccessModal
+          title={successMessage.title}
+          message={successMessage.message}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {/* Modal de error general */}
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </div>

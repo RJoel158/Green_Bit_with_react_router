@@ -54,6 +54,8 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+  const [errorModalMessage, setErrorModalMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false); // Estado para bloquear botón durante submit
   const [error, setError] = useState<string | null>(null);
@@ -276,7 +278,8 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
       if (requestData && requestData.idUser === collectorId) {
         setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
-        alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        setErrorModalMessage('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        setShowErrorModal(true);
         setSubmitting(false);
         return;
       }
@@ -531,6 +534,15 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
           title="¡Recojo agendado!"
           message={`Has agendado tu recojo de ${requestData.name} para el ${selectedDay} ${getNextDateForDay(selectedDay)} a las ${selectedTime}. Espera la confirmación del reciclador.`}
           redirectUrl="/recolectorIndex"
+        />
+      )}
+
+      {/* Modal de error */}
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </>

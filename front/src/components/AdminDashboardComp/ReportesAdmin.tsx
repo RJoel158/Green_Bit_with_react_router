@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import NotificationBell from '../CommonComp/NotificationBell';
+import SuccessModal from '../CommonComp/SuccesModal';
 import * as reportService from '../../services/reportService';
 import './AdminReports.css';
 import '../UserManagementComp/UserManagement.css';
@@ -33,6 +34,8 @@ export default function ReportesAdmin() {
   const [reportGeneratedDate, setReportGeneratedDate] = useState<string>('');
   const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   // Detectar parámetro de pestaña en la URL
   useEffect(() => {
@@ -245,7 +248,8 @@ export default function ReportesAdmin() {
       pdf.save(fileName);
     } catch (err) {
       console.error('Error al descargar PDF:', err);
-      alert('Error al generar el PDF. Por favor, intenta nuevamente.');
+      setErrorModalMessage('Error al generar el PDF. Por favor, intenta nuevamente.');
+      setShowErrorModal(true);
     }
   };
 
@@ -920,6 +924,14 @@ export default function ReportesAdmin() {
           </div>
         )}
       </div>
+
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
     </div>
   );
 }

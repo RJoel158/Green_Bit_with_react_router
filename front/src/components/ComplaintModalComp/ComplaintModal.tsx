@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import './ComplaintModal.css';
 import { createScore } from '../../services/scoreService';
+import SuccessModal from '../CommonComp/SuccesModal';
 
 interface ComplaintModalProps {
   appointmentId: number;
@@ -22,6 +23,9 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 }) => {
   const [complaint, setComplaint] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -32,14 +36,16 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
   const handleSubmit = async () => {
     if (!complaint.trim()) {
-      alert('Por favor describe el motivo de tu reclamo');
+      setErrorModalMessage('Por favor describe el motivo de tu reclamo');
+      setShowErrorModal(true);
       return;
     }
 
     // Obtener usuario actual
     const userString = localStorage.getItem('user');
     if (!userString) {
-      alert('Error: No se encontró información del usuario');
+      setErrorModalMessage('Error: No se encontró información del usuario');
+      setShowErrorModal(true);
       return;
     }
 
@@ -56,91 +62,112 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
         comment: `[RECLAMO] ${complaint}`
       });
 
-      alert('✓ Reclamo enviado exitosamente');
+      setShowSuccessModal(true);
       
       if (onSuccess) {
         onSuccess();
       }
       
-      onClose();
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error: any) {
       console.error('[ComplaintModal] Error al enviar reclamo:', error);
       const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
-      alert(`Error: ${errorMessage}`);
+      setErrorModalMessage(`Error: ${errorMessage}`);
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="complaint-overlay" onClick={(e) => e.stopPropagation()}>
-      <div className="complaint-modal">
-        {/* Ícono de advertencia */}
-        <div className="complaint-icon-container">
-          <AlertTriangle size={64} color="#f44336" strokeWidth={2} />
-        </div>
-
-        <h2 className="complaint-title">
-          Reportar problema con {userRole === 'recolector' ? 'el reciclador' : 'el recolector'}
-        </h2>
-
-        <p className="complaint-subtitle">
-          Esta cita fue cancelada. Si deseas reportar un problema, describe la situación:
-        </p>
-
-        {/* Campo de texto para el reclamo */}
-        <textarea
-          value={complaint}
-          onChange={(e) => setComplaint(e.target.value)}
-          placeholder="Describe el motivo de tu reclamo..."
-          className="complaint-textarea"
-          maxLength={500}
-        />
-
-        <div className="complaint-char-counter">
-          {complaint.length}/500 caracteres
-        </div>
-
-        {/* Información del usuario reportado */}
-        <div className="complaint-user-info">
-          <div className="complaint-avatar">
-            <img 
-              src="https://i.pravatar.cc/150?img=5"
-              alt="Avatar"
-              className="complaint-avatar-img"
-            />
+    <>
+      <div className="complaint-overlay" onClick={(e) => e.stopPropagation()}>
+        <div className="complaint-modal">
+          {/* Ícono de advertencia */}
+          <div className="complaint-icon-container">
+            <AlertTriangle size={64} color="#f44336" strokeWidth={2} />
           </div>
-          <div className="complaint-user-details">
-            <h3 className="complaint-user-name">
-              {ratedToName}
-            </h3>
-            <p className="complaint-date">
-              {today}
-            </p>
-          </div>
-        </div>
 
-        <div className="complaint-buttons">
-          <button
-            onClick={onClose}
-            className="complaint-cancel-button"
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </button>
-          
-          <button
-            onClick={handleSubmit}
-            disabled={!complaint.trim() || isSubmitting}
-            className={`complaint-submit-button ${
-              (!complaint.trim() || isSubmitting) ? 'complaint-submit-button--disabled' : ''
-            }`}
-          >
-            {isSubmitting ? 'Enviando...' : 'Enviar Reclamo'}
-          </button>
+          <h2 className="complaint-title">
+            Reportar problema con {userRole === 'recolector' ? 'el reciclador' : 'el recolector'}
+          </h2>
+
+          <p className="complaint-subtitle">
+            Esta cita fue cancelada. Si deseas reportar un problema, describe la situación:
+          </p>
+
+          {/* Campo de texto para el reclamo */}
+          <textarea
+            value={complaint}
+            onChange={(e) => setComplaint(e.target.value)}
+            placeholder="Describe el motivo de tu reclamo..."
+            className="complaint-textarea"
+            maxLength={500}
+          />
+
+          <div className="complaint-char-counter">
+            {complaint.length}/500 caracteres
+          </div>
+
+          {/* Información del usuario reportado */}
+          <div className="complaint-user-info">
+            <div className="complaint-avatar">
+              <img 
+                src="https://i.pravatar.cc/150?img=5"
+                alt="Avatar"
+                className="complaint-avatar-img"
+              />
+            </div>
+            <div className="complaint-user-details">
+              <h3 className="complaint-user-name">
+                {ratedToName}
+              </h3>
+              <p className="complaint-date">
+                {today}
+              </p>
+            </div>
+          </div>
+
+          <div className="complaint-buttons">
+            <button
+              onClick={onClose}
+              className="complaint-cancel-button"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            
+            <button
+              onClick={handleSubmit}
+              disabled={!complaint.trim() || isSubmitting}
+              className={`complaint-submit-button ${
+                (!complaint.trim() || isSubmitting) ? 'complaint-submit-button--disabled' : ''
+              }`}
+            >
+              {isSubmitting ? 'Enviando...' : 'Enviar Reclamo'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {showSuccessModal && (
+        <SuccessModal
+          title="✓ ¡Reclamo enviado!"
+          message="Tu reclamo ha sido registrado exitosamente. Nuestro equipo lo revisará pronto."
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
+        />
+      )}
+    </>
   );
 };
 

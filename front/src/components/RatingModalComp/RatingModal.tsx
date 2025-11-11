@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import './RatingModal.css';
 import { createScore } from '../../services/scoreService';
+import SuccessModal from '../CommonComp/SuccesModal';
 
 interface RatingModalProps {
   appointmentId: number;
@@ -24,6 +25,10 @@ const RatingModal: React.FC<RatingModalProps> = ({
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -34,14 +39,16 @@ const RatingModal: React.FC<RatingModalProps> = ({
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      alert('Por favor selecciona una calificación');
+      setErrorMessage('Por favor selecciona una calificación');
+      setShowErrorModal(true);
       return;
     }
 
     // Obtener usuario actual
     const userString = localStorage.getItem('user');
     if (!userString) {
-      alert('Error: No se encontró información del usuario');
+      setErrorMessage('Error: No se encontró información del usuario');
+      setShowErrorModal(true);
       return;
     }
 
@@ -58,7 +65,11 @@ const RatingModal: React.FC<RatingModalProps> = ({
         comment: comment || undefined
       });
 
-      alert('✓ ¡Gracias por tu calificación!');
+      setSuccessMessage({
+        title: '¡Gracias!',
+        message: 'Tu calificación ha sido registrada correctamente.'
+      });
+      setShowSuccessModal(true);
       
       if (onSuccess) {
         onSuccess();
@@ -67,8 +78,9 @@ const RatingModal: React.FC<RatingModalProps> = ({
       onClose();
     } catch (error: any) {
       console.error('[RatingModal] Error al enviar calificación:', error);
-      const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';
-      alert(`Error: ${errorMessage}`);
+      const msg = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';
+      setErrorMessage(msg);
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,6 +152,26 @@ const RatingModal: React.FC<RatingModalProps> = ({
         >
           {isSubmitting ? 'Enviando...' : 'Enviar Calificación'}
         </button>
+
+        {showSuccessModal && (
+          <SuccessModal
+            title={successMessage.title}
+            message={successMessage.message}
+            onClose={() => {
+              setShowSuccessModal(false);
+            }}
+          />
+        )}
+
+        {showErrorModal && (
+          <SuccessModal
+            title="❌ Error"
+            message={errorMessage}
+            onClose={() => {
+              setShowErrorModal(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

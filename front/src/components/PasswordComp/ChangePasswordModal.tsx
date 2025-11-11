@@ -16,6 +16,8 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
   const [errors, setErrors] = useState<{ password?: string; repeatPassword?: string }>({});
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(true);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState("");
 
   const handleConfirm = async () => {
 
@@ -45,7 +47,8 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
       setIsSuccessModalOpen(true);
     } catch (err: any) {
       console.error("Error al cambiar la contraseña:", err);
-      alert("No se pudo cambiar la contraseña: " + err.message);
+      setErrorModalMessage("No se pudo cambiar la contraseña: " + err.message);
+      setShowErrorModal(true);
     }
   };
 
@@ -103,6 +106,14 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ userId, role 
               ? "/recicladorIndex" 
               : "/recolectorIndex"
           }
+        />
+      )}
+
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </>

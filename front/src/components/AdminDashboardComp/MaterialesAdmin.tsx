@@ -35,6 +35,8 @@ export default function MaterialesAdmin() {
   // Estados para el modal de éxito/error
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   // Estados para el modal de confirmación
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -186,11 +188,16 @@ export default function MaterialesAdmin() {
         state
       );
 
-      // Recargar la lista desde el backend para asegurar sincronización
-      await loadMaterials();
+      // Actualizar inmediatamente la lista local sin esperar al servidor
+      const updatedMateriales = materiales.map(m => 
+        m.id === selectedMaterial.id 
+          ? { ...m, name: formData.name, description: formData.description, state }
+          : m
+      );
+      setMateriales(updatedMateriales);
 
-      // Reaplica los filtros después de cargar
-      const filtered = applyFilters(materiales, searchTerm, stateFilter);
+      // Reaplica los filtros con los datos actualizados
+      const filtered = applyFilters(updatedMateriales, searchTerm, stateFilter);
       setFilteredMateriales(filtered);
 
       // Deseleccionar el material
@@ -204,7 +211,8 @@ export default function MaterialesAdmin() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al actualizar material';
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
       console.error('❌ Error actualizando material:', err);
     } finally {
       setLoading(false);
@@ -249,7 +257,8 @@ export default function MaterialesAdmin() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al eliminar material';
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
       console.error('❌ Error eliminando material:', err);
     } finally {
       setLoading(false);
@@ -291,7 +300,8 @@ export default function MaterialesAdmin() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al crear material';
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
       console.error('❌ Error creando material:', err);
     } finally {
       setLoading(false);
@@ -1021,6 +1031,15 @@ export default function MaterialesAdmin() {
           confirmText="Eliminar"
           cancelText="Cancelar"
           isDangerous={true}
+        />
+      )}
+
+      {/* Modal de error */}
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </div>
