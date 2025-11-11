@@ -49,10 +49,10 @@ const router = express.Router();
 router.post('/users/login', userController.loginUser);
 
 // Registro
-router.post('/users/register', userController.createUser);
-router.post('/users/register-collector', userController.createCollectorUser);
-router.post('/users/register-institution', userController.createUserWithInstitution);
-router.post('/users/register-institution-admin', userController.createUserWithInstitutionByAdmin);
+router.post('/users', userController.createUser);
+router.post('/users/collector', userController.createCollectorUser);
+router.post('/users/institution', userController.createUserWithInstitution);
+router.post('/users/institution-admin', userController.createUserWithInstitutionByAdmin);
 
 // Recuperar contraseña
 router.post('/users/forgotpassword', userController.forgotPassword);
@@ -68,6 +68,7 @@ router.get('/users/collectors/pending', userController.getCollectorsPendingWithP
 router.post('/users/institution/approve/:id', userController.approveInstitution);
 router.post('/users/institution/reject/:id', userController.rejectInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
+router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
 router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 
 // Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
@@ -160,7 +161,7 @@ router.delete('/upload/announcement/:filename', uploadController.deleteAnnouncem
 // ==========================================
 // Rutas específicas PRIMERO
 router.get('/ranking/periods/active-or-last', rankingController.getActiveOrLastPeriod);
-router.post('/ranking/periods/:id/close', rankingController.closePeriod);
+router.post('/ranking/periods/close', rankingController.closePeriod);
 router.get('/ranking/live/:periodo_id', rankingController.getLiveRankingByPeriod);
 router.get('/ranking/tops/:periodo_id', rankingController.getTopsByPeriod);
 router.get('/ranking/history/:periodo_id', rankingController.getHistory);
