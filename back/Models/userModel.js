@@ -511,10 +511,10 @@ export const rejectUserWithInstitution = async (userId) => {
  */
 export const getInstitutionById = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,u.score,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate, u.score,
             i.companyName, i.nit, i.state AS institutionState
      FROM users u
-     INNER JOIN institution i ON i.userId = u.id
+     LEFT JOIN institution i ON i.userId = u.id
      WHERE u.id = ?`,
     [id]
   );
