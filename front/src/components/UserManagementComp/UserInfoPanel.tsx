@@ -32,6 +32,8 @@ export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDel
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDeleteSuccessModal, setShowDeleteSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [processing, setProcessing] = useState(false); // Estado de procesamiento
 
@@ -80,11 +82,13 @@ export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDel
         }
       } else {
         console.error('Error al actualizar el rol:', response.data.error);
-        alert('Error al actualizar el rol: ' + response.data.error);
+        setErrorModalMessage('Error al actualizar el rol: ' + response.data.error);
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión al actualizar el rol');
+      setErrorModalMessage('Error de conexión al actualizar el rol');
+      setShowErrorModal(true);
     } finally {
       setProcessing(false); // Desactivar indicador
     }
@@ -115,11 +119,13 @@ export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDel
         }
       } else {
         console.error('Error al eliminar el usuario:', response.data.error);
-        alert('Error al eliminar el usuario: ' + response.data.error);
+        setErrorModalMessage('Error al eliminar el usuario: ' + response.data.error);
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión al eliminar el usuario');
+      setErrorModalMessage('Error de conexión al eliminar el usuario');
+      setShowErrorModal(true);
     } finally {
       setProcessing(false); // Desactivar indicador
     }
@@ -336,6 +342,14 @@ export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDel
             setShowDeleteSuccessModal(false);
             // No hacer reload, solo cerrar el modal
           }}
+        />
+      )}
+
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </div>

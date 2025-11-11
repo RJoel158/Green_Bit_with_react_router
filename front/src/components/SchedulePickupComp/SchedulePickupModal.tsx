@@ -277,7 +277,8 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       // VALIDACIÓN CRÍTICA: Verificar que el recolector no esté intentando aceptar su propia solicitud
       if (requestData && requestData.idUser === collectorId) {
         setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
-        alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        setErrorModalMessage('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        setShowErrorModal(true);
         setSubmitting(false);
         return;
       }

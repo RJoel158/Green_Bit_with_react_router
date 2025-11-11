@@ -48,6 +48,8 @@ const AnnouncementsAdmin: React.FC = () => {
   // Estados para el modal de éxito/error
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   // Estados para el modal de confirmación
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -241,7 +243,18 @@ const AnnouncementsAdmin: React.FC = () => {
         formData.state
       );
 
-      await loadAnnouncements();
+      // Actualizar inmediatamente la lista local
+      const updatedAnnouncements = announcements.map(a =>
+        a.id === selectedAnnouncement.id
+          ? { ...a, title: formData.title, imagePath: formData.imagePath, targetRole: formData.targetRole, state: formData.state }
+          : a
+      );
+      setAnnouncements(updatedAnnouncements);
+
+      // Reaplica los filtros con los datos actualizados
+      const filtered = applyFilters(updatedAnnouncements, searchTerm, stateFilter);
+      setFilteredAnnouncements(filtered);
+
       setSelectedAnnouncement(null);
       setSuccessMessage({
         title: '¡Anuncio Actualizado!',
@@ -251,7 +264,8 @@ const AnnouncementsAdmin: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al actualizar anuncio';
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -292,7 +306,8 @@ const AnnouncementsAdmin: React.FC = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al eliminar anuncio';
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
       setShowConfirmModal(false);
@@ -361,7 +376,8 @@ const AnnouncementsAdmin: React.FC = () => {
       const message = err instanceof Error ? err.message : 'Error desconocido al crear anuncio';
       console.error('❌ Error:', err);
       setError(message);
-      alert(`❌ Error: ${message}`);
+      setErrorModalMessage(`❌ Error: ${message}`);
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -1320,6 +1336,15 @@ const AnnouncementsAdmin: React.FC = () => {
           confirmText="Eliminar"
           cancelText="Cancelar"
           isDangerous={true}
+        />
+      )}
+
+      {/* Modal de error */}
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </div>

@@ -100,26 +100,26 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
           <AlertTriangle size={64} color="#f44336" strokeWidth={2} />
         </div>
 
-        <h2 className="complaint-title">
-          Reportar problema con {userRole === 'recolector' ? 'el reciclador' : 'el recolector'}
-        </h2>
+          <h2 className="complaint-title">
+            Reportar problema con {userRole === 'recolector' ? 'el reciclador' : 'el recolector'}
+          </h2>
 
-        <p className="complaint-subtitle">
-          Esta cita fue cancelada. Si deseas reportar un problema, describe la situación:
-        </p>
+          <p className="complaint-subtitle">
+            Esta cita fue cancelada. Si deseas reportar un problema, describe la situación:
+          </p>
 
-        {/* Campo de texto para el reclamo */}
-        <textarea
-          value={complaint}
-          onChange={(e) => setComplaint(e.target.value)}
-          placeholder="Describe el motivo de tu reclamo..."
-          className="complaint-textarea"
-          maxLength={500}
-        />
+          {/* Campo de texto para el reclamo */}
+          <textarea
+            value={complaint}
+            onChange={(e) => setComplaint(e.target.value)}
+            placeholder="Describe el motivo de tu reclamo..."
+            className="complaint-textarea"
+            maxLength={500}
+          />
 
-        <div className="complaint-char-counter">
-          {complaint.length}/500 caracteres
-        </div>
+          <div className="complaint-char-counter">
+            {complaint.length}/500 caracteres
+          </div>
 
         {/* Información del usuario reportado */}
         <div className="complaint-user-info">
