@@ -36,29 +36,34 @@ router.post("/login", loginUser);
 router.post("/forgotPassword", forgotPassword);
 router.put("/changePassword/:userId", changePassword);
 
-//  Users con Institución
-router.get("/withInstitution", getUsersWithInstitution);
+//  ⚠️ IMPORTANTE: Las rutas específicas DEBEN ir antes que las genéricas con parámetros dinámicos
+//  Users con Institución - RUTAS ESPECÍFICAS PRIMERO
 router.get("/collectors/pending/institution", getCollectorsPendingWithInstitution);
-router.get("/withInstitution/:id", getUserWithInstitutionById);
 router.post('/institution', createUserWithInstitution);
 router.post('/institution-admin', createUserWithInstitutionByAdmin);
-router.put("/withInstitution/:id", updateUserWithInstitution);
 router.delete("/institution/:id", deleteUserWithInstitution);
 router.post("/institution/reject/:id", rejectInstitution);
 router.post("/institution/approve/:id", approveInstitution);
 
-//  Users con Persona
-router.get("/", getUsers);
-router.get("/withPerson", getUsersPerson);
+//  Users con Persona - RUTAS ESPECÍFICAS PRIMERO
 router.get("/collectors/pending", getCollectorsPendingWithPerson);
+router.post("/collector", createCollectorUser);
+router.post("/reject/:id", rejectUser);
+router.post("/approve/:id", approveUser);
+
+//  Rutas genéricas por nombre/path
+router.get("/withInstitution", getUsersWithInstitution);
+router.get("/withPerson", getUsersPerson);
+
+//  Rutas con IDs dinámicos - DEBEN IR AL FINAL
+router.get("/withInstitution/:id", getUserWithInstitutionById);
+router.put("/withInstitution/:id", updateUserWithInstitution);
 router.get("/:id", getUserById);
 router.post("/", createUser);
 router.put("/:id/role", updateUserRole);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
-router.post("/collector", createCollectorUser);
-router.post("/reject/:id", rejectUser);
-router.post("/approve/:id", approveUser);
+router.get("/", getUsers);
 
 
 

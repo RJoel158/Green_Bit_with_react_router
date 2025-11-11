@@ -64,20 +64,23 @@ router.put('/users/changePassword/:userId', userController.changePassword);
 router.get('/users/collectors/pending/institution', userController.getCollectorsPendingWithInstitution);
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
-// Gestión de instituciones - ESPECÍFICAS PRIMERO
-// Rutas con paths fijos ANTES que rutas con parámetros
-router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
+// Gestión de instituciones - RUTAS CON PATHS FIJOS ANTES QUE CON PARÁMETROS
+router.get('/users/institution', userController.getUsersWithInstitution);
 router.put('/users/institution/approve/:id', userController.approveInstitution);
 router.put('/users/institution/reject/:id', userController.rejectInstitution);
-router.get('/users/institution', userController.getUsersWithInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
 
-// Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
+// Gestión de usuarios - RUTAS CON PATHS FIJOS ANTES QUE CON PARÁMETROS
+router.get('/users/withPerson', userController.getUsersPerson);
 router.put('/users/approve/:id', userController.approveUser);
 router.put('/users/reject/:id', userController.rejectUser);
-router.put('/users/:id/role', userController.updateUserRole);
-router.get('/users/withPerson', userController.getUsersPerson);
+
+// CRÍTICO: Esta ruta DEBE ir ANTES de /users/:id para que no sea interceptada
+router.get('/users/withInstitution/:id', userController.getUserWithInstitutionById);
+
+// Rutas genéricas con parámetros dinámicos - AL FINAL
 router.get('/users/person/:id', userController.getUsersPerson);
+router.put('/users/:id/role', userController.updateUserRole);
 router.get('/users/:id', userController.getUserById);
 router.delete('/users/:id', userController.deleteUser);
 

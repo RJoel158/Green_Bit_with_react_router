@@ -119,25 +119,55 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           </div>
           {user.role === 'reciclador' && appointment.collectorName && (
             <div className="mb-2 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '6px' }}>
-              <p className="appointment-collector mb-1">
-                <strong>👤 Recolector:</strong> {appointment.collectorName}
-              </p>
-              {appointment.collectorPhone && (
-                <p className="appointment-collector mb-0">
-                  <strong>📞</strong> {appointment.collectorPhone}
-                </p>
+              {appointment.collectorCompanyName ? (
+                <>
+                  <p className="appointment-collector mb-1">
+                    <strong>🏢 Recolector:</strong> {appointment.collectorCompanyName}
+                  </p>
+                  {appointment.collectorNit && (
+                    <p className="appointment-collector mb-0">
+                      <strong>NIT:</strong> {appointment.collectorNit}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="appointment-collector mb-1">
+                    <strong>👤 Recolector:</strong> {appointment.collectorName}
+                  </p>
+                  {appointment.collectorPhone && (
+                    <p className="appointment-collector mb-0">
+                      <strong>📞</strong> {appointment.collectorPhone}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
           {user.role === 'recolector' && appointment.recyclerName && (
             <div className="mb-2 p-2" style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '6px' }}>
-              <p className="appointment-recycler mb-1">
-                <strong>👤 Reciclador:</strong> {appointment.recyclerName}
-              </p>
-              {appointment.recyclerPhone && (
-                <p className="appointment-recycler mb-0">
-                  <strong>📞</strong> {appointment.recyclerPhone}
-                </p>
+              {appointment.recyclerCompanyName ? (
+                <>
+                  <p className="appointment-recycler mb-1">
+                    <strong>🏢 Reciclador:</strong> {appointment.recyclerCompanyName}
+                  </p>
+                  {appointment.recyclerNit && (
+                    <p className="appointment-recycler mb-0">
+                      <strong>NIT:</strong> {appointment.recyclerNit}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="appointment-recycler mb-1">
+                    <strong>👤 Reciclador:</strong> {appointment.recyclerName}
+                  </p>
+                  {appointment.recyclerPhone && (
+                    <p className="appointment-recycler mb-0">
+                      <strong>📞</strong> {appointment.recyclerPhone}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}

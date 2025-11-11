@@ -117,11 +117,14 @@ export const getAppointmentsByCollectorAndState = async (collectorId, state = nu
              COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as recyclerName,
              u.phone as recyclerPhone,
              u.email as recyclerEmail,
+             i.companyName as recyclerCompanyName,
+             i.nit as recyclerNit,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
       JOIN users u ON r.idUser = u.id
       LEFT JOIN person p ON p.userId = u.id
+      LEFT JOIN institution i ON i.userId = u.id
       LEFT JOIN material m ON r.materialId = m.id
       WHERE ac.collectorId = ?
     `;
@@ -169,11 +172,14 @@ export const getAppointmentsByRecyclerAndState = async (recyclerId, state = null
              COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as collectorName,
              u.phone as collectorPhone,
              u.email as collectorEmail,
+             i.companyName as collectorCompanyName,
+             i.nit as collectorNit,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
       JOIN users u ON ac.collectorId = u.id
       LEFT JOIN person p ON p.userId = u.id
+      LEFT JOIN institution i ON i.userId = u.id
       LEFT JOIN material m ON r.materialId = m.id
       WHERE r.idUser = ?
     `;
@@ -221,9 +227,13 @@ export const getAppointmentById = async (id) => {
              COALESCE(CONCAT(pc.firstname, ' ', pc.lastname), uc.email) as collectorName,
              uc.phone as collectorPhone,
              uc.email as collectorEmail,
+             ic.companyName as collectorCompanyName,
+             ic.nit as collectorNit,
              COALESCE(CONCAT(pr.firstname, ' ', pr.lastname), ur.email) as recyclerName,
              ur.phone as recyclerPhone,
              ur.email as recyclerEmail,
+             ir.companyName as recyclerCompanyName,
+             ir.nit as recyclerNit,
              m.name as materialName
       FROM appointmentconfirmation ac
       JOIN request r ON ac.idRequest = r.id
@@ -231,6 +241,8 @@ export const getAppointmentById = async (id) => {
       JOIN users ur ON r.idUser = ur.id
       LEFT JOIN person pc ON pc.userId = uc.id
       LEFT JOIN person pr ON pr.userId = ur.id
+      LEFT JOIN institution ic ON ic.userId = uc.id
+      LEFT JOIN institution ir ON ir.userId = ur.id
       LEFT JOIN material m ON r.materialId = m.id
       WHERE ac.id = ?
     `;
@@ -243,8 +255,10 @@ export const getAppointmentById = async (id) => {
         id: rows[0].id,
         collectorName: rows[0].collectorName,
         collectorPhone: rows[0].collectorPhone,
+        collectorCompanyName: rows[0].collectorCompanyName,
         recyclerName: rows[0].recyclerName,
-        recyclerPhone: rows[0].recyclerPhone
+        recyclerPhone: rows[0].recyclerPhone,
+        recyclerCompanyName: rows[0].recyclerCompanyName
       });
     }
     

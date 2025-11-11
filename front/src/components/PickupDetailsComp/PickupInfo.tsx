@@ -45,9 +45,13 @@ interface AppointmentData {
   collectorName?: string;
   collectorPhone?: string;
   collectorEmail?: string;
+  collectorCompanyName?: string;
+  collectorNit?: string;
   recyclerName?: string;
   recyclerPhone?: string;
   recyclerEmail?: string;
+  recyclerCompanyName?: string;
+  recyclerNit?: string;
   collectorId?: number;
   recyclerId?: number;
 }
@@ -617,26 +621,56 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               <h3 className="pickupdetail-info-label">
                 Recolector
               </h3>
-              <p className="pickupdetail-info-value">
-                {appointmentData.collectorName || 'No asignado'}
-              </p>
-              {appointmentData.collectorPhone && (
-                <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
-                  Tel: {appointmentData.collectorPhone}
-                </p>
+              {appointmentData.collectorCompanyName ? (
+                <>
+                  <p className="pickupdetail-info-value">
+                    🏢 {appointmentData.collectorCompanyName}
+                  </p>
+                  {appointmentData.collectorNit && (
+                    <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                      NIT: {appointmentData.collectorNit}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="pickupdetail-info-value">
+                    {appointmentData.collectorName || 'No asignado'}
+                  </p>
+                  {appointmentData.collectorPhone && (
+                    <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                      Tel: {appointmentData.collectorPhone}
+                    </p>
+                  )}
+                </>
               )}
             </div>
             <div className="pickupdetail-info-block">
               <h3 className="pickupdetail-info-label">
                 Reciclador
               </h3>
-              <p className="pickupdetail-info-value">
-                {appointmentData.recyclerName || 'No asignado'}
-              </p>
-              {appointmentData.recyclerPhone && (
-                <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
-                  Tel: {appointmentData.recyclerPhone}
-                </p>
+              {appointmentData.recyclerCompanyName ? (
+                <>
+                  <p className="pickupdetail-info-value">
+                    🏢 {appointmentData.recyclerCompanyName}
+                  </p>
+                  {appointmentData.recyclerNit && (
+                    <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                      NIT: {appointmentData.recyclerNit}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="pickupdetail-info-value">
+                    {appointmentData.recyclerName || 'No asignado'}
+                  </p>
+                  {appointmentData.recyclerPhone && (
+                    <p className="pickupdetail-info-value" style={{ fontSize: '0.9em', color: '#666' }}>
+                      Tel: {appointmentData.recyclerPhone}
+                    </p>
+                  )}
+                </>
               )}
             </div>
             <div className="pickupdetail-info-block">
