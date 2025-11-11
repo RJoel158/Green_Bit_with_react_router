@@ -500,9 +500,10 @@ export const deleteUserWithInstitution = async (req, res) => {
 export const getUsersWithInstitution = async (req, res) => {
   try {
     const users = await UserModel.getAllWithInstitution();
+    console.log("[INFO] getUsersWithInstitution - SUCCESS", { count: users.length, users });
     res.json({ success: true, users });
   } catch (err) {
-    console.error("[ERROR] getUsersWithInstitution:", { message: err.message });
+    console.error("[ERROR] getUsersWithInstitution:", { message: err.message, stack: err.stack });
     res.status(500).json({ success: false, error: "Error al obtener usuarios con institución" });
   }
 };

@@ -15,9 +15,13 @@ export interface Appointment {
   recyclerName?: string;
   recyclerPhone?: string;
   recyclerEmail?: string;
+  recyclerCompanyName?: string;
+  recyclerNit?: string;
   collectorName?: string;
   collectorPhone?: string;
   collectorEmail?: string;
+  collectorCompanyName?: string;
+  collectorNit?: string;
   materialName?: string;
 }
 

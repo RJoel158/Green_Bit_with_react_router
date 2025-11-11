@@ -694,7 +694,7 @@ const RecyclingPointsMap: React.FC = () => {
               show={showPickupModal}
               onClose={() => setShowPickupModal(false)}
               selectedRequest={selectedRequest}
-          
+              onScheduleSuccess={() => fetchActiveRequests()}
             />
           )}
         </div>

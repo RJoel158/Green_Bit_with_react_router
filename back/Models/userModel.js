@@ -469,7 +469,8 @@ export const updateUserRole = async (userId, roleId) => {
 
 // Institucion Model
 /**
- * Obtener todas las instituciones (user + institution) que fueron aprobadas.
+ * Obtener todas las instituciones (user + institution) que NO estén eliminadas.
+ * Incluye: pendientes (state=3), rechazadas (state=2), aprobadas (state=1)
  */
 export const getAllWithInstitution = async () => {
   const [rows] = await db.query(
@@ -477,7 +478,7 @@ export const getAllWithInstitution = async () => {
            i.companyName, i.nit, i.state AS institutionState
      FROM users u
      INNER JOIN institution i ON i.userId = u.id
-     WHERE u.state != 0 AND u.state!=3`
+     WHERE u.state != 0`
   );
   return rows;
 };
@@ -532,10 +533,10 @@ export const rejectUserWithInstitution = async (userId) => {
  */
 export const getInstitutionById = async (id) => {
   const [rows] = await db.query(
-    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate,u.score,
+    `SELECT u.id AS userId, u.email, u.phone, u.roleId, u.state AS userState, u.registerDate, u.score,
             i.companyName, i.nit, i.state AS institutionState
      FROM users u
-     INNER JOIN institution i ON i.userId = u.id
+     LEFT JOIN institution i ON i.userId = u.id
      WHERE u.id = ?`,
     [id]
   );

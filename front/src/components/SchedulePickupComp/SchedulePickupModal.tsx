@@ -10,6 +10,7 @@ interface SchedulePickupModalProps {
   show: boolean;
   onClose: () => void;
   selectedRequest: { id: number };
+  onScheduleSuccess?: () => void;  // Callback para actualizar el mapa después de agendar exitosamente
 }
 
 interface DayAvailability {
@@ -47,12 +48,14 @@ interface RequestData {
 const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   show,
   onClose,
-  selectedRequest
+  selectedRequest,
+  onScheduleSuccess
 }) => {
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [submitting, setSubmitting] = useState<boolean>(false); // Estado para bloquear botón durante submit
   const [error, setError] = useState<string | null>(null);
   const [requestData, setRequestData] = useState<RequestData | null>(null);
   const [daysAvailability, setDaysAvailability] = useState<DayAvailability[]>([]);
@@ -249,11 +252,15 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       return;
     }
     
+    // Bloquear el botón mientras se procesa
+    setSubmitting(true);
+    
     try {
       // Obtener el ID del recolector desde localStorage
       const userStr = localStorage.getItem('user');
       if (!userStr) {
         setTimeError('No se encontró información del usuario. Por favor inicia sesión nuevamente.');
+        setSubmitting(false);
         return;
       }
 
@@ -262,6 +269,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
 
       if (!collectorId) {
         setTimeError('No se pudo obtener el ID del recolector');
+        setSubmitting(false);
         return;
       }
 
@@ -269,6 +277,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       if (requestData && requestData.idUser === collectorId) {
         setTimeError('❌ No puedes aceptar tu propia solicitud de reciclaje');
         alert('❌ ERROR: No puedes aceptar tu propia solicitud de reciclaje.\n\nDebes esperar a que otro recolector acepte tu solicitud.');
+        setSubmitting(false);
         return;
       }
 
@@ -298,9 +307,14 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
 
       const result = response.data;
 
-      // Verificar si la respuesta fue exitosa
-      if (response.status !== 200 || !result.success) {
-        throw new Error(result.error || 'Error al crear la cita');
+      console.log('[INFO] Response status:', response.status);
+      console.log('[INFO] Response data:', result);
+
+      // Verificar si la respuesta fue exitosa (status 200 o 201)
+      if (!result.success) {
+        const errorMsg = result.error || result.message || 'Error desconocido al crear la cita';
+        console.error('[ERROR] Backend error:', errorMsg);
+        throw new Error(errorMsg);
       }
 
       console.log('[SUCCESS] Cita creada:', result);
@@ -308,10 +322,51 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       // Limpiar errores y mostrar modal de confirmación
       setTimeError('');
       setShowSuccess(true);
+      
+      // Cerrar el modal de agendamiento y refrescar datos después del éxito
+      setTimeout(() => {
+        onClose();
+        // Llamar al callback para actualizar el mapa
+        if (onScheduleSuccess) {
+          onScheduleSuccess();
+        } else {
+          // Fallback: recargar la página si no hay callback
+          window.location.reload();
+        }
+      }, 1500);
 
     } catch (err) {
       console.error('[ERROR] Error al confirmar cita:', err);
-      setTimeError(err instanceof Error ? err.message : 'Error al agendar el recojo. Intenta nuevamente.');
+      
+      let errorMessage = 'Error al agendar el recojo. Intenta nuevamente.';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        // Si es un error de respuesta HTTP
+        const status = (err as any).response?.status;
+        const errorData = (err as any).response?.data;
+        
+        if (status === 409) {
+          errorMessage = '⚠️ Esta solicitud ya tiene una cita asignada. Recargando...';
+          // Si es un conflicto (409), refrescar el mapa y cerrar modal
+          setTimeout(() => {
+            onClose();
+            if (onScheduleSuccess) {
+              onScheduleSuccess();
+            }
+          }, 1500);
+        } else if (status === 403) {
+          errorMessage = '❌ No puedes aceptar tu propia solicitud de reciclaje.';
+        } else if (errorData?.error) {
+          errorMessage = errorData.error;
+        }
+      }
+      
+      setTimeError(errorMessage);
+    } finally {
+      // Siempre desbloquear el botón al terminar
+      setSubmitting(false);
     }
   };
 
@@ -443,14 +498,24 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
                     </div>
                   )}
 
-
                   <div className="text-center">
                     <button
                       className="btn modal-button"
                       onClick={handleConfirm}
-                      disabled={!selectedDay || !selectedTime}
+                      disabled={!selectedDay || !selectedTime || submitting}
+                      style={{
+                        opacity: submitting ? 0.6 : 1,
+                        cursor: submitting ? 'not-allowed' : 'pointer'
+                      }}
                     >
-                      Confirmar tu recojo
+                      {submitting ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Agendando recojo...
+                        </>
+                      ) : (
+                        'Confirmar tu recojo'
+                      )}
                     </button>
                   </div>
                 </>

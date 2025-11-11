@@ -13,12 +13,15 @@ interface User {
   registerDate: string;
   avatar?: string;
   score?: number;
+  roleId?: number;
+  state?: number;
   // Campos de Persona
   firstname?: string;
   lastname?: string;
   // Campos de Institución
   companyName?: string;
   nit?: string;
+  institutionState?: number;
 }
 
 const UserInfo: React.FC = () => {
@@ -117,7 +120,7 @@ const UserInfo: React.FC = () => {
       <div className="user-info-wrapper">
         <div className="user-info-card">
           <h2 className="user-title">
-            {displayName}
+            {isInstitution ? '🏢 ' : '👤 '}{displayName}
           </h2>
 
           <div className="user-avatar-large" style={{ 
@@ -149,6 +152,18 @@ const UserInfo: React.FC = () => {
           </div>
 
           <div className="user-form">
+            {isInstitution && user?.companyName && (
+              <div className="form-group">
+                <label>Nombre de la Empresa:</label>
+                <input
+                  type="text"
+                  className="form-control form-input"
+                  value={user.companyName}
+                  readOnly
+                />
+              </div>
+            )}
+
             {isInstitution && user?.nit && (
               <div className="form-group">
                 <label>NIT:</label>
@@ -162,7 +177,7 @@ const UserInfo: React.FC = () => {
             )}
 
             <div className="form-group">
-              <label>Número de Referencia:</label>
+              <label>{isInstitution ? "Teléfono de Contacto:" : "Número de Referencia:"}</label>
               <input
                 type="text"
                 className="form-control form-input"

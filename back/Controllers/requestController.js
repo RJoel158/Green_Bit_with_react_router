@@ -260,6 +260,8 @@ export const getAllRequests = async (req, res) => {
     
     const requests = await RequestModel.getAll();
     
+    console.log("[DEBUG] getAllRequests - Requests found:", { count: requests.length, states: requests.map(r => ({ id: r.id, state: r.state })) });
+    
     // Obtener imágenes y horarios para cada solicitud
     const requestsWithDetails = await Promise.all(
       requests.map(async (request) => {
@@ -275,6 +277,8 @@ export const getAllRequests = async (req, res) => {
         };
       })
     );
+    
+    console.log("[DEBUG] getAllRequests - Returning:", { count: requestsWithDetails.length });
     
     res.json({
       success: true,
