@@ -139,6 +139,36 @@ export const sendRealTimeNotification = (userId, notification) => {
 
 const PORT = process.env.PORT || 3000;
 
+// ========================================
+// MIDDLEWARE DE MANEJO DE ERRORES
+// ========================================
+
+// 404 handler - debe ir antes del error handler
+app.use((req, res) => {
+  console.warn(`[404] ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    success: false, 
+    error: 'Ruta no encontrada: ' + req.method + ' ' + req.path 
+  });
+});
+
+// Error handler global - SIEMPRE debe ser el último middleware
+app.use((err, req, res, next) => {
+  console.error('[ERROR GLOBAL]:', {
+    message: err.message,
+    status: err.status || 500,
+    path: req.path,
+    method: req.method,
+    stack: err.stack.split('\n').slice(0, 3).join('\n')
+  });
+  
+  res.status(err.status || 500).json({ 
+    success: false, 
+    error: err.message || 'Error interno del servidor',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
 server.listen(PORT, async () => {
   console.log(`🚀 ${process.env.APP_NAME || 'GreenBit'} v${process.env.APP_VERSION || '1.0.0'}`);
   console.log(`🌐 Servidor + Socket.IO escuchando en puerto ${PORT}`);
