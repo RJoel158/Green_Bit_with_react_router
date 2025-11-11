@@ -18,7 +18,7 @@ interface Request {
 interface RequestsTableProps {
   requests: Request[];
   requestType?: 'Persona' | 'Empresa';
-  onApprove: (userId: number) => void;
+  onApprove: (userId: number, email: string) => void;
   onReject: (userId: number) => void;
 }
 
@@ -89,7 +89,7 @@ export default function RequestsTable({
             className="collector-requests-table-approve-btn"
             onClick={(e) => {
               e.stopPropagation();
-              onApprove(request.userId);
+              onApprove(request.userId, request.email);
             }}
           >
             ✓ Aprobar
@@ -153,7 +153,7 @@ export default function RequestsTable({
             className="collector-requests-table-approve-btn"
             onClick={(e) => {
               e.stopPropagation();
-              onApprove(request.userId);
+              onApprove(request.userId, request.email);
             }}
           >
             ✓ Aprobar

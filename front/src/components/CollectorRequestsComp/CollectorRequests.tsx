@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Header from './Header';
 import RequestsTable from './RequestsTable';
 import SuccessModal from '../CommonComp/SuccesModal';
+import ConfirmModal from '../CommonComp/ConfirmModal';
 import './CollectorRequests.css';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../config/endpoints';
@@ -48,6 +49,11 @@ export default function CollectorRequests() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successAction, setSuccessAction] = useState<'approved' | 'rejected'>('approved');
   const [processingAction, setProcessingAction] = useState<'approving' | 'rejecting'>('approving'); // Para el mensaje de loading
+  
+  // Estados para el modal de conflicto de email duplicado
+  const [showEmailConflictModal, setShowEmailConflictModal] = useState(false);
+  const [conflictEmail, setConflictEmail] = useState('');
+  const [pendingUserId, setPendingUserId] = useState<number | null>(null);
 
   // Función para obtener solicitudes según el tipo
   const fetchRequests = async (type: RequestType) => {
@@ -123,10 +129,25 @@ export default function CollectorRequests() {
     setSearchQuery(query);
   };
 
-  const handleApproveRequest = async (userId: number) => {
-    setProcessingAction('approving'); // Establecer acción antes de procesar
-    setProcessing(true); // Activar indicador de carga
+  const handleApproveRequest = async (userId: number, email: string) => {
+    setProcessingAction('approving');
+    setProcessing(true);
+    
     try {
+      // Primero verificar si el email ya existe (estado != 0, es decir, ya aprobado)
+      const emailCheckRes = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(email.trim().toLowerCase()));
+      
+      if (emailCheckRes.data.success && emailCheckRes.data.exists) {
+        // El email ya existe con un usuario aprobado
+        console.log('[WARN] Email duplicado detectado:', email);
+        setProcessing(false);
+        setConflictEmail(email);
+        setPendingUserId(userId);
+        setShowEmailConflictModal(true);
+        return;
+      }
+      
+      // Si el email no existe, proceder con la aprobación normal
       const endpoint = requestType === 'Persona' 
         ? API_ENDPOINTS.USERS.APPROVE_USER(userId)
         : API_ENDPOINTS.USERS.APPROVE_INSTITUTION(userId);
@@ -186,6 +207,46 @@ export default function CollectorRequests() {
     fetchRequests(requestType);
   };
 
+  // Manejar la opción de rechazar el nuevo usuario cuando hay conflicto de email
+  const handleRejectNewUser = async () => {
+    if (pendingUserId === null) return;
+    
+    setShowEmailConflictModal(false);
+    setProcessing(true);
+    setProcessingAction('rejecting');
+    
+    try {
+      const endpoint = requestType === 'Persona'
+        ? API_ENDPOINTS.USERS.REJECT_USER(pendingUserId)
+        : API_ENDPOINTS.USERS.REJECT_INSTITUTION(pendingUserId);
+      
+      const response = await api.post(endpoint);
+      
+      if (response.data.success) {
+        console.log('Usuario nuevo rechazado por email duplicado');
+        setSuccessAction('rejected');
+        setShowSuccessModal(true);
+        await fetchRequests(requestType);
+      } else {
+        setError(response.data.error || 'Error al rechazar la solicitud');
+      }
+    } catch (err) {
+      console.error('Error al rechazar usuario nuevo:', err);
+      setError('Error de conexión al rechazar la solicitud');
+    } finally {
+      setProcessing(false);
+      setPendingUserId(null);
+      setConflictEmail('');
+    }
+  };
+
+  // Cancelar el modal de conflicto sin hacer nada
+  const handleCancelEmailConflict = () => {
+    setShowEmailConflictModal(false);
+    setPendingUserId(null);
+    setConflictEmail('');
+  };
+
   return (
     <>
       {showSuccessModal && (
@@ -197,6 +258,18 @@ export default function CollectorRequests() {
               : `La solicitud de ${requestType === 'Persona' ? 'persona' : 'empresa'} ha sido rechazada exitosamente.`
           }
           onClose={handleCloseSuccessModal}
+        />
+      )}
+
+      {showEmailConflictModal && (
+        <ConfirmModal
+          title="⚠️ Correo Electrónico Duplicado"
+          message={`El correo electrónico "${conflictEmail}" ya está registrado con un usuario aprobado. ¿Desea rechazar esta nueva solicitud?`}
+          onConfirm={handleRejectNewUser}
+          onCancel={handleCancelEmailConflict}
+          confirmText="Rechazar Nuevo"
+          cancelText="Cancelar"
+          isDangerous={true}
         />
       )}
 
