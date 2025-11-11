@@ -191,6 +191,14 @@ export default function UserManagement() {
     }
   };
 
+  // Función para manejar cuando se borra un usuario
+  const handleUserDeleted = () => {
+    // Limpiar el usuario seleccionado
+    setSelectedUser(null);
+    // Recargar la lista de usuarios
+    fetchUsers(userType);
+  };
+
   return (
     <div className="user-management-dashboard">
       <div className="user-management-main">
@@ -235,6 +243,7 @@ export default function UserManagement() {
                 user={selectedUser}
                 userType={userType}
                 onUserUpdated={handleUserUpdated}
+                onUserDeleted={handleUserDeleted}
               />
             </div>
           )}

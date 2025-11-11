@@ -24,9 +24,10 @@ interface UserInfoPanelProps {
   user: User | null;
   userType?: 'Persona' | 'Empresa';
   onUserUpdated?: () => void; // Callback para notificar cambios
+  onUserDeleted?: () => void; // Callback para notificar cuando se borra un usuario
 }
 
-export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInfoPanelProps) {
+export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDeleted }: UserInfoPanelProps) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -108,9 +109,9 @@ export default function UserInfoPanel({ user, userType, onUserUpdated }: UserInf
       if (response.data.success) {
         console.log('Usuario eliminado exitosamente');
         setShowDeleteSuccessModal(true);
-        // Notificar al padre para recargar los datos
-        if (onUserUpdated) {
-          onUserUpdated();
+        // Limpiar la selección y recargar los datos
+        if (onUserDeleted) {
+          onUserDeleted();
         }
       } else {
         console.error('Error al eliminar el usuario:', response.data.error);
