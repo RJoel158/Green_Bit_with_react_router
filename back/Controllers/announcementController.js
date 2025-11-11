@@ -3,13 +3,33 @@ import * as AnnouncementModel from "../Models/announcementModel.js";
 import db from '../config/DBConnect.js';
 
 /**
- * Obtener todos los anuncios
+ * Obtener todos los anuncios (con opción de filtrar por estado)
+ * Query params: state (opcional) - Si no se especifica, retorna todos
  */
 export const getAllAnnouncements = async (req, res) => {
   try {
     console.log("[INFO] getAllAnnouncements controller called");
     
-    const announcements = await AnnouncementModel.getAll();
+    const { state } = req.query;
+    console.log("[INFO] getAllAnnouncements - Query params:", { state });
+
+    let stateParam = null;
+    
+    if (state !== undefined) {
+      const stateValue = parseInt(state);
+      if (![0, 1].includes(stateValue)) {
+        return res.status(400).json({
+          success: false,
+          error: "Estado debe ser 0 (inactivo) o 1 (activo)"
+        });
+      }
+      stateParam = stateValue;
+      console.log("[INFO] getAllAnnouncements - Filtrando por estado:", stateValue);
+    } else {
+      console.log("[INFO] getAllAnnouncements - Sin filtro de estado, retornando todos");
+    }
+
+    const announcements = await AnnouncementModel.getAll(stateParam);
     
     console.log("[INFO] getAllAnnouncements controller - announcements found:", announcements.length);
     

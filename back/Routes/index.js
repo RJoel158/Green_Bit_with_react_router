@@ -89,12 +89,12 @@ router.delete('/users/:id', userController.deleteUser);
 // MATERIALES (5 rutas)
 // ==========================================
 // Rutas específicas PRIMERO
-router.get('/material/:materialId', materialController.getMaterialById);
+router.get('/material/:id', materialController.getMaterialById);
 // Rutas genéricas DESPUÉS
 router.get('/material', materialController.getMaterials);
 router.post('/material', materialController.createMaterial);
-router.put('/material/:materialId', materialController.updateMaterial);
-router.delete('/material/:materialId', materialController.deleteMaterial);
+router.put('/material/:id', materialController.updateMaterial);
+router.delete('/material/:id', materialController.deleteMaterial);
 
 // ==========================================
 // SOLICITUDES (7 rutas)
