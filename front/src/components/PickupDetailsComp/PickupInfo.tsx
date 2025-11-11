@@ -492,6 +492,9 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         alert('✓ Recolección completada exitosamente.');
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
         
+        // Señalizar que se completó una cita para refrescar el historial
+        localStorage.setItem('appointmentCompleted', Date.now().toString());
+        
         // Verificar si el usuario ya calificó
         if (user?.id) {
           const alreadyRated = await checkUserRated(Number(appointmentId), user.id);

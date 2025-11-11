@@ -8,13 +8,23 @@ import db from '../config/DBConnect.js';
  * @param {string} body - Cuerpo del mensaje
  * @param {string} type - Tipo de notificación (request, appointment, etc.)
  * @param {number} entityId - ID de la entidad relacionada (requestId o appointmentId)
+ * @param {number} requestId - ID de la solicitud (opcional)
+ * @param {number} appointmentId - ID del appointment (opcional)
  * @returns {Promise<number>} - ID de la notificación creada
  */
-export const createNotification = async (userId, title, body, type, entityId) => {
+export const createNotification = async (userId, title, body, type, entityId, requestId = null, appointmentId = null) => {
   try {
-    // Determinar si es appointmentId o requestId basado en el tipo
-    const appointmentTypes = ['appointment', 'appointment_canceled', 'appointment_accepted', 'appointment_rejected'];
-    const isAppointment = appointmentTypes.includes(type);
+    // Si no se proporcionan requestId/appointmentId explícitos, usar entityId como appointmentId para tipos de appointment
+    const appointmentTypes = ['appointment', 'appointment_canceled', 'appointment_accepted', 'appointment_rejected', 'appointment_completed'];
+    
+    let finalRequestId = requestId;
+    let finalAppointmentId = appointmentId;
+    
+    if (appointmentTypes.includes(type) && !finalAppointmentId) {
+      finalAppointmentId = entityId;
+    } else if (!appointmentTypes.includes(type) && !finalRequestId) {
+      finalRequestId = entityId;
+    }
     
     const [result] = await db.query(`
       INSERT INTO notifications (
@@ -22,13 +32,14 @@ export const createNotification = async (userId, title, body, type, entityId) =>
         type, 
         title, 
         body, 
-        ${isAppointment ? 'appointmentId' : 'requestId'},
+        requestId,
+        appointmentId,
         \`read\`,
         createdAt
-      ) VALUES (?, ?, ?, ?, ?, 0, NOW())
-    `, [userId, type, title, body, entityId]);
+      ) VALUES (?, ?, ?, ?, ?, ?, 0, NOW())
+    `, [userId, type, title, body, finalRequestId, finalAppointmentId]);
 
-    console.log(`[INFO] Notification created for user ${userId}: ${title} (type: ${type}, entityId: ${entityId})`);
+    console.log(`[INFO] Notification created for user ${userId}: ${title} (type: ${type}, requestId: ${finalRequestId}, appointmentId: ${finalAppointmentId})`);
     return result.insertId;
   } catch (error) {
     console.error("[ERROR] NotificationModel.createNotification:", error);
@@ -51,7 +62,7 @@ export const getUserNotifications = async (userId, limit = 20, offset = 0) => {
         n.type, 
         n.title, 
         n.body, 
-        n.requestId, 
+        COALESCE(n.requestId, ac.idRequest) as requestId,
         n.appointmentId, 
         n.\`read\`, 
         n.readAt, 
@@ -59,6 +70,7 @@ export const getUserNotifications = async (userId, limit = 20, offset = 0) => {
         u.email as actorEmail
       FROM notifications n
       LEFT JOIN users u ON u.id = n.actorId
+      LEFT JOIN appointmentconfirmation ac ON ac.id = n.appointmentId
       WHERE n.userId = ? 
         AND (n.expireAt IS NULL OR n.expireAt > NOW())
       ORDER BY n.createdAt DESC

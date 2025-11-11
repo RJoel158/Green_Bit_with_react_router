@@ -346,7 +346,9 @@ export const cancelAppointment = async (req, res) => {
           notificationTitle,
           notificationMessage,
           "appointment_canceled",
-          parseInt(id)
+          parseInt(id),
+          appointment.idRequest,  // requestId
+          parseInt(id)            // appointmentId
         );
 
         console.log(`[INFO] Notification created in DB with ID: ${notifId}`);
@@ -425,6 +427,66 @@ export const acceptAppointmentEndpoint = async (req, res) => {
     );
 
     console.log("[INFO] acceptAppointment success:", result);
+
+    // Enviar notificación al collector (quien creó la cita)
+    try {
+      const [appointmentData] = await db.query(
+        `SELECT ac.idCollector, ac.idRequest, u.email as collectorEmail
+         FROM appointmentconfirmation ac
+         JOIN users u ON u.id = ac.idCollector
+         WHERE ac.id = ?`,
+        [parseInt(id)]
+      );
+
+      if (appointmentData && appointmentData.length > 0) {
+        const collectorId = appointmentData[0].idCollector;
+        const collectorEmail = appointmentData[0].collectorEmail;
+        const requestId = appointmentData[0].idRequest;
+
+        // Obtener email del reciclador (quien acepta)
+        const [recyclerData] = await db.query(
+          `SELECT email FROM users WHERE id = ?`,
+          [parseInt(userId)]
+        );
+
+        const recyclerEmail = recyclerData?.[0]?.email || 'Usuario';
+        const notificationTitle = "✅ Solicitud aceptada";
+        const notificationMessage = `${recyclerEmail} ha aceptado tu solicitud de recolección`;
+
+        // Crear notificación en BD
+        const notifId = await NotificationModel.createNotification(
+          collectorId,
+          notificationTitle,
+          notificationMessage,
+          "appointment_accepted",
+          requestId,              // entityId
+          requestId,              // requestId
+          parseInt(id)            // appointmentId
+        );
+
+        console.log(`[INFO] Notification created in DB with ID: ${notifId}`);
+
+        // Enviar en tiempo real
+        const notificationData = {
+          id: notifId,
+          type: 'appointment_accepted',
+          title: notificationTitle,
+          body: notificationMessage,
+          requestId: requestId,
+          appointmentId: parseInt(id),
+          read: false,
+          createdAt: new Date().toISOString(),
+          actorEmail: recyclerEmail,
+        };
+
+        console.log(`[INFO] Sending real-time notification:`, notificationData);
+        const sent = sendRealTimeNotification(collectorId, notificationData);
+        console.log(`[INFO] Real-time notification ${sent ? 'sent' : 'not sent'} to user ${collectorId}`);
+      }
+    } catch (notifError) {
+      console.error("[WARN] Failed to send accept notification:", notifError);
+      // No fallar la aceptación si falla la notificación
+    }
 
     return res.status(200).json({
       success: true,
@@ -579,12 +641,94 @@ export const completeAppointmentEndpoint = async (req, res) => {
       return res.status(400).json({ success: false, error: "ID de usuario requerido" });
     }
 
+    console.log("[DEBUG] Calling AppointmentModel.completeAppointment...");
     const result = await AppointmentModel.completeAppointment(
       parseInt(id),
       parseInt(userId)
     );
 
     console.log("[INFO] completeAppointment success:", result);
+
+    // Enviar notificación al reciclador (quien creó la solicitud)
+    try {
+      console.log("[DEBUG] === INICIANDO NOTIFICACIÓN DE COMPLETADO ===");
+      console.log("[DEBUG] Fetching appointment data for notification...");
+      console.log("[DEBUG] appointmentId (id parameter):", id);
+      
+      const [appointmentData] = await db.query(
+        `SELECT ac.idCollector, ac.idRequest, r.idUser as recyclerId, u.email as collectorEmail
+         FROM appointmentconfirmation ac
+         JOIN request r ON r.id = ac.idRequest
+         JOIN users u ON u.id = ac.idCollector
+         WHERE ac.id = ?`,
+        [parseInt(id)]
+      );
+
+      console.log("[DEBUG] appointmentData query result:", { 
+        rows: appointmentData?.length || 0,
+        data: appointmentData ? JSON.stringify(appointmentData[0]) : null
+      });
+
+      if (appointmentData && appointmentData.length > 0) {
+        const recyclerId = appointmentData[0].recyclerId;
+        const collectorEmail = appointmentData[0].collectorEmail;
+        const requestId = appointmentData[0].idRequest;
+
+        console.log("[DEBUG] ✅ Found appointment data:", { 
+          recyclerId, 
+          collectorEmail, 
+          requestId,
+          appointmentId: id 
+        });
+
+        const notificationTitle = "🎉 Recolección completada";
+        const notificationMessage = `${collectorEmail} ha completado la recolección de tu material`;
+
+        // Crear notificación en BD
+        console.log("[DEBUG] About to call NotificationModel.createNotification with params:", {
+          recyclerId,
+          title: notificationTitle,
+          type: "appointment_completed",
+          requestId,
+          appointmentId: parseInt(id)
+        });
+        
+        const notifId = await NotificationModel.createNotification(
+          recyclerId,
+          notificationTitle,
+          notificationMessage,
+          "appointment_completed",
+          requestId,              // entityId (será usado como fallback)
+          requestId,              // requestId
+          parseInt(id)            // appointmentId
+        );
+
+        console.log(`[INFO] ✅ Notification created in DB with ID: ${notifId}`);
+
+        // Enviar en tiempo real
+        const notificationData = {
+          id: notifId,
+          type: 'appointment_completed',
+          title: notificationTitle,
+          body: notificationMessage,
+          requestId: requestId,
+          appointmentId: parseInt(id),
+          read: false,
+          createdAt: new Date().toISOString(),
+          actorEmail: collectorEmail,
+        };
+
+        console.log(`[INFO] Sending real-time notification to user ${recyclerId}:`, notificationData);
+        const sent = sendRealTimeNotification(recyclerId, notificationData);
+        console.log(`[INFO] Real-time notification ${sent ? '✅ SENT' : '❌ NOT SENT'} to user ${recyclerId}`);
+      } else {
+        console.log("[WARN] ❌ No appointment data found for notification with ID:", id);
+      }
+    } catch (notifError) {
+      console.error("[ERROR] ❌ Failed to create/send complete notification:", notifError.message);
+      console.error("[ERROR] Stack:", notifError.stack);
+      // No fallar la completación si falla la notificación
+    }
 
     return res.status(200).json({
       success: true,
@@ -593,6 +737,7 @@ export const completeAppointmentEndpoint = async (req, res) => {
     });
   } catch (error) {
     console.error("[ERROR] completeAppointment controller:", error);
+    console.error("[ERROR] Stack:", error.stack);
 
     let errorMessage = "Error al completar la cita";
     let statusCode = 500;
@@ -600,8 +745,8 @@ export const completeAppointmentEndpoint = async (req, res) => {
     if (error.message.includes("not found")) {
       errorMessage = "Cita no encontrada";
       statusCode = 404;
-    } else if (error.message.includes("not in ACCEPTED state")) {
-      errorMessage = "Esta cita no está en estado aceptado";
+    } else if (error.message.includes("not in ACCEPTED") || error.message.includes("not in ACCEPTED or IN_PROGRESS")) {
+      errorMessage = "Esta cita no está en estado aceptado o en progreso";
       statusCode = 400;
     }
 

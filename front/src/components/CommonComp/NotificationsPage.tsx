@@ -33,6 +33,63 @@ const NotificationsPage: React.FC = () => {
 
   const userId = getUserId();
 
+  const formatNotificationTime = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    
+    // Resetear las horas para comparar solo fechas
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    
+    const diffInMs = todayStart.getTime() - dateStart.getTime();
+    const daysDiff = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    // Formatter para hora (14:35)
+    const timeFormatter = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    
+    const time = timeFormatter.format(date);
+    
+    // Si fue hoy, mostrar solo la hora
+    if (daysDiff === 0) {
+      return time;
+    }
+    
+    // Si fue ayer, mostrar "Ayer" + hora
+    if (daysDiff === 1) {
+      return `Ayer, ${time}`;
+    }
+    
+    // Si fue antes, mostrar fecha completa + hora
+    const dateFormatter = new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    
+    return dateFormatter.format(date);
+  };
+
+  const getNavigationUrl = (notification: Notification) => {
+    // Por defecto, ir a pickupDetails con requestId
+    if (notification.requestId) {
+      if (notification.appointmentId) {
+        return `/pickupDetails/${notification.requestId}?appointmentId=${notification.appointmentId}`;
+      }
+      return `/pickupDetails/${notification.requestId}`;
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (!userId || userId === 0) {
       navigate('/login');
@@ -70,7 +127,7 @@ const NotificationsPage: React.FC = () => {
   const getFilteredNotifications = () => {
     switch (activeFilter) {
       case 'aprobados':
-        return notifications.filter(n => n.type === 'appointment_accepted');
+        return notifications.filter(n => n.type === 'appointment_accepted' || n.type === 'appointment_completed');
       case 'rechazados':
         return notifications.filter(n => n.type === 'appointment_rejected' || n.type === 'appointment_canceled');
       case 'pendientes':
@@ -140,16 +197,22 @@ const NotificationsPage: React.FC = () => {
                 <div className="notification-item-content">
                   <h3 className="notification-item-title">{notification.title}</h3>
                   <p className="notification-item-description">{notification.body}</p>
-                  <button
-                    className="btn-ver-detalles"
-                    onClick={() => {
-                      if (notification.requestId) {
-                        navigate(`/pickupDetails/${notification.requestId}`);
-                      }
-                    }}
-                  >
-                    Ver Detalles
-                  </button>
+                  <div className="notification-item-time">
+                    {formatNotificationTime(notification.createdAt)}
+                  </div>
+                  {getNavigationUrl(notification) && (
+                    <button
+                      className="btn-ver-detalles"
+                      onClick={() => {
+                        const url = getNavigationUrl(notification);
+                        if (url) {
+                          navigate(url);
+                        }
+                      }}
+                    >
+                      Ver Detalles
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
