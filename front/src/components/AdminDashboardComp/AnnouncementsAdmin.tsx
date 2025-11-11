@@ -4,11 +4,12 @@ import {
   getAllAnnouncements,
   getAnnouncementById,
   createAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement
+  updateAnnouncement
 } from '../../services/announcementService.ts';
 import { uploadAnnouncementImage } from '../../services/uploadService.ts';
 import CommonHeader from '../CommonComp/CommonHeader';
+import SuccessModal from '../CommonComp/SuccesModal';
+import ConfirmModal from '../CommonComp/ConfirmModal';
 import { config } from '../../config/environment';
 
 interface Announcement {
@@ -41,6 +42,17 @@ const AnnouncementsAdmin: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  // Filtro de estado
+  const [stateFilter, setStateFilter] = useState<0 | 1>(1);
+
+  // Estados para el modal de éxito/error
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+
+  // Estados para el modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'delete' | null>(null);
+
   // Estados del formulario
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -68,7 +80,10 @@ const AnnouncementsAdmin: React.FC = () => {
       setError(null);
       const data = await getAllAnnouncements();
       setAnnouncements(data);
-      setFilteredAnnouncements(data);
+      
+      // Aplicar filtros a los anuncios cargados
+      const filtered = applyFilters(data, searchTerm, stateFilter);
+      setFilteredAnnouncements(filtered);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar anuncios';
       setError(message);
@@ -78,6 +93,25 @@ const AnnouncementsAdmin: React.FC = () => {
     }
   };
 
+  /**
+   * Aplicar filtros (búsqueda + estado)
+   */
+  const applyFilters = (items: Announcement[], search: string, state: 0 | 1) => {
+    let filtered = items;
+
+    // Filtrar por búsqueda
+    if (search.trim()) {
+      filtered = filtered.filter(item =>
+        item.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Filtrar por estado
+    filtered = filtered.filter(item => item.state === state);
+
+    return filtered;
+  };
+
   // Debug: Log when previewImage changes
   useEffect(() => {
     console.log('🎬 [Effect] previewImage cambió a:', previewImage);
@@ -85,9 +119,16 @@ const AnnouncementsAdmin: React.FC = () => {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = announcements.filter(announcement =>
-      announcement.title.toLowerCase().includes(term.toLowerCase())
-    );
+    const filtered = applyFilters(announcements, term, stateFilter);
+    setFilteredAnnouncements(filtered);
+  };
+
+  /**
+   * Cambiar filtro de estado
+   */
+  const handleStateFilterChange = (newState: 0 | 1) => {
+    setStateFilter(newState);
+    const filtered = applyFilters(announcements, searchTerm, newState);
     setFilteredAnnouncements(filtered);
   };
 
@@ -138,38 +179,42 @@ const AnnouncementsAdmin: React.FC = () => {
       const uploadedData = await uploadAnnouncementImage(file);
       
       console.log('✅ Respuesta del servidor:', uploadedData);
-      console.log('📝 Tipo de uploadedData:', typeof uploadedData);
       console.log('📝 uploadedData.url:', uploadedData?.url);
 
-      // Obtener la URL correcta
-      let imageUrl = uploadedData?.url || uploadedData;
+      // Obtener el path relativo del servidor
+      const relativePath = uploadedData?.url;
       
-      // Convertir URL relativa a absoluta apuntando al backend usando config
-      if (imageUrl && !imageUrl.startsWith('http')) {
-        imageUrl = `${config.api.baseUrl}${imageUrl}`;
-        console.log('🔗 URL convertida a absoluta (backend):', imageUrl);
+      if (!relativePath) {
+        throw new Error('No se recibió URL de imagen del servidor');
       }
       
-      console.log('🖼️ URL final a usar en preview:', imageUrl);
+      // Para preview: convertir path relativo a URL absoluta
+      let previewUrl = relativePath;
+      if (!previewUrl.startsWith('http')) {
+        previewUrl = `${config.api.baseUrl}${relativePath}`;
+        console.log('🔗 URL convertida a absoluta para preview:', previewUrl);
+      }
+      
+      console.log('🖼️ URL para preview:', previewUrl);
       
       // Actualizar preview con la URL del servidor
-      setPreviewImage(imageUrl);
-      console.log('✅ previewImage actualizado a:', imageUrl);
+      setPreviewImage(previewUrl);
+      console.log('✅ previewImage actualizado a:', previewUrl);
       
       if (showModal) {
-        // Estamos en el modal de crear
+        // Estamos en el modal de crear - guardar el path relativo
         setNewAnnouncement(prev => ({
           ...prev,
-          imagePath: imageUrl
+          imagePath: relativePath  // Solo el path relativo
         }));
-        console.log('✅ Imagen guardada en newAnnouncement:', imageUrl);
+        console.log('✅ Imagen guardada en newAnnouncement:', relativePath);
       } else {
-        // Estamos editando
+        // Estamos editando - guardar el path relativo
         setFormData(prev => ({
           ...prev,
-          imagePath: imageUrl
+          imagePath: relativePath  // Solo el path relativo
         }));
-        console.log('✅ Imagen guardada en formData:', imageUrl);
+        console.log('✅ Imagen guardada en formData:', relativePath);
       }
 
     } catch (err) {
@@ -198,7 +243,11 @@ const AnnouncementsAdmin: React.FC = () => {
 
       await loadAnnouncements();
       setSelectedAnnouncement(null);
-      alert('✅ Anuncio actualizado correctamente');
+      setSuccessMessage({
+        title: '¡Anuncio Actualizado!',
+        message: 'El anuncio ha sido actualizado correctamente.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al actualizar anuncio';
       setError(message);
@@ -211,27 +260,43 @@ const AnnouncementsAdmin: React.FC = () => {
   const handleDeleteAnnouncement = async () => {
     if (!selectedAnnouncement) return;
 
-    const confirmDelete = window.confirm(
-      `¿Está seguro de que desea eliminar el anuncio "${selectedAnnouncement.title}"?`
-    );
+    // Mostrar modal de confirmación
+    setConfirmAction('delete');
+    setShowConfirmModal(true);
+  };
 
-    if (!confirmDelete) return;
+  /**
+   * Confirmar eliminación del anuncio
+   */
+  const handleConfirmDeleteAnnouncement = async () => {
+    if (!selectedAnnouncement) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      await deleteAnnouncement(selectedAnnouncement.id);
+      // Solo remover de la pantalla, no hacer nada en el backend
+      const updated = announcements.filter(a => a.id !== selectedAnnouncement.id);
+      setAnnouncements(updated);
 
-      await loadAnnouncements();
+      // Reaplica los filtros
+      const filtered = applyFilters(updated, searchTerm, stateFilter);
+      setFilteredAnnouncements(filtered);
+
       setSelectedAnnouncement(null);
-      alert('✅ Anuncio eliminado correctamente');
+      setSuccessMessage({
+        title: '¡Anuncio Eliminado!',
+        message: 'El anuncio ha sido removido de la vista.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al eliminar anuncio';
       setError(message);
       alert(`❌ Error: ${message}`);
     } finally {
       setLoading(false);
+      setShowConfirmModal(false);
+      setConfirmAction(null);
     }
   };
 
@@ -287,7 +352,11 @@ const AnnouncementsAdmin: React.FC = () => {
       // Recargar lista
       await loadAnnouncements();
       
-      alert('✅ Anuncio creado correctamente');
+      setSuccessMessage({
+        title: '¡Anuncio Creado!',
+        message: 'El nuevo anuncio ha sido creado correctamente.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error desconocido al crear anuncio';
       console.error('❌ Error:', err);
@@ -340,6 +409,61 @@ const AnnouncementsAdmin: React.FC = () => {
         onCreateNew={handleOpenModal}
         createButtonText="+ Crear anuncio"
       />
+
+      {/* Filtro de Estado */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        padding: '1rem 2rem',
+        display: 'flex',
+        gap: '1rem',
+        alignItems: 'center',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <span style={{
+          fontWeight: '600',
+          color: '#374151',
+          fontSize: '0.95rem'
+        }}>
+          Filtrar por estado:
+        </span>
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem'
+        }}>
+          {[
+            { label: 'Activos', value: 1 as const },
+            { label: 'Inactivos', value: 0 as const }
+          ].map(filter => (
+            <button
+              key={filter.value}
+              onClick={() => handleStateFilterChange(filter.value)}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #d1d5db',
+                backgroundColor: stateFilter === filter.value ? '#149D52' : '#ffffff',
+                color: stateFilter === filter.value ? '#ffffff' : '#374151',
+                fontWeight: stateFilter === filter.value ? '600' : '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontSize: '0.9rem'
+              }}
+              onMouseEnter={(e) => {
+                if (stateFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (stateFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Error Banner */}
       {error && (
@@ -913,8 +1037,10 @@ const AnnouncementsAdmin: React.FC = () => {
             backgroundColor: 'white',
             borderRadius: '0.75rem',
             padding: '2rem',
-            maxWidth: '500px',
+            maxWidth: '600px',
             width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)',
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
@@ -1039,11 +1165,11 @@ const AnnouncementsAdmin: React.FC = () => {
                 </label>
                 {previewImage && (
                   <div style={{
-                    marginTop: '0.75rem',
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    border: '2px solid #149D52',
                     borderRadius: '0.5rem',
-                    backgroundColor: '#fafafa',
+                    backgroundColor: '#e8f5e9',
                     textAlign: 'center'
                   }}>
                     <img 
@@ -1051,19 +1177,24 @@ const AnnouncementsAdmin: React.FC = () => {
                       alt="Preview" 
                       style={{
                         maxWidth: '100%',
-                        maxHeight: '100px',
+                        maxHeight: '150px',
                         borderRadius: '0.375rem',
-                        marginBottom: '0.5rem'
+                        marginBottom: '0.75rem',
+                        objectFit: 'contain'
                       }}
+                      onError={(e) => {
+                        console.error('❌ Error cargando imagen:', previewImage);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      onLoad={() => console.log('✅ Imagen previsualizacion cargada')}
                     />
                     <small style={{
                       display: 'block',
-                      color: '#666',
-                      fontSize: '0.75rem',
-                      wordBreak: 'break-all',
-                      fontWeight: '500'
+                      color: '#149D52',
+                      fontSize: '0.8rem',
+                      fontWeight: '600'
                     }}>
-                      Imagen seleccionada
+                      ✓ Imagen cargada correctamente
                     </small>
                   </div>
                 )}
@@ -1166,6 +1297,31 @@ const AnnouncementsAdmin: React.FC = () => {
           }
         }
       `}</style>
+
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <SuccessModal
+          title={successMessage.title}
+          message={successMessage.message}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      {showConfirmModal && confirmAction === 'delete' && selectedAnnouncement && (
+        <ConfirmModal
+          title="¿Eliminar Anuncio?"
+          message={`¿Está seguro de que desea eliminar el anuncio "${selectedAnnouncement.title}"? Esta acción no se puede deshacer.`}
+          onConfirm={handleConfirmDeleteAnnouncement}
+          onCancel={() => {
+            setShowConfirmModal(false);
+            setConfirmAction(null);
+          }}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          isDangerous={true}
+        />
+      )}
     </div>
   );
 };

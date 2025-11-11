@@ -3,18 +3,43 @@ import * as MaterialModel from "../Models/Forms/materialModel.js";
 import db from '../config/DBConnect.js'; // ← ESTA LÍNEA FALTABA
 
 /**
- * Obtener todos los materiales activos
+ * Obtener todos los materiales (con opción de filtrar por estado)
+ * Query params: state (opcional) - Si no se especifica, retorna todos los estados
  */
 export const getMaterials = async (req, res) => {
   try {
     console.log("[INFO] getMaterials controller called");
     
-    const [materials] = await db.query(`
+    const { state } = req.query;
+    console.log("[INFO] getMaterials - Query params:", { state });
+
+    let query = `
       SELECT id, name, description, state, createdDate
       FROM material
-      WHERE state = 1 
-      ORDER BY name ASC
-    `);
+    `;
+    
+    const params = [];
+    
+    // Si state es especificado, filtrar por ese estado
+    // Si no es especificado, retornar TODOS (para admin)
+    if (state !== undefined) {
+      const stateValue = parseInt(state);
+      if (![0, 1].includes(stateValue)) {
+        return res.status(400).json({
+          success: false,
+          error: "Estado debe ser 0 (inactivo) o 1 (activo)"
+        });
+      }
+      query += ` WHERE state = ?`;
+      params.push(stateValue);
+      console.log("[INFO] getMaterials - Filtrando por estado:", stateValue);
+    } else {
+      console.log("[INFO] getMaterials - Sin filtro de estado, retornando todos");
+    }
+    
+    query += ` ORDER BY name ASC`;
+    
+    const [materials] = await db.query(query, params);
     
     console.log("[INFO] getMaterials controller - materials found:", materials.length);
     

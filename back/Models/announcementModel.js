@@ -2,25 +2,33 @@
 import db from '../config/DBConnect.js';
 
 /**
- * Obtener todos los anuncios activos (solo state = 1)
+ * Obtener todos los anuncios (opcionalmente filtrados por estado)
+ * @param {number|null} state - Estado a filtrar (1, 2) o null para obtener todos
  */
-export const getAll = async () => {
+export const getAll = async (state = null) => {
   try {
-    console.log("[INFO] AnnouncementModel.getAll - fetching announcements");
+    console.log("[INFO] AnnouncementModel.getAll - fetching announcements with state:", state);
     
-    const [rows] = await db.query(
-      `SELECT 
-        a.id, 
-        a.title, 
-        a.imagePath, 
-        a.targetRole, 
-        a.state,
-        a.createdDate,
-        a.createdBy
-       FROM announcement a
-       WHERE a.state = 1
-       ORDER BY a.createdDate DESC`
-    );
+    let query = `SELECT 
+      a.id, 
+      a.title, 
+      a.imagePath, 
+      a.targetRole, 
+      a.state,
+      a.createdDate,
+      a.createdBy
+     FROM announcement a`;
+
+    const params = [];
+
+    if (state !== null) {
+      query += ` WHERE a.state = ?`;
+      params.push(state);
+    }
+
+    query += ` ORDER BY a.createdDate DESC`;
+
+    const [rows] = await db.query(query, params);
     
     console.log("[INFO] AnnouncementModel.getAll - found announcements:", rows.length);
     return rows;

@@ -26,6 +26,9 @@
  */
 
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Importar controllers
 import * as userController from '../Controllers/userController.js';
@@ -38,6 +41,35 @@ import * as announcementController from '../Controllers/announcementController.j
 import * as uploadController from '../Controllers/uploadController.js';
 import rankingController from '../Controllers/rankingController.js';
 import * as reportController from '../Controllers/reportController.js';
+
+// Configuración de multer para uploads
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const uploadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const tempDir = path.join(__dirname, '../uploads/temp');
+    cb(null, tempDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}_${file.originalname}`);
+  }
+});
+
+const uploadMiddleware = multer({
+  storage: uploadStorage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido'));
+    }
+  }
+});
 
 const router = express.Router();
 
@@ -89,12 +121,12 @@ router.delete('/users/:id', userController.deleteUser);
 // MATERIALES (5 rutas)
 // ==========================================
 // Rutas específicas PRIMERO
-router.get('/material/:materialId', materialController.getMaterialById);
+router.get('/material/:id', materialController.getMaterialById);
 // Rutas genéricas DESPUÉS
 router.get('/material', materialController.getMaterials);
 router.post('/material', materialController.createMaterial);
-router.put('/material/:materialId', materialController.updateMaterial);
-router.delete('/material/:materialId', materialController.deleteMaterial);
+router.put('/material/:id', materialController.updateMaterial);
+router.delete('/material/:id', materialController.deleteMaterial);
 
 // ==========================================
 // SOLICITUDES (7 rutas)
@@ -157,7 +189,7 @@ router.delete('/announcements/:id', announcementController.deleteAnnouncement);
 // UPLOAD (3 rutas)
 // ==========================================
 // Rutas específicas PRIMERO
-router.post('/upload/announcement', uploadController.uploadAnnouncementImage);
+router.post('/upload/announcement', uploadMiddleware.single('image'), uploadController.uploadAnnouncementImage);
 router.get('/upload/announcement/:filename', uploadController.getAnnouncementImageInfo);
 router.delete('/upload/announcement/:filename', uploadController.deleteAnnouncementImage);
 

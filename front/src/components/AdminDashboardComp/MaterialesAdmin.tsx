@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
 import * as materialService from '../../services/materialService.ts';
 import CommonHeader from '../CommonComp/CommonHeader';
+import SuccessModal from '../CommonComp/SuccesModal';
+import ConfirmModal from '../CommonComp/ConfirmModal';
 
 interface Material {
   id: number;
@@ -26,6 +28,17 @@ export default function MaterialesAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filtro de estado
+  const [stateFilter, setStateFilter] = useState<0 | 1>(1);
+
+  // Estados para el modal de éxito/error
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+
+  // Estados para el modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'delete' | null>(null);
 
   // Estados del formulario
   const [formData, setFormData] = useState<FormData>({
@@ -56,8 +69,12 @@ export default function MaterialesAdmin() {
       setError(null);
       const data = await materialService.getAllMaterials();
       console.log('📥 Materiales cargados:', data);
+      console.log('📥 Primer material structure:', data[0]); // Ver estructura del objeto
       setMateriales(data);
-      setFilteredMateriales(data);
+      
+      // Aplicar filtros a los materiales cargados
+      const filtered = applyFilters(data, searchTerm, stateFilter);
+      setFilteredMateriales(filtered);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar materiales';
       setError(message);
@@ -68,13 +85,39 @@ export default function MaterialesAdmin() {
   };
 
   /**
+   * Aplicar filtros (búsqueda + estado)
+   */
+  const applyFilters = (materials: Material[], search: string, state: 0 | 1) => {
+    let filtered = materials;
+
+    // Filtrar por búsqueda
+    if (search.trim()) {
+      filtered = filtered.filter(material =>
+        material.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // Filtrar por estado (1 = Activo, 0 = Inactivo)
+    filtered = filtered.filter(material => material.state === state);
+
+    return filtered;
+  };
+
+  /**
    * Filtrar materiales por nombre
    */
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = materiales.filter(material =>
-      material.name.toLowerCase().includes(term.toLowerCase())
-    );
+    const filtered = applyFilters(materiales, term, stateFilter);
+    setFilteredMateriales(filtered);
+  };
+
+  /**
+   * Cambiar filtro de estado
+   */
+  const handleStateFilterChange = (newState: 0 | 1) => {
+    setStateFilter(newState);
+    const filtered = applyFilters(materiales, searchTerm, newState);
     setFilteredMateriales(filtered);
   };
 
@@ -82,6 +125,9 @@ export default function MaterialesAdmin() {
    * Seleccionar un material y cargar sus datos en el formulario
    */
   const handleSelectMaterial = (material: Material) => {
+    console.log('✅ Material seleccionado:', material);
+    console.log('✅ Material.id:', material.id, 'Type:', typeof material.id);
+    
     setSelectedMaterial(material);
     setFormData({
       name: material.name,
@@ -105,13 +151,33 @@ export default function MaterialesAdmin() {
    * Guardar cambios del material seleccionado
    */
   const handleSaveChanges = async () => {
-    if (!selectedMaterial) return;
+    console.log('🔍 DEBUG handleSaveChanges - selectedMaterial:', selectedMaterial);
+    console.log('🔍 DEBUG handleSaveChanges - selectedMaterial.id:', selectedMaterial?.id);
+    
+    if (!selectedMaterial) {
+      setError('No hay material seleccionado');
+      return;
+    }
+
+    if (!selectedMaterial.id) {
+      setError('El ID del material es inválido');
+      console.error('❌ ERROR: selectedMaterial.id es undefined o null', selectedMaterial);
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
 
+      // Convertir "Activo" (1) a "Inactivo" (0)
       const state = formData.mostrar === 'Activo' ? 1 : 0;
+
+      console.log('📤 Enviando actualización:', {
+        id: selectedMaterial.id,
+        name: formData.name,
+        description: formData.description,
+        state
+      });
 
       await materialService.updateMaterial(
         selectedMaterial.id,
@@ -123,12 +189,18 @@ export default function MaterialesAdmin() {
       // Recargar la lista desde el backend para asegurar sincronización
       await loadMaterials();
 
-      // Si el material se inactivó, deseleccionarlo
-      if (state === 0) {
-        handleCloseFormData();
-      }
+      // Reaplica los filtros después de cargar
+      const filtered = applyFilters(materiales, searchTerm, stateFilter);
+      setFilteredMateriales(filtered);
 
-      alert('✅ Material actualizado correctamente');
+      // Deseleccionar el material
+      handleCloseFormData();
+
+      setSuccessMessage({
+        title: '¡Material Actualizado!',
+        message: 'El material ha sido actualizado correctamente.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al actualizar material';
       setError(message);
@@ -145,23 +217,35 @@ export default function MaterialesAdmin() {
   const handleDeleteMaterial = async () => {
     if (!selectedMaterial) return;
 
-    const confirmDelete = window.confirm(
-      `¿Estás seguro de que deseas eliminar el material "${selectedMaterial.name}"?`
-    );
+    // Mostrar modal de confirmación
+    setConfirmAction('delete');
+    setShowConfirmModal(true);
+  };
 
-    if (!confirmDelete) return;
+  /**
+   * Confirmar eliminación del material
+   */
+  const handleConfirmDelete = async () => {
+    if (!selectedMaterial) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      await materialService.deleteMaterial(selectedMaterial.id);
+      // Solo remover de la pantalla, no hacer nada en el backend
+      const updated = materiales.filter(m => m.id !== selectedMaterial.id);
+      setMateriales(updated);
 
-      // Recargar la lista desde el backend para asegurar sincronización
-      await loadMaterials();
+      // Reaplica los filtros
+      const filtered = applyFilters(updated, searchTerm, stateFilter);
+      setFilteredMateriales(filtered);
 
       handleCloseFormData();
-      alert('✅ Material eliminado correctamente');
+      setSuccessMessage({
+        title: '¡Material Eliminado!',
+        message: 'El material ha sido removido de la vista.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al eliminar material';
       setError(message);
@@ -169,6 +253,8 @@ export default function MaterialesAdmin() {
       console.error('❌ Error eliminando material:', err);
     } finally {
       setLoading(false);
+      setShowConfirmModal(false);
+      setConfirmAction(null);
     }
   };
 
@@ -179,7 +265,7 @@ export default function MaterialesAdmin() {
     e.preventDefault();
 
     if (!newMaterial.name.trim()) {
-      alert('El nombre del material es requerido');
+      setError('El nombre del material es requerido');
       return;
     }
 
@@ -197,7 +283,11 @@ export default function MaterialesAdmin() {
 
       setShowModal(false);
       setNewMaterial({ name: '', description: '' });
-      alert('✅ Material creado correctamente');
+      setSuccessMessage({
+        title: '¡Material Creado!',
+        message: 'El nuevo material ha sido creado correctamente.'
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al crear material';
       setError(message);
@@ -254,6 +344,61 @@ export default function MaterialesAdmin() {
         onCreateNew={handleOpenModal}
         createButtonText="+ Crear material"
       />
+
+      {/* Filtro de Estado */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        padding: '1rem 2rem',
+        display: 'flex',
+        gap: '1rem',
+        alignItems: 'center',
+        borderBottom: '1px solid #e5e7eb'
+      }}>
+        <span style={{
+          fontWeight: '600',
+          color: '#374151',
+          fontSize: '0.95rem'
+        }}>
+          Filtrar por estado:
+        </span>
+        <div style={{
+          display: 'flex',
+          gap: '0.75rem'
+        }}>
+          {[
+            { label: 'Activos', value: 1 as const },
+            { label: 'Inactivos', value: 0 as const }
+          ].map(filter => (
+            <button
+              key={filter.value}
+              onClick={() => handleStateFilterChange(filter.value)}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #d1d5db',
+                backgroundColor: stateFilter === filter.value ? '#149D52' : '#ffffff',
+                color: stateFilter === filter.value ? '#ffffff' : '#374151',
+                fontWeight: stateFilter === filter.value ? '600' : '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontSize: '0.9rem'
+              }}
+              onMouseEnter={(e) => {
+                if (stateFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (stateFilter !== filter.value) {
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                }
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Error Banner */}
       {error && (
@@ -853,6 +998,31 @@ export default function MaterialesAdmin() {
           }
         }
       `}</style>
+
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <SuccessModal
+          title={successMessage.title}
+          message={successMessage.message}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación de eliminación */}
+      {showConfirmModal && confirmAction === 'delete' && selectedMaterial && (
+        <ConfirmModal
+          title="¿Eliminar Material?"
+          message={`¿Estás seguro de que deseas eliminar el material "${selectedMaterial.name}"? Esta acción no se puede deshacer.`}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => {
+            setShowConfirmModal(false);
+            setConfirmAction(null);
+          }}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          isDangerous={true}
+        />
+      )}
     </div>
   );
 }

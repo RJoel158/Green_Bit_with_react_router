@@ -110,12 +110,18 @@ export const updateMaterial = async (
   state?: number
 ): Promise<void> => {
   try {
-    console.log('✏️ materialService.updateMaterial - Actualizando:', { id, name, description, state });
+    console.log('✏️ materialService.updateMaterial - Parámetros recibidos:', { id, name, description, state });
+    console.log('✏️ materialService.updateMaterial - ID type:', typeof id, '| ID value:', id);
+    
+    const url = `${MATERIAL_API}/${id}`;
+    console.log('✏️ materialService.updateMaterial - URL completa:', url);
 
     const body: any = { name, description };
     if (state !== undefined) body.state = state;
 
-    const response = await fetch(`${MATERIAL_API}/${id}`, {
+    console.log('✏️ materialService.updateMaterial - Body a enviar:', body);
+
+    const response = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
