@@ -27,6 +27,31 @@ const Register: React.FC = () => {
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+
+  const checkEmailExists = async (email: string) => {
+    if (!email || !Validator.validateEmail(email)) return;
+    
+    setCheckingEmail(true);
+    try {
+      const res = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(email.trim().toLowerCase()));
+      const data = res.data;
+      
+      if (data.exists) {
+        setErrors((prev) => ({ ...prev, email: "Este correo electrónico ya está registrado" }));
+      }
+    } catch (err) {
+      console.error("Error verificando email:", err);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
+  const onEmailBlur = () => {
+    if (form.email) {
+      checkEmailExists(form.email);
+    }
+  };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -58,7 +83,25 @@ const Register: React.FC = () => {
       return;
     }
 
+    // Verificar si el email ya existe antes de enviar
     setLoading(true);
+    try {
+      const emailCheckRes = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(form.email.trim().toLowerCase()));
+      const emailCheckData = emailCheckRes.data;
+      
+      if (emailCheckData.exists) {
+        setErrors({ ...errors, email: "Este correo electrónico ya está registrado" });
+        setMensaje("❌ El correo electrónico ya está registrado");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Error verificando email:", err);
+      setMensaje("❌ No se pudo verificar el correo electrónico");
+      setLoading(false);
+      return;
+    }
+
     setMensaje("");
 
     try {
@@ -122,7 +165,6 @@ const Register: React.FC = () => {
             {[
               { name: "nombres", placeholder: "Nombres", type: "text" },
               { name: "apellidos", placeholder: "Apellidos", type: "text" },
-              { name: "email", placeholder: "Correo electrónico", type: "email" },
             ].map((field) => (
               <div className="mb-3" key={field.name}>
                 <input
@@ -142,6 +184,29 @@ const Register: React.FC = () => {
                 )}
               </div>
             ))}
+
+            {/* Campo de email con validación de duplicados */}
+            <div className="mb-3">
+              <input
+                name="email"
+                value={form.email}
+                onChange={onChange}
+                onBlur={onEmailBlur}
+                type="email"
+                className={`form-control form-control-lg ${
+                  errors.email ? "is-invalid" : ""
+                }`}
+                placeholder="Correo electrónico"
+              />
+              {checkingEmail && (
+                <small className="text-muted">Verificando correo...</small>
+              )}
+              {errors.email && (
+                <div className="invalid-feedback" style={{ display: 'block' }}>
+                  {errors.email}
+                </div>
+              )}
+            </div>
 
             {/* Selector de país con teléfono */}
             <div className="mb-3">

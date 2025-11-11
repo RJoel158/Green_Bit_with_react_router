@@ -31,6 +31,8 @@ interface InputFieldProps {
   value: string;
   error?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
+  isChecking?: boolean;
 }
 const InputField: React.FC<InputFieldProps> = ({
   name,
@@ -39,6 +41,8 @@ const InputField: React.FC<InputFieldProps> = ({
   value,
   error,
   onChange,
+  onBlur,
+  isChecking = false,
 }) => (
   <div className="mb-3">
     <input
@@ -46,12 +50,16 @@ const InputField: React.FC<InputFieldProps> = ({
       name={name}
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       type={type}
       className={`form-control form-control-lg ${error ? "is-invalid" : ""}`}
       placeholder={placeholder}
       autoComplete="off"
     />
-    {error && <div className="invalid-feedback">{error}</div>}
+    {isChecking && (
+      <small className="text-muted">Verificando correo...</small>
+    )}
+    {error && <div className="invalid-feedback" style={{ display: 'block' }}>{error}</div>}
   </div>
 );
 
@@ -66,6 +74,31 @@ const RegisterInstitution: React.FC = () => {
   const [mensaje, setMensaje] = useState("");
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+
+  const checkEmailExists = async (email: string) => {
+    if (!email || !Validator.validateEmail(email)) return;
+    
+    setCheckingEmail(true);
+    try {
+      const res = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(email.trim().toLowerCase()));
+      const data = res.data;
+      
+      if (data.exists) {
+        setErrors((prev) => ({ ...prev, email: "Este correo electrónico ya está registrado" }));
+      }
+    } catch (err) {
+      console.error("Error verificando email:", err);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
+  const onEmailBlur = () => {
+    if (form.email) {
+      checkEmailExists(form.email);
+    }
+  };
 
   // Maneja cambios en los campos del formulario
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +133,25 @@ const RegisterInstitution: React.FC = () => {
       return;
     }
 
+    // Verificar si el email ya existe antes de enviar
     setLoading(true);
+    try {
+      const emailCheckRes = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(form.email.trim().toLowerCase()));
+      const emailCheckData = emailCheckRes.data;
+      
+      if (emailCheckData.exists) {
+        setErrors({ ...errors, email: "Este correo electrónico ya está registrado" });
+        setMensaje("❌ El correo electrónico ya está registrado");
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Error verificando email:", err);
+      setMensaje("❌ No se pudo verificar el correo electrónico");
+      setLoading(false);
+      return;
+    }
+
     setMensaje("");
 
     try {
@@ -172,6 +223,8 @@ const RegisterInstitution: React.FC = () => {
               value={form.email}
               error={errors.email}
               onChange={onChange}
+              onBlur={onEmailBlur}
+              isChecking={checkingEmail}
             />
 
             {/* Selector de país con teléfono */}
