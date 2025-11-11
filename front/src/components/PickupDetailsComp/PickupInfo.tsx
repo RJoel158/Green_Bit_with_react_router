@@ -11,6 +11,7 @@ import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
 import ComplaintModal from '../ComplaintModalComp/ComplaintModal';
 import CheckModal from '../CommonComp/CheckModal';
+import ConfirmModal from '../CommonComp/ConfirmModal';
 import SuccessModal from '../CommonComp/SuccesModal';
 import { checkUserRated } from '../../services/scoreService';
 
@@ -1128,11 +1129,14 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
 
       {/* Modal de confirmación para eliminar solicitud */}
       {showDeleteConfirmModal && (
-        <CheckModal
-          title="Eliminar Solicitud"
-          message="¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario."
+        <ConfirmModal
+          title="¿Eliminar Solicitud?"
+          message="¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario y no se puede deshacer."
           onConfirm={confirmDeleteRequest}
           onCancel={() => setShowDeleteConfirmModal(false)}
+          confirmText="Eliminar"
+          cancelText="Cancelar"
+          isDangerous={true}
         />
       )}
 

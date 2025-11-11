@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import CommonHeader from '../CommonComp/CommonHeader';
+import CheckModal from '../CommonComp/CheckModal';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../config/endpoints';
 
@@ -44,6 +45,8 @@ const RankingPeriodsAdmin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showCloseConfirmModal, setShowCloseConfirmModal] = useState(false);
+  const [periodToClose, setPeriodToClose] = useState<number | null>(null);
 
   useEffect(() => {
     fetchPeriods();
@@ -124,17 +127,25 @@ const RankingPeriodsAdmin: React.FC = () => {
   };
 
   const handleClose = async (id: number) => {
-    if (!window.confirm('¿Cerrar este periodo? Se guardará el ranking histórico.')) return;
+    setPeriodToClose(id);
+    setShowCloseConfirmModal(true);
+  };
+
+  const confirmClosePeriod = async () => {
+    if (!periodToClose) return;
+    
+    setShowCloseConfirmModal(false);
     setMensaje('');
     setLoadingRanking(true);
     try {
-      await api.post(API_ENDPOINTS.RANKING.CLOSE_PERIOD, { periodo_id: id });
+      await api.post(API_ENDPOINTS.RANKING.CLOSE_PERIOD, { periodo_id: periodToClose });
       await fetchPeriods();
       setMensaje('Periodo cerrado y ranking guardado');
     } catch (err) {
       setMensaje('Error al cerrar periodo');
     } finally {
       setLoadingRanking(false);
+      setPeriodToClose(null);
     }
   };
 
@@ -324,6 +335,19 @@ const RankingPeriodsAdmin: React.FC = () => {
           </table>
         )}
       </div>
+
+      {/* Modal de confirmación para cerrar periodo */}
+      {showCloseConfirmModal && (
+        <CheckModal
+          title="Cerrar Periodo"
+          message="¿Cerrar este periodo? Se guardará el ranking histórico y no podrá ser modificado posteriormente."
+          onConfirm={confirmClosePeriod}
+          onCancel={() => {
+            setShowCloseConfirmModal(false);
+            setPeriodToClose(null);
+          }}
+        />
+      )}
     </div>
   );
 };
