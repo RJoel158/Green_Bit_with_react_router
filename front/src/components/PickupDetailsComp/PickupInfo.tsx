@@ -76,6 +76,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+  const [showAcceptConfirmModal, setShowAcceptConfirmModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showCompletedSuccessModal, setShowCompletedSuccessModal] = useState(false);
+  const [showCompleteCheckModal, setShowCompleteCheckModal] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -250,10 +255,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar cancelación de la cita
-    if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowCancelConfirmModal(true);
+  };
+
+  const confirmCancelAppointment = async () => {
+    setShowCancelConfirmModal(false);
+    if (!appointmentId || !appointmentData) return;
 
     setCancelling(true);
 
@@ -365,10 +373,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar ACEPTACIÓN (no cancelación)
-    if (!window.confirm('✅ ¿Desea ACEPTAR esta solicitud de recolección?\n\n✓ La cita quedará confirmada y el recolector será notificado.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowAcceptConfirmModal(true);
+  };
+
+  const confirmAcceptAppointment = async () => {
+    setShowAcceptConfirmModal(false);
+    if (!appointmentId || !appointmentData) return;
 
     setAccepting(true);
 
@@ -528,12 +539,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           if (!alreadyRated) {
             setShowRatingModal(true);
           } else {
-            alert('✓ Recolección completada exitosamente.');
-            window.location.reload();
+            setShowCompletedSuccessModal(true);
           }
         } else {
-          alert('✓ Recolección completada exitosamente.');
-          window.location.reload();
+          setShowCompletedSuccessModal(true);
         }
 
       } else {
@@ -594,7 +603,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Eliminar lógico de la request
   const handleDeleteRequest = async () => {
     if (!requestData) return;
-    if (!window.confirm('¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario.')) return;
+    setShowDeleteConfirmModal(true);
+  };
+
+  const confirmDeleteRequest = async () => {
+    setShowDeleteConfirmModal(false);
+    if (!requestData) return;
+    
     setDeleting(true);
     try {
       const response = await fetch(apiUrl(`/api/request/${requestData.id}/state`), {
@@ -1078,6 +1093,58 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           title="❌ Error"
           message={errorModalMessage}
           onClose={() => setShowErrorModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación para cancelar cita */}
+      {showCancelConfirmModal && (
+        <CheckModal
+          title="Cancelar Cita"
+          message="¿Está seguro que desea CANCELAR esta cita? La solicitud volverá a estar disponible en el mapa para otros recolectores."
+          onConfirm={confirmCancelAppointment}
+          onCancel={() => setShowCancelConfirmModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación para aceptar cita */}
+      {showAcceptConfirmModal && (
+        <CheckModal
+          title="Aceptar Solicitud"
+          message="¿Desea ACEPTAR esta solicitud de recolección? La cita quedará confirmada y el recolector será notificado."
+          onConfirm={confirmAcceptAppointment}
+          onCancel={() => setShowAcceptConfirmModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación para completar cita */}
+      {showCompleteCheckModal && (
+        <CheckModal
+          title="Completar Recolección"
+          message="¿Está seguro que desea marcar esta recolección como COMPLETADA?"
+          onConfirm={confirmCompleteAppointment}
+          onCancel={() => setShowCompleteCheckModal(false)}
+        />
+      )}
+
+      {/* Modal de confirmación para eliminar solicitud */}
+      {showDeleteConfirmModal && (
+        <CheckModal
+          title="Eliminar Solicitud"
+          message="¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario."
+          onConfirm={confirmDeleteRequest}
+          onCancel={() => setShowDeleteConfirmModal(false)}
+        />
+      )}
+
+      {/* Modal de éxito al completar recolección */}
+      {showCompletedSuccessModal && (
+        <SuccessModal
+          title="✓ Recolección Completada"
+          message="La recolección se ha completado exitosamente."
+          onClose={() => {
+            setShowCompletedSuccessModal(false);
+            window.location.reload();
+          }}
         />
       )}
     </div>
