@@ -64,6 +64,25 @@ export default function CreateUserModal({
   const [personErrors, setPersonErrors] = useState<Partial<PersonFormData>>({});
   const [institutionErrors, setInstitutionErrors] = useState<Partial<InstitutionFormData>>({});
 
+  // Verificar si existe un usuario activo con el mismo email
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      console.log('[DEBUG] Checking email:', email);
+      const response = await api.get(API_ENDPOINTS.USERS.CHECK_EMAIL(email));
+      console.log('[DEBUG] Response:', response.data);
+      
+      if (response.data.success) {
+        return response.data.exists;
+      }
+      return false;
+    } catch (error: any) {
+      console.error('Error al verificar email:', error);
+      console.error('Error details:', error.response?.data);
+      // Si hay un error del servidor, es mejor no permitir continuar
+      return false;
+    }
+  };
+
   if (!isOpen) return null;
 
   // Maneja cambios en los campos del formulario de persona
@@ -111,6 +130,19 @@ export default function CreateUserModal({
         return;
       }
 
+      // Verificar si el email ya existe en un usuario activo
+      console.log('[DEBUG] Verificando email:', personForm.email);
+      const emailExists = await checkEmailExists(personForm.email);
+      console.log('[DEBUG] Email existe?:', emailExists);
+      
+      if (emailExists) {
+        console.log('[DEBUG] Bloqueando creación - email ya existe');
+        setMensaje('Ya existe un usuario activo con este correo electrónico');
+        setPersonErrors(prev => ({ ...prev, email: 'Este correo ya está registrado' }));
+        return;
+      }
+
+      console.log('[DEBUG] Email disponible, continuando con creación...');
       setLoading(true);
       try {
         // Admin crea usuarios ya aprobados (estado 1) con correo de credenciales
@@ -152,6 +184,19 @@ export default function CreateUserModal({
         return;
       }
 
+      // Verificar si el email ya existe en un usuario activo
+      console.log('[DEBUG] Verificando email institución:', institutionForm.email);
+      const emailExists = await checkEmailExists(institutionForm.email);
+      console.log('[DEBUG] Email existe?:', emailExists);
+      
+      if (emailExists) {
+        console.log('[DEBUG] Bloqueando creación - email ya existe');
+        setMensaje('Ya existe un usuario activo con este correo electrónico');
+        setInstitutionErrors(prev => ({ ...prev, email: 'Este correo ya está registrado' }));
+        return;
+      }
+
+      console.log('[DEBUG] Email disponible, continuando con creación...');
       setLoading(true);
       try {
         // Admin crea instituciones ya aprobadas (estado 1) con correo de credenciales

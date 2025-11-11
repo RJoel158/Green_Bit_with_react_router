@@ -6,6 +6,7 @@ import {
   getUsersPerson,
   getCollectorsPendingWithPerson,
   getCollectorsPendingWithInstitution,
+  checkEmailExists,
 
   createCollectorUser,
   createUser,
@@ -51,6 +52,7 @@ router.post("/institution/approve/:id", approveInstitution);
 router.get("/", getUsers);
 router.get("/withPerson", getUsersPerson);
 router.get("/collectors/pending", getCollectorsPendingWithPerson);
+router.get("/check-email/:email", checkEmailExists);
 router.get("/:id", getUserById);
 router.post("/", createUser);
 router.put("/:id/role", updateUserRole);

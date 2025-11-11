@@ -117,6 +117,28 @@ export const loginUser = async (email) => {
   return rows[0] || null;
 };
 
+/**
+ * Verificar si existe un usuario activo con el email proporcionado
+
+ */
+export const checkEmailExists = async (email) => {
+  console.log("[INFO] checkEmailExists model called with email:", email);
+  const emailNormalized = email.toLowerCase().trim();
+  console.log("[INFO] checkEmailExists normalized email:", emailNormalized);
+  
+  const [rows] = await db.query(
+    `SELECT u.id, u.email, u.state 
+     FROM users u
+     WHERE LOWER(TRIM(u.email)) = ? AND u.state != 0`,
+    [emailNormalized]
+  );
+  
+  console.log("[INFO] checkEmailExists query result:", { rowCount: rows.length, rows });
+  const exists = rows.length > 0;
+  console.log("[INFO] checkEmailExists model result:", exists ? "Email exists" : "Email available");
+  return exists;
+};
+
 const insertUserWithRetry = async (conn, password, roleId, email, phone, state = 1, maxAttempts = 5) => {
   let attempt = 0;
   let lastErr = null;

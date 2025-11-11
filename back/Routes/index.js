@@ -78,6 +78,7 @@ router.put('/users/reject/:id', userController.rejectUser);
 router.put('/users/:id/role', userController.updateUserRole);
 router.get('/users/withPerson', userController.getUsersPerson);
 router.get('/users/person/:id', userController.getUsersPerson);
+router.get('/users/check-email/:email', userController.checkEmailExists); 
 router.get('/users/:id', userController.getUserById);
 router.delete('/users/:id', userController.deleteUser);
 

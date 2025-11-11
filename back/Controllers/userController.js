@@ -52,6 +52,36 @@ export const getUserById = async (req, res) => {
   }
 };
 
+/** GET /users/check-email/:email - Verificar si un email ya existe */
+export const checkEmailExists = async (req, res) => {
+  try {
+    const { email } = req.params;
+    console.log("[INFO] checkEmailExists controller called with email:", email);
+
+    if (!email) {
+      console.warn("[WARN] checkEmailExists - missing email");
+      return res.status(400).json({ success: false, error: "Email es requerido" });
+    }
+
+    // Validar formato de email
+    const emailError = Validator.validateEmail(email);
+    if (emailError) {
+      console.warn("[WARN] checkEmailExists - invalid email format", { email });
+      return res.status(400).json({ success: false, error: emailError });
+    }
+
+    console.log("[INFO] checkEmailExists - calling model...");
+    const exists = await UserModel.checkEmailExists(email);
+    console.log("[INFO] checkEmailExists - model returned:", exists);
+    
+    console.log("[INFO] checkEmailExists - sending response", { email, exists });
+    res.json({ success: true, exists });
+  } catch (err) {
+    console.error("[ERROR] checkEmailExists controller:", { params: req.params, message: err.message, stack: err.stack });
+    res.status(500).json({ success: false, error: "Error al verificar email" });
+  }
+};
+
 /** POST /login */
 export const loginUser = async (req, res) => {
   try {

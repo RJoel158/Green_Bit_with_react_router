@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     GET_USER: (userId: number) => `/api/users/${userId}`,        // GET - Obtener usuario por ID
     GET_USER_WITH_PERSON: '/api/users/withPerson',               // GET - Usuarios con persona
     GET_USER_WITH_INSTITUTION: (userId: number) => `/api/users/withInstitution/${userId}`, // GET
+    CHECK_EMAIL: (email: string) => `/api/users/check-email/${encodeURIComponent(email)}`, // GET - Verificar email
     
     // Aprobación de recolectores
     GET_COLLECTORS_PENDING: '/api/users/collectors/pending',     // GET - Recolectores pendientes
