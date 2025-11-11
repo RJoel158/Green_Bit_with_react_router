@@ -153,8 +153,7 @@ export const API_ENDPOINTS = {
   // SISTEMA
   // ============================================
   SYSTEM: {
-    HEALTH: '/health',                                           // GET - Estado del servidor
-    DB_STATUS: '/api/db-status',                                 // GET - Estado de la BD
+    HEALTH: '/api/health',                                           // GET - Estado del servidor
   },
 } as const;
 

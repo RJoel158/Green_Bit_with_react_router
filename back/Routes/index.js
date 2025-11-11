@@ -65,15 +65,15 @@ router.get('/users/collectors/pending/institution', userController.getCollectors
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
 // Gestión de instituciones - ESPECÍFICAS PRIMERO
-router.post('/users/institution/approve/:id', userController.approveInstitution);
-router.post('/users/institution/reject/:id', userController.rejectInstitution);
+router.put('/users/institution/approve/:id', userController.approveInstitution);
+router.put('/users/institution/reject/:id', userController.rejectInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
 router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
 router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 
 // Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
-router.post('/users/approve/:id', userController.approveUser);
-router.post('/users/reject/:id', userController.rejectUser);
+router.put('/users/approve/:id', userController.approveUser);
+router.put('/users/reject/:id', userController.rejectUser);
 router.put('/users/:id/role', userController.updateUserRole);
 router.get('/users/withPerson', userController.getUsersPerson);
 router.get('/users/person/:id', userController.getUsersPerson);
@@ -179,7 +179,7 @@ router.get('/reports/recolecciones', reportController.getRecolectionsReport);
 // ==========================================
 // SISTEMA (1 ruta)
 // ==========================================
-router.get('/system/health', (req, res) => {
+router.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
