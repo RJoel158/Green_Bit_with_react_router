@@ -34,6 +34,8 @@ export const create = async (conn, idUser, description, materialId, latitude = n
 
 /**
  * Obtener todas las solicitudes (requests)
+ * Filtra SOLO solicitudes OPEN que NO tengan appointment ACTIVO asignado
+ * (Los appointments cancelados, rechazados o completados no cuentan como "activos")
  */
 export const getAll = async () => {
   try {
@@ -44,8 +46,13 @@ export const getAll = async () => {
               m.name as materialName
        FROM request r
        LEFT JOIN material m ON r.materialId = m.id
-       ORDER BY r.registerDate DESC`
+       LEFT JOIN appointmentconfirmation ac ON ac.idRequest = r.id 
+         AND ac.state IN (0, 1, 2)
+       WHERE r.state = ? AND ac.id IS NULL
+       ORDER BY r.registerDate DESC`,
+      [REQUEST_STATE.OPEN]
     );
+    console.log("[DEBUG] RequestModel.getAll - Found requests:", { count: rows.length });
     return rows;
   } catch (err) {
     console.error("[ERROR] RequestModel.getAll:", {

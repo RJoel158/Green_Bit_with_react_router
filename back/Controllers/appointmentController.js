@@ -121,6 +121,22 @@ export const createNewAppointment = async (req, res) => {
       });
     }
 
+    // VALIDACIÓN: Verificar que no exista ya un appointment ACTIVO para este request
+    // Solo rechaza si hay appointment en estado PENDING (0), ACCEPTED (1), o IN_PROGRESS (2)
+    // Los CANCELLED (5), REJECTED (3), COMPLETED (4) se ignoran y se puede crear uno nuevo
+    const [existingAppointment] = await db.query(
+      `SELECT id FROM appointmentconfirmation 
+       WHERE idRequest = ? AND state IN (0, 1, 2)`,
+      [parseInt(idRequest)]
+    );
+
+    if (existingAppointment && existingAppointment.length > 0) {
+      return res.status(409).json({ 
+        success: false, 
+        error: "Ya existe una cita activa para esta solicitud. Recarga la página para actualizar los datos." 
+      });
+    }
+
     const appointmentId = await AppointmentModel.createAppointment(
       parseInt(idRequest),
       acceptedDate.trim(),
@@ -184,12 +200,16 @@ export const createNewAppointment = async (req, res) => {
     if (error.code === "ER_NO_REFERENCED_ROW_2") {
       errorMessage = "Solicitud o recolector no válido";
       statusCode = 400;
-    } else if (error.message.includes("not in state 0")) {
-      errorMessage = "La solicitud ya tiene una cita asignada o no está disponible";
-      statusCode = 400;
+    } else if (error.message.includes("not in state")) {
+      // Request ya tiene una cita o no está disponible
+      errorMessage = "La solicitud ya tiene una cita asignada o no está disponible. Recarga la página para ver solicitudes disponibles.";
+      statusCode = 409; // Conflict - indica que hay un conflicto de estado
     } else if (error.message.includes("not found")) {
       errorMessage = "Solicitud no encontrada";
       statusCode = 404;
+    } else if (error.message.includes("own request")) {
+      errorMessage = "No puedes aceptar tu propia solicitud de reciclaje";
+      statusCode = 403;
     }
 
     res.status(statusCode).json({ success: false, error: errorMessage });

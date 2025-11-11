@@ -269,10 +269,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       const token = localStorage.getItem('token'); // o donde lo guardes
 
       const url = apiUrl(`/api/appointments/${appointmentId}/cancel`);
-      console.log('[INFO] POST ->', url, 'payload=', { userId, userRole: 'collector' });
+      console.log('[INFO] PUT ->', url, 'payload=', { userId, userRole: 'collector' });
 
       const response = await fetch(url, {
-        method: 'POST', // <- si tu backend espera otro método, cámbialo (DELETE, PUT, PATCH)
+        method: 'PUT', // <- Cambio a PUT para coincidir con backend
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -325,6 +325,12 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         
         // Actualiza estado local para reflejar la cancelación sin recargar
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
+        
+        // Recargar la página para que el mapa se actualice con la solicitud disponible nuevamente
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+        
         onCancel();
       } else {
         const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
@@ -359,10 +365,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       const userId = user?.id || appointmentData.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/accept`);
-      console.log('[INFO] POST ->', url);
+      console.log('[INFO] PUT ->', url);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -414,10 +420,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       const userId = user?.id || appointmentData?.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/reject`);
-      console.log('[INFO] POST ->', url);
+      console.log('[INFO] PUT ->', url);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -465,10 +471,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       const userId = user?.id || appointmentData.collectorId || appointmentData.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/complete`);
-      console.log('[INFO] POST ->', url);
+      console.log('[INFO] PUT ->', url);
 
       const response = await fetch(url, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -1004,7 +1010,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           message="La cita ha sido rechazada exitosamente. La solicitud estará disponible nuevamente en el mapa."
           onClose={() => {
             setShowRejectSuccessModal(false);
-            onCancel();
+            // Recargar la página para que el mapa se actualice con la solicitud disponible nuevamente
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
           }}
         />
       )}
