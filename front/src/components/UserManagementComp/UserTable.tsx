@@ -127,7 +127,7 @@ export default function UserTable({
       selectedItemKey={selectedUserEmail || undefined}
       itemsPerPage={10}
       emptyMessage="No hay usuarios disponibles"
-      getRowKey={(user) => user.email}
+      getRowKey={(user) => String(user.userId)}
     />
   );
 }

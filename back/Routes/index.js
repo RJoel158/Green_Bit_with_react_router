@@ -49,10 +49,10 @@ const router = express.Router();
 router.post('/users/login', userController.loginUser);
 
 // Registro
-router.post('/users/register', userController.createUser);
-router.post('/users/register-collector', userController.createCollectorUser);
-router.post('/users/register-institution', userController.createUserWithInstitution);
-router.post('/users/register-institution-admin', userController.createUserWithInstitutionByAdmin);
+router.post('/users', userController.createUser);
+router.post('/users/collector', userController.createCollectorUser);
+router.post('/users/institution', userController.createUserWithInstitution);
+router.post('/users/institution-admin', userController.createUserWithInstitutionByAdmin);
 
 // Recuperar contraseña
 router.post('/users/forgotpassword', userController.forgotPassword);
@@ -65,14 +65,16 @@ router.get('/users/collectors/pending/institution', userController.getCollectors
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
 // Gestión de instituciones - ESPECÍFICAS PRIMERO
-router.post('/users/institution/approve/:id', userController.approveInstitution);
-router.post('/users/institution/reject/:id', userController.rejectInstitution);
+router.get('/users/institution', userController.getUsersWithInstitution);
+router.put('/users/institution/approve/:id', userController.approveInstitution);
+router.put('/users/institution/reject/:id', userController.rejectInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
+router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
 router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 
 // Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
-router.post('/users/approve/:id', userController.approveUser);
-router.post('/users/reject/:id', userController.rejectUser);
+router.put('/users/approve/:id', userController.approveUser);
+router.put('/users/reject/:id', userController.rejectUser);
 router.put('/users/:id/role', userController.updateUserRole);
 router.get('/users/withPerson', userController.getUsersPerson);
 router.get('/users/person/:id', userController.getUsersPerson);
@@ -160,7 +162,7 @@ router.delete('/upload/announcement/:filename', uploadController.deleteAnnouncem
 // ==========================================
 // Rutas específicas PRIMERO
 router.get('/ranking/periods/active-or-last', rankingController.getActiveOrLastPeriod);
-router.post('/ranking/periods/:id/close', rankingController.closePeriod);
+router.post('/ranking/periods/close', rankingController.closePeriod);
 router.get('/ranking/live/:periodo_id', rankingController.getLiveRankingByPeriod);
 router.get('/ranking/tops/:periodo_id', rankingController.getTopsByPeriod);
 router.get('/ranking/history/:periodo_id', rankingController.getHistory);
@@ -178,7 +180,7 @@ router.get('/reports/recolecciones', reportController.getRecolectionsReport);
 // ==========================================
 // SISTEMA (1 ruta)
 // ==========================================
-router.get('/system/health', (req, res) => {
+router.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),

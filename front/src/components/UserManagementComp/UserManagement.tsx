@@ -68,9 +68,13 @@ export default function UserManagement() {
     setError(null);
     
     try {
-      const url = type === 'Persona' 
-        ? API_ENDPOINTS.USERS.GET_USER_WITH_PERSON
-        : API_ENDPOINTS.USERS.GET_USER_WITH_INSTITUTION(0);
+      let url: string;
+      if (type === 'Persona') {
+        url = API_ENDPOINTS.USERS.GET_USER_WITH_PERSON;
+      } else {
+        // Para obtener todos los usuarios con institución, usamos GET /users/institution
+        url = '/api/users/institution';
+      }
       
       const response = await api.get(url);
       const data = response.data;
