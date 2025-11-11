@@ -65,6 +65,7 @@ router.get('/users/collectors/pending/institution', userController.getCollectors
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
 // Gestión de instituciones - ESPECÍFICAS PRIMERO
+router.get('/users/institution', userController.getUsersWithInstitution);
 router.put('/users/institution/approve/:id', userController.approveInstitution);
 router.put('/users/institution/reject/:id', userController.rejectInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
