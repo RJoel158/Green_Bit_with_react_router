@@ -65,12 +65,12 @@ router.get('/users/collectors/pending/institution', userController.getCollectors
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
 // Gestión de instituciones - ESPECÍFICAS PRIMERO
-router.get('/users/institution', userController.getUsersWithInstitution);
+// Rutas con paths fijos ANTES que rutas con parámetros
+router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
 router.put('/users/institution/approve/:id', userController.approveInstitution);
 router.put('/users/institution/reject/:id', userController.rejectInstitution);
+router.get('/users/institution', userController.getUsersWithInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
-router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
-router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 
 // Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
 router.put('/users/approve/:id', userController.approveUser);
