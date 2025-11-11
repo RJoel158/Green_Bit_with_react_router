@@ -72,6 +72,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [deleting, setDeleting] = useState(false); // <-- move here, above all logic
   const [showRejectCheckModal, setShowRejectCheckModal] = useState(false);
   const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
+  const [showCompleteCheckModal, setShowCompleteCheckModal] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -458,17 +459,19 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar COMPLETAR (no cancelación)
-    if (!window.confirm('✅ ¿Confirma que la recolección se ha COMPLETADO exitosamente?\n\n⚠️ Esta acción marcará la solicitud como finalizada y no se puede deshacer.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowCompleteCheckModal(true);
+  };
 
+  // Función que se ejecuta cuando se confirma completar la cita
+  const confirmCompleteAppointment = async () => {
+    setShowCompleteCheckModal(false);
     setCompleting(true);
 
     try {
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
-      const userId = user?.id || appointmentData.collectorId || appointmentData.recyclerId;
+      const userId = user?.id || appointmentData?.collectorId || appointmentData?.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/complete`);
       console.log('[INFO] PUT ->', url);
@@ -489,7 +492,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
-        alert('✓ Recolección completada exitosamente.');
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
         
         // Señalizar que se completó una cita para refrescar el historial
@@ -500,7 +502,13 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
           if (!alreadyRated) {
             setShowRatingModal(true);
+          } else {
+            alert('✓ Recolección completada exitosamente.');
+            window.location.reload();
           }
+        } else {
+          alert('✓ Recolección completada exitosamente.');
+          window.location.reload();
         }
 
       } else {
@@ -979,6 +987,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleRatingModalClose}
           onSuccess={handleRatingSuccess}
@@ -990,6 +999,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleComplaintModalClose}
           onSuccess={handleComplaintSuccess}
@@ -1018,6 +1028,16 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               window.location.reload();
             }, 1000);
           }}
+        />
+      )}
+
+      {/* Modal de confirmación para completar cita */}
+      {showCompleteCheckModal && (
+        <CheckModal
+          title="Completar Recolección"
+          message="¿Confirma que la recolección se ha COMPLETADO exitosamente? Esta acción marcará la solicitud como finalizada y no se puede deshacer."
+          onConfirm={confirmCompleteAppointment}
+          onCancel={() => setShowCompleteCheckModal(false)}
         />
       )}
     </div>

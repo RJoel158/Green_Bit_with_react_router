@@ -87,13 +87,21 @@
 .rating-avatar {
   width: 64px;
   height: 64px;
-  background-color: #1f2937;
+  background-color: #149D52;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.rating-avatar-initial {
+  color: white;
+  font-size: 28px;
+  font-weight: 600;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .rating-avatar-img {

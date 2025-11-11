@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import './RatingModal.css';
 import { createScore } from '../../services/scoreService';
+import SuccessModal from '../CommonComp/SuccesModal';
 
 interface RatingModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
+  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -15,7 +17,8 @@ interface RatingModalProps {
 const RatingModal: React.FC<RatingModalProps> = ({ 
   appointmentId,
   ratedToUserId, 
-  ratedToName, 
+  ratedToName,
+  ratedToCompanyName,
   userRole,
   onClose,
   onSuccess 
@@ -24,6 +27,10 @@ const RatingModal: React.FC<RatingModalProps> = ({
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Determinar qué nombre mostrar (razón social si es empresa, sino el nombre)
+  const displayName = ratedToCompanyName || ratedToName;
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -58,13 +65,9 @@ const RatingModal: React.FC<RatingModalProps> = ({
         comment: comment || undefined
       });
 
-      alert('✓ ¡Gracias por tu calificación!');
+      // Mostrar modal de éxito
+      setShowSuccessModal(true);
       
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      onClose();
     } catch (error: any) {
       console.error('[RatingModal] Error al enviar calificación:', error);
       const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';
@@ -114,15 +117,13 @@ const RatingModal: React.FC<RatingModalProps> = ({
         {/* Información del usuario a calificar */}
         <div className="rating-collector-info">
           <div className="rating-avatar">
-            <img 
-              src="https://i.pravatar.cc/150?img=5"
-              alt="Avatar"
-              className="rating-avatar-img"
-            />
+            <span className="rating-avatar-initial">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
           </div>
           <div className="rating-collector-details">
             <h3 className="rating-collector-name">
-              {ratedToName}
+              {displayName}
             </h3>
             <p className="rating-collector-date">
               {today}
@@ -141,6 +142,21 @@ const RatingModal: React.FC<RatingModalProps> = ({
           {isSubmitting ? 'Enviando...' : 'Enviar Calificación'}
         </button>
       </div>
+
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <SuccessModal
+          title="Calificación Enviada"
+          message="¡Gracias por tu calificación! Tu opinión nos ayuda a mejorar el servicio."
+          onClose={() => {
+            setShowSuccessModal(false);
+            if (onSuccess) {
+              onSuccess();
+            }
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };
