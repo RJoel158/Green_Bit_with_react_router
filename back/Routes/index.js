@@ -64,21 +64,24 @@ router.put('/users/changePassword/:userId', userController.changePassword);
 router.get('/users/collectors/pending/institution', userController.getCollectorsPendingWithInstitution);
 router.get('/users/collectors/pending', userController.getCollectorsPendingWithPerson);
 
-// Gestión de instituciones - ESPECÍFICAS PRIMERO
+// Gestión de instituciones - RUTAS CON PATHS FIJOS ANTES QUE CON PARÁMETROS
 router.get('/users/institution', userController.getUsersWithInstitution);
-router.put('/users/institution/approve/:id', userController.approveInstitution);
-router.put('/users/institution/reject/:id', userController.rejectInstitution);
+router.post('/users/institution/approve/:id', userController.approveInstitution);
+router.post('/users/institution/reject/:id', userController.rejectInstitution);
 router.delete('/users/institution/:id', userController.deleteUserWithInstitution);
-router.get('/users/withInstitution/:userId', userController.getUserWithInstitutionById);
-router.get('/users/institution/:id', userController.getUserWithInstitutionById);
 
-// Gestión de usuarios genéricos - ESPECÍFICAS PRIMERO
-router.put('/users/approve/:id', userController.approveUser);
-router.put('/users/reject/:id', userController.rejectUser);
-router.put('/users/:id/role', userController.updateUserRole);
+// Gestión de usuarios - RUTAS CON PATHS FIJOS ANTES QUE CON PARÁMETROS
 router.get('/users/withPerson', userController.getUsersPerson);
+router.post('/users/approve/:id', userController.approveUser);
+router.post('/users/reject/:id', userController.rejectUser);
+
+// CRÍTICO: Esta ruta DEBE ir ANTES de /users/:id para que no sea interceptada
+router.get('/users/withInstitution/:id', userController.getUserWithInstitutionById);
+
+// Rutas genéricas con parámetros dinámicos - AL FINAL
 router.get('/users/person/:id', userController.getUsersPerson);
 router.get('/users/check-email/:email', userController.checkEmailExists); 
+router.put('/users/:id/role', userController.updateUserRole);
 router.get('/users/:id', userController.getUserById);
 router.delete('/users/:id', userController.deleteUser);
 
