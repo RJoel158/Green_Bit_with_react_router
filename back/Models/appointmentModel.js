@@ -557,9 +557,9 @@ export const completeAppointment = async (appointmentId, userId) => {
 
     const appointment = appointmentRows[0];
 
-    // Verificar que el appointment esté en estado ACCEPTED (1)
-    if (appointment.state !== APPOINTMENT_STATE.ACCEPTED) {
-      throw new Error(`Appointment ${appointmentId} is not in ACCEPTED state. Current state: ${appointment.state}`);
+    // Verificar que el appointment esté en estado ACCEPTED (1) o IN_PROGRESS (2)
+    if (appointment.state !== APPOINTMENT_STATE.ACCEPTED && appointment.state !== APPOINTMENT_STATE.IN_PROGRESS) {
+      throw new Error(`Appointment ${appointmentId} is not in ACCEPTED or IN_PROGRESS state. Current state: ${appointment.state}`);
     }
 
     console.log("[INFO] completeAppointment - appointment verified", { appointment });

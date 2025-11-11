@@ -6,7 +6,7 @@ import { API_ENDPOINTS } from '../config/endpoints';
 
 export interface Notification {
   id: number;
-  type: 'request_received' | 'appointment_accepted' | 'appointment_rejected' | 'appointment_canceled';
+  type: 'request_received' | 'appointment_accepted' | 'appointment_rejected' | 'appointment_canceled' | 'appointment_completed';
   title: string;
   body: string;
   requestId?: number;

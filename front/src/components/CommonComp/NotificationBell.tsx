@@ -126,28 +126,68 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
         return '❌';
       case 'appointment_canceled':
         return '🚫';
+      case 'appointment_completed':
+        return '🎉';
       default:
         return '🔔';
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const getNavigationUrl = (notification: Notification) => {
+    // Por defecto, ir a pickupDetails con requestId
+    if (notification.requestId) {
+      if (notification.appointmentId) {
+        return `/pickupDetails/${notification.requestId}?appointmentId=${notification.appointmentId}`;
+      }
+      return `/pickupDetails/${notification.requestId}`;
+    }
+    return null;
+  };
+
+  const formatNotificationTime = (dateString: string) => {
     const now = new Date();
     const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (diffInSeconds < 60) {
-      return 'Hace unos segundos';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `Hace ${days} día${days > 1 ? 's' : ''}`;
+    
+    // Resetear las horas para comparar solo fechas
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const dateStart = new Date(date);
+    dateStart.setHours(0, 0, 0, 0);
+    
+    const diffInMs = todayStart.getTime() - dateStart.getTime();
+    const daysDiff = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+    
+    // Formatter para hora (14:35)
+    const timeFormatter = new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    
+    const time = timeFormatter.format(date);
+    
+    // Si fue hoy, mostrar solo la hora
+    if (daysDiff === 0) {
+      return time;
     }
+    
+    // Si fue ayer, mostrar "Ayer" + hora
+    if (daysDiff === 1) {
+      return `Ayer, ${time}`;
+    }
+    
+    // Si fue antes, mostrar fecha completa + hora
+    const dateFormatter = new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    
+    return dateFormatter.format(date);
   };
 
   return (
@@ -205,7 +245,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
                           {notification.body}
                         </p>
                         <div className="notification-time">
-                          {formatTimeAgo(notification.createdAt)}
+                          {formatNotificationTime(notification.createdAt)}
                         </div>
                         <div className="notification-actions">
                           <button
@@ -214,15 +254,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
                           >
                             Marcar como leída
                           </button>
-                          {notification.type === 'request_received' && (
+                          {getNavigationUrl(notification) && (
                             <button
                               className="notification-btn notification-btn-secondary"
                               onClick={() => {
-                                // Redirigir a la ventana de detalles con el appointmentId para aprobar/rechazar
-                                const url = notification.appointmentId 
-                                  ? `/pickupDetails/${notification.requestId}?appointmentId=${notification.appointmentId}`
-                                  : `/pickupDetails/${notification.requestId}`;
-                                window.location.href = url;
+                                const url = getNavigationUrl(notification);
+                                if (url) {
+                                  window.location.href = url;
+                                }
                               }}
                             >
                               Ver Detalles

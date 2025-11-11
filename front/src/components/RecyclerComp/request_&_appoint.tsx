@@ -28,6 +28,13 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
   const [pendingAppointments, setPendingAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger para refrescar historial
+
+  // Función para refrescar el historial (se llama desde otros componentes)
+  const refreshHistory = () => {
+    console.log('[DEBUG] refreshHistory called, incrementing trigger');
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -63,6 +70,9 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const history = await getAppointmentsByCollector(user.id, undefined, 3);
           setAppointmentHistory(history);
         }
+        
+        // Limpiar flag de completado
+        localStorage.removeItem('appointmentCompleted');
 
       } catch (err) {
         console.error('Error loading data:', err);
@@ -75,7 +85,39 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
     if (user) {
       loadData();
     }
-  }, [user]);
+  }, [user, refreshTrigger]);
+
+  // Escuchar cambios en localStorage para refrescar cuando se completa una cita
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'appointmentCompleted' && e.newValue) {
+        console.log('[INFO] Appointment completed detected, refreshing history...');
+        setRefreshTrigger(prev => prev + 1);
+      }
+    };
+
+    // Listener para cambios desde otra pestaña
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Para cambios en la MISMA pestaña, usar polling
+    const checkInterval = setInterval(() => {
+      const completed = localStorage.getItem('appointmentCompleted');
+      if (completed) {
+        // Verificar si es reciente (menos de 5 segundos)
+        const completedTime = parseInt(completed);
+        const now = Date.now();
+        if (now - completedTime < 5000) {
+          console.log('[INFO] Recent appointment completion detected, refreshing...');
+          setRefreshTrigger(prev => prev + 1);
+        }
+      }
+    }, 1000); // Chequear cada segundo
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(checkInterval);
+    };
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
