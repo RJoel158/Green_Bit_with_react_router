@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import './ComplaintModal.css';
 import { createScore } from '../../services/scoreService';
+import SuccessModal from '../CommonComp/SuccesModal';
 
 interface ComplaintModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
+  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -15,13 +17,21 @@ interface ComplaintModalProps {
 const ComplaintModal: React.FC<ComplaintModalProps> = ({ 
   appointmentId,
   ratedToUserId, 
-  ratedToName, 
+  ratedToName,
+  ratedToCompanyName,
   userRole,
   onClose,
   onSuccess 
 }) => {
   const [complaint, setComplaint] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successTitle, setSuccessTitle] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successOnClose, setSuccessOnClose] = useState<(() => void) | undefined>(undefined);
+
+  // Determinar qué nombre mostrar (razón social si es empresa, sino el nombre)
+  const displayName = ratedToCompanyName || ratedToName;
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -32,14 +42,20 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
   const handleSubmit = async () => {
     if (!complaint.trim()) {
-      alert('Por favor describe el motivo de tu reclamo');
+      setSuccessTitle('Validación');
+      setSuccessMessage('Por favor describe el motivo de tu reclamo');
+      setSuccessOnClose(() => undefined);
+      setShowSuccessModal(true);
       return;
     }
 
     // Obtener usuario actual
     const userString = localStorage.getItem('user');
     if (!userString) {
-      alert('Error: No se encontró información del usuario');
+      setSuccessTitle('Error');
+      setSuccessMessage('No se encontró información del usuario');
+      setSuccessOnClose(() => undefined);
+      setShowSuccessModal(true);
       return;
     }
 
@@ -55,24 +71,28 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
         score: 1, // Score = 1 para reclamos (mínimo permitido)
         comment: `[RECLAMO] ${complaint}`
       });
-
-      alert('✓ Reclamo enviado exitosamente');
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      onClose();
+      // Mostrar éxito usando SuccessModal
+      setSuccessTitle('Reclamo enviado');
+      setSuccessMessage('Reclamo enviado exitosamente');
+      setSuccessOnClose(() => () => {
+        if (onSuccess) onSuccess();
+        onClose();
+      });
+      setShowSuccessModal(true);
     } catch (error: any) {
-      console.error('[ComplaintModal] Error al enviar reclamo:', error);
-      const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
-      alert(`Error: ${errorMessage}`);
+  console.error('[ComplaintModal] Error al enviar reclamo:', error);
+  const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
+  setSuccessTitle('Error');
+  setSuccessMessage(errorMessage);
+  setSuccessOnClose(() => undefined);
+  setShowSuccessModal(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
+    <>
     <div className="complaint-overlay" onClick={(e) => e.stopPropagation()}>
       <div className="complaint-modal">
         {/* Ícono de advertencia */}
@@ -104,15 +124,13 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
         {/* Información del usuario reportado */}
         <div className="complaint-user-info">
           <div className="complaint-avatar">
-            <img 
-              src="https://i.pravatar.cc/150?img=5"
-              alt="Avatar"
-              className="complaint-avatar-img"
-            />
+            <span className="complaint-avatar-initial">
+              {displayName.charAt(0).toUpperCase()}
+            </span>
           </div>
           <div className="complaint-user-details">
             <h3 className="complaint-user-name">
-              {ratedToName}
+              {displayName}
             </h3>
             <p className="complaint-date">
               {today}
@@ -141,6 +159,19 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
         </div>
       </div>
     </div>
+
+     
+      {showSuccessModal && (
+        <SuccessModal
+          title={successTitle}
+          message={successMessage}
+          onClose={() => {
+            setShowSuccessModal(false);
+            if (successOnClose) successOnClose();
+          }}
+        />
+      )}
+    </>
   );
 };
 

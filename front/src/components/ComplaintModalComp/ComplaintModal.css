@@ -97,6 +97,22 @@
 
 .complaint-avatar {
   flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  background-color: #d32f2f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ff9800;
+}
+
+.complaint-avatar-initial {
+  color: white;
+  font-size: 26px;
+  font-weight: 600;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .complaint-avatar-img {
