@@ -1037,8 +1037,10 @@ const AnnouncementsAdmin: React.FC = () => {
             backgroundColor: 'white',
             borderRadius: '0.75rem',
             padding: '2rem',
-            maxWidth: '500px',
+            maxWidth: '600px',
             width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)',
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
@@ -1163,11 +1165,11 @@ const AnnouncementsAdmin: React.FC = () => {
                 </label>
                 {previewImage && (
                   <div style={{
-                    marginTop: '0.75rem',
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    border: '2px solid #149D52',
                     borderRadius: '0.5rem',
-                    backgroundColor: '#fafafa',
+                    backgroundColor: '#e8f5e9',
                     textAlign: 'center'
                   }}>
                     <img 
@@ -1175,19 +1177,24 @@ const AnnouncementsAdmin: React.FC = () => {
                       alt="Preview" 
                       style={{
                         maxWidth: '100%',
-                        maxHeight: '100px',
+                        maxHeight: '150px',
                         borderRadius: '0.375rem',
-                        marginBottom: '0.5rem'
+                        marginBottom: '0.75rem',
+                        objectFit: 'contain'
                       }}
+                      onError={(e) => {
+                        console.error('❌ Error cargando imagen:', previewImage);
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                      onLoad={() => console.log('✅ Imagen previsualizacion cargada')}
                     />
                     <small style={{
                       display: 'block',
-                      color: '#666',
-                      fontSize: '0.75rem',
-                      wordBreak: 'break-all',
-                      fontWeight: '500'
+                      color: '#149D52',
+                      fontSize: '0.8rem',
+                      fontWeight: '600'
                     }}>
-                      Imagen seleccionada
+                      ✓ Imagen cargada correctamente
                     </small>
                   </div>
                 )}
