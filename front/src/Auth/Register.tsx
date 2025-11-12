@@ -284,7 +284,7 @@ const Register: React.FC = () => {
       {showSuccessModal && (
         <SuccessModal
           title="¡Ya estás registrado!"
-          message="Revisa tu correo electronico, enviaremos tus credenciales."
+          message="Revisa tu correo electrónico. Enviaremos tus credenciales."
           redirectUrl="/login"
         />
       )}

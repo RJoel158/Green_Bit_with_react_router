@@ -306,7 +306,7 @@ const RegisterInstitution: React.FC = () => {
       {showSuccessModal && (
         <SuccessModal
           title="¡Solicitud enviada!"
-          message="Se le enviara el correo con sus credenciales una vez su cuenta haya sido aprobada."
+          message="Se le enviará el correo con sus credenciales una vez su cuenta haya sido aprobada."
           redirectUrl="/login"
         />
       )}
