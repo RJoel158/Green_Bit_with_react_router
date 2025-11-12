@@ -28,6 +28,8 @@ const RatingModal: React.FC<RatingModalProps> = ({
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Determinar qué nombre mostrar (razón social si es empresa, sino el nombre)
   const displayName = ratedToCompanyName || ratedToName;
@@ -147,8 +149,8 @@ const RatingModal: React.FC<RatingModalProps> = ({
 
         {showSuccessModal && (
           <SuccessModal
-            title={successMessage.title}
-            message={successMessage.message}
+            title="Calificación Enviada"
+            message="¡Gracias por tu calificación! Tu opinión nos ayuda a mejorar el servicio."
             onClose={() => {
               setShowSuccessModal(false);
             }}

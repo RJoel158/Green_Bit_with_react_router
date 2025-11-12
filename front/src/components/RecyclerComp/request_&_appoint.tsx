@@ -52,8 +52,8 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: todas las appointmentconfirmation (limitado a 3 más recientes)
-          const history = await getAppointmentsByRecycler(user.id, undefined, 3);
+          // Historial: solo COMPLETED (4) - limitado a 5 más recientes
+          const history = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.COMPLETED, 5);
           setAppointmentHistory(history);
 
         } else if (user.role === 'recolector') {
@@ -66,8 +66,8 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: todas las appointmentconfirmation (limitado a 3 más recientes)
-          const history = await getAppointmentsByCollector(user.id, undefined, 3);
+          // Historial: solo COMPLETED (4) - limitado a 5 más recientes
+          const history = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.COMPLETED, 5);
           setAppointmentHistory(history);
         }
         

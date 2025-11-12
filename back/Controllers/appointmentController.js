@@ -431,15 +431,15 @@ export const acceptAppointmentEndpoint = async (req, res) => {
     // Enviar notificación al collector (quien creó la cita)
     try {
       const [appointmentData] = await db.query(
-        `SELECT ac.idCollector, ac.idRequest, u.email as collectorEmail
+        `SELECT ac.collectorId, ac.idRequest, u.email as collectorEmail
          FROM appointmentconfirmation ac
-         JOIN users u ON u.id = ac.idCollector
+         JOIN users u ON u.id = ac.collectorId
          WHERE ac.id = ?`,
         [parseInt(id)]
       );
 
       if (appointmentData && appointmentData.length > 0) {
-        const collectorId = appointmentData[0].idCollector;
+        const collectorId = appointmentData[0].collectorId;
         const collectorEmail = appointmentData[0].collectorEmail;
         const requestId = appointmentData[0].idRequest;
 
@@ -656,10 +656,10 @@ export const completeAppointmentEndpoint = async (req, res) => {
       console.log("[DEBUG] appointmentId (id parameter):", id);
       
       const [appointmentData] = await db.query(
-        `SELECT ac.idCollector, ac.idRequest, r.idUser as recyclerId, u.email as collectorEmail
+        `SELECT ac.id, ac.collectorId, ac.idRequest, r.idUser as recyclerId, u.email as collectorEmail
          FROM appointmentconfirmation ac
          JOIN request r ON r.id = ac.idRequest
-         JOIN users u ON u.id = ac.idCollector
+         JOIN users u ON u.id = ac.collectorId
          WHERE ac.id = ?`,
         [parseInt(id)]
       );
@@ -671,11 +671,13 @@ export const completeAppointmentEndpoint = async (req, res) => {
 
       if (appointmentData && appointmentData.length > 0) {
         const recyclerId = appointmentData[0].recyclerId;
+        const collectorId = appointmentData[0].collectorId;
         const collectorEmail = appointmentData[0].collectorEmail;
         const requestId = appointmentData[0].idRequest;
 
         console.log("[DEBUG] ✅ Found appointment data:", { 
           recyclerId, 
+          collectorId,
           collectorEmail, 
           requestId,
           appointmentId: id 
@@ -684,48 +686,94 @@ export const completeAppointmentEndpoint = async (req, res) => {
         const notificationTitle = "🎉 Recolección completada";
         const notificationMessage = `${collectorEmail} ha completado la recolección de tu material`;
 
-        // Crear notificación en BD
-        console.log("[DEBUG] About to call NotificationModel.createNotification with params:", {
-          recyclerId,
-          title: notificationTitle,
-          type: "appointment_completed",
-          requestId,
-          appointmentId: parseInt(id)
-        });
-        
-        const notifId = await NotificationModel.createNotification(
-          recyclerId,
-          notificationTitle,
-          notificationMessage,
-          "appointment_completed",
-          requestId,              // entityId (será usado como fallback)
-          requestId,              // requestId
-          parseInt(id)            // appointmentId
-        );
+        // ========== NOTIFICACIÓN AL RECYCLER ==========
+        console.log("[DEBUG] Creating notification for RECYCLER (userId: " + recyclerId + ")");
+        try {
+          const notifId = await NotificationModel.createNotification(
+            recyclerId,
+            notificationTitle,
+            notificationMessage,
+            "appointment_completed",
+            requestId,              // entityId
+            requestId,              // requestId
+            parseInt(id)            // appointmentId
+          );
 
-        console.log(`[INFO] ✅ Notification created in DB with ID: ${notifId}`);
+          console.log(`[INFO] ✅ Notification created in DB for RECYCLER with ID: ${notifId}`);
 
-        // Enviar en tiempo real
-        const notificationData = {
-          id: notifId,
-          type: 'appointment_completed',
-          title: notificationTitle,
-          body: notificationMessage,
-          requestId: requestId,
-          appointmentId: parseInt(id),
-          read: false,
-          createdAt: new Date().toISOString(),
-          actorEmail: collectorEmail,
-        };
+          // Enviar en tiempo real al recycler
+          const notificationData = {
+            id: notifId,
+            type: 'appointment_completed',
+            title: notificationTitle,
+            body: notificationMessage,
+            requestId: requestId,
+            appointmentId: parseInt(id),
+            read: false,
+            createdAt: new Date().toISOString(),
+            actorEmail: collectorEmail,
+          };
 
-        console.log(`[INFO] Sending real-time notification to user ${recyclerId}:`, notificationData);
-        const sent = sendRealTimeNotification(recyclerId, notificationData);
-        console.log(`[INFO] Real-time notification ${sent ? '✅ SENT' : '❌ NOT SENT'} to user ${recyclerId}`);
+          console.log(`[INFO] Sending real-time notification to RECYCLER ${recyclerId}:`, notificationData);
+          const sentToRecycler = sendRealTimeNotification(recyclerId, notificationData);
+          console.log(`[INFO] Real-time notification ${sentToRecycler ? '✅ SENT' : '⏳ QUEUED - Will be shown on next login'} to RECYCLER ${recyclerId}`);
+        } catch (createNotifError) {
+          console.error("[ERROR] Failed to create notification for RECYCLER:", createNotifError.message);
+          console.error("[ERROR] Stack:", createNotifError.stack);
+        }
+
+        // ========== NOTIFICACIÓN AL COLLECTOR (confirmación de completado) ==========
+        console.log("[DEBUG] Creating confirmation notification for COLLECTOR (userId: " + collectorId + ")");
+        try {
+          // Obtener nombre del reciclador
+          const [recyclerInfo] = await db.query(
+            `SELECT COALESCE(CONCAT(p.firstname, ' ', p.lastname), u.email) as recyclerName
+             FROM users u
+             LEFT JOIN person p ON p.userId = u.id
+             WHERE u.id = ?`,
+            [recyclerId]
+          );
+          
+          const recyclerName = recyclerInfo?.[0]?.recyclerName || 'Usuario';
+          const collectorConfirmMsg = `Tu recolección ha sido completada. ${recyclerName} calificará pronto.`;
+          
+          const notifIdCollector = await NotificationModel.createNotification(
+            collectorId,
+            "✅ Recolección confirmada",
+            collectorConfirmMsg,
+            "appointment_completed",
+            requestId,
+            requestId,
+            parseInt(id)
+          );
+
+          console.log(`[INFO] ✅ Confirmation notification created in DB for COLLECTOR with ID: ${notifIdCollector}`);
+
+          // Enviar en tiempo real al collector
+          const notificationDataCollector = {
+            id: notifIdCollector,
+            type: 'appointment_completed',
+            title: "✅ Recolección confirmada",
+            body: collectorConfirmMsg,
+            requestId: requestId,
+            appointmentId: parseInt(id),
+            read: false,
+            createdAt: new Date().toISOString(),
+            actorEmail: recyclerName,
+          };
+
+          console.log(`[INFO] Sending confirmation to COLLECTOR ${collectorId}:`, notificationDataCollector);
+          const sentToCollector = sendRealTimeNotification(collectorId, notificationDataCollector);
+          console.log(`[INFO] Confirmation notification ${sentToCollector ? '✅ SENT' : '⏳ QUEUED'} to COLLECTOR ${collectorId}`);
+        } catch (collectorNotifError) {
+          console.error("[ERROR] Failed to create confirmation for COLLECTOR:", collectorNotifError.message);
+          // No fallar si falla la notificación del collector
+        }
       } else {
         console.log("[WARN] ❌ No appointment data found for notification with ID:", id);
       }
     } catch (notifError) {
-      console.error("[ERROR] ❌ Failed to create/send complete notification:", notifError.message);
+      console.error("[ERROR] ❌ Failed to send complete notification:", notifError.message);
       console.error("[ERROR] Stack:", notifError.stack);
       // No fallar la completación si falla la notificación
     }
