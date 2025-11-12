@@ -53,7 +53,7 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           setActiveAppointments(activeAppts);
 
           // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 5 más recientes
-          const allAppointments = await getAppointmentsByRecycler(user.id, undefined, 50);
+          const allAppointments = await getAppointmentsByRecycler(user.id, undefined, 5);
           // Filtrar solo las que están en estado final (no pendientes ni activas)
           const history = allAppointments.filter(apt => 
             apt.state === APPOINTMENT_STATE.COMPLETED || 
