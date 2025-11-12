@@ -146,26 +146,6 @@ const RatingModal: React.FC<RatingModalProps> = ({
         >
           {isSubmitting ? 'Enviando...' : 'Enviar Calificación'}
         </button>
-
-        {showSuccessModal && (
-          <SuccessModal
-            title="Calificación Enviada"
-            message="¡Gracias por tu calificación! Tu opinión nos ayuda a mejorar el servicio."
-            onClose={() => {
-              setShowSuccessModal(false);
-            }}
-          />
-        )}
-
-        {showErrorModal && (
-          <SuccessModal
-            title="❌ Error"
-            message={errorMessage}
-            onClose={() => {
-              setShowErrorModal(false);
-            }}
-          />
-        )}
       </div>
 
       {/* Modal de éxito */}
@@ -179,6 +159,17 @@ const RatingModal: React.FC<RatingModalProps> = ({
               onSuccess();
             }
             onClose();
+          }}
+        />
+      )}
+
+      {/* Modal de error */}
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorMessage}
+          onClose={() => {
+            setShowErrorModal(false);
           }}
         />
       )}

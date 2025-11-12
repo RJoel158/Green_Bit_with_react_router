@@ -75,6 +75,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
+  const [shouldReloadOnSuccessClose, setShouldReloadOnSuccessClose] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
@@ -337,6 +338,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           console.log('[INFO] Marked as cancelled by user:', currentUser.id);
         }
         
+        // Mostrar modal de éxito
         setSuccessMessage({
           title: '✓ Éxito',
           message: 'Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.'
@@ -346,7 +348,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         // Actualiza estado local para reflejar la cancelación sin recargar
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
         
-        // Recargar la página para que el mapa se actualice con la solicitud disponible nuevamente
+        // Recargar la página después de 1.5 segundos para que el usuario vea el modal
         setTimeout(() => {
           window.location.reload();
         }, 1500);
@@ -366,7 +368,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     }
   };
 
-  // Función para aceptar un appointment
+  // Función para aceptar un appointment (mostrar confirmación)
   const handleAcceptAppointment = async () => {
     if (!appointmentId || !appointmentData) {
       setErrorModalMessage('No se puede aceptar: ID de cita no disponible');
@@ -378,6 +380,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
     setShowAcceptConfirmModal(true);
   };
 
+  // Función que se ejecuta cuando se confirma aceptar la cita
   const confirmAcceptAppointment = async () => {
     setShowAcceptConfirmModal(false);
     if (!appointmentId || !appointmentData) return;
@@ -408,14 +411,19 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
+        console.log('[SUCCESS] Appointment accepted successfully');
+        
+        // Mostrar modal de éxito con mensaje mejorado
         setSuccessMessage({
-          title: '✓ Éxito',
-          message: 'Cita aceptada exitosamente.'
+          title: '✓ Solicitud Aceptada',
+          message: '¡Has aceptado la solicitud exitosamente!\n\nEl usuario ha sido notificado y podrás coordinar los detalles de la recolección.'
         });
         setShowSuccessModal(true);
+        setShouldReloadOnSuccessClose(true); 
+        
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.ACCEPTED } : prev);
-        // Recargar datos
-        window.location.reload();
+        
+        
       } else {
         throw new Error(result.error || 'Error al aceptar la cita');
       }
@@ -524,11 +532,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       }
 
       if (result.success) {
-        setSuccessMessage({
-          title: '✓ Éxito',
-          message: 'Recolección completada exitosamente.'
-        });
-        setShowSuccessModal(true);
+        
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.COMPLETED } : prev);
         
         // Señalizar que se completó una cita para refrescar el historial
@@ -565,6 +569,8 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const handleRatingSuccess = () => {
     setHasRated(true);
     setShowRatingModal(false);
+    
+    window.location.reload();
   };
 
   const handleComplaintModalClose = () => {
@@ -1084,7 +1090,14 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         <SuccessModal
           title={successMessage.title}
           message={successMessage.message}
-          onClose={() => setShowSuccessModal(false)}
+          onClose={() => {
+            setShowSuccessModal(false);
+           
+            if (shouldReloadOnSuccessClose) {
+              setShouldReloadOnSuccessClose(false);
+              window.location.reload();
+            }
+          }}
         />
       )}
 
@@ -1111,7 +1124,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       {showAcceptConfirmModal && (
         <CheckModal
           title="Aceptar Solicitud"
-          message="¿Desea ACEPTAR esta solicitud de recolección? La cita quedará confirmada y el recolector será notificado."
+          message="¿Desea ACEPTAR esta solicitud de recolección? La cita quedará confirmada y el usuario será notificado."
           onConfirm={confirmAcceptAppointment}
           onCancel={() => setShowAcceptConfirmModal(false)}
         />
