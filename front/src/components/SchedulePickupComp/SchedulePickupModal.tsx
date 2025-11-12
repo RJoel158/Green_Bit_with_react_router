@@ -172,9 +172,6 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
     }
   };
 
-  /**
-   * Calcula la próxima fecha para un día de la semana específico
-   */
   const getNextDateForDay = (dayName: string): string => {
     const daysMap: { [key: string]: number } = {
       'Domingo': 0,
@@ -190,14 +187,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
     const targetDay = daysMap[dayName];
     const todayDay = today.getDay();
 
-    // Calcular diferencia de días
     let diff = targetDay - todayDay;
-    if (diff <= 0) diff += 7; // Si el día ya pasó, tomar la próxima semana
+    if (diff <= 0) diff += 7;
 
     const nextDate = new Date(today);
     nextDate.setDate(today.getDate() + diff);
 
-    // Formatear fecha
     const day = nextDate.getDate().toString().padStart(2, '0');
     const month = (nextDate.getMonth() + 1).toString().padStart(2, '0');
     const year = nextDate.getFullYear().toString().slice(-2);
@@ -221,7 +216,6 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   };
 
   /**
-
    * Limpia cualquier error previo cuando el usuario modifica la hora
    */
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,7 +229,7 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   };
 
   const handleConfirm = async () => {
-   // Validar que se haya ingresado una hora
+    // Validar que se haya ingresado una hora
     if (!selectedTime) {
       setTimeError('Por favor selecciona una hora');
       return;
@@ -291,10 +285,10 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       // Formato DATE para MySQL: "YYYY-MM-DD"
       const acceptedDate = `${fullYear}-${month}-${day}`;
 
-      //Normalizar la hora al formato HH:MM:SS 
+      // Normalizar la hora al formato HH:MM:SS 
       const acceptedHour = normalizeTimeToSQL(selectedTime);
 
-      // Preparar para enviar al backend
+      // Preparar datos para enviar al backend
       const appointmentData = {
         idRequest: selectedRequest.id,      // ID de la solicitud
         acceptedDate: acceptedDate,         // Fecha en formato YYYY-MM-DD
@@ -306,7 +300,6 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
 
       // Realizar petición POST al endpoint de creación de citas
       const response = await api.post(API_ENDPOINTS.APPOINTMENTS.SCHEDULE, appointmentData);
-
       const result = response.data;
 
       console.log('[INFO] Response status:', response.status);
@@ -341,25 +334,31 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
       console.error('[ERROR] Error al confirmar cita:', err);
       
       let errorMessage = 'Error al agendar el recojo. Intenta nuevamente.';
+      let isConflict = false;
       
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'object' && err !== null) {
+      if (typeof err === 'object' && err !== null) {
         // Si es un error de respuesta HTTP
         const status = (err as any).response?.status;
         const errorData = (err as any).response?.data;
         
         if (status === 409) {
-          // Si es un conflicto (409), mostrar modal y refrescar el mapa
+          // Si es un conflicto (409), mostrar modal de conflicto
+          isConflict = true;
           setShowConflictModal(true);
+          // NO cerrar el modal principal aquí, se cerrará cuando el usuario acepte el modal de conflicto
         } else if (status === 403) {
           errorMessage = '❌ No puedes aceptar tu propia solicitud de reciclaje.';
         } else if (errorData?.error) {
           errorMessage = errorData.error;
         }
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
       }
       
-      setTimeError(errorMessage);
+      // Solo mostrar mensaje de error si NO es un conflicto
+      if (!isConflict) {
+        setTimeError(errorMessage);
+      }
     } finally {
       // Siempre desbloquear el botón al terminar
       setSubmitting(false);
