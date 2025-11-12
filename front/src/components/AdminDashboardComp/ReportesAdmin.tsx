@@ -739,22 +739,17 @@ export default function ReportesAdmin() {
                   return (
                     <div key={item.id} className="admin-reports-bar-item">
                       <div className="admin-reports-bar-label">{item.name}</div>
-                      <div className="admin-reports-bar-track">
-                        <div
-                          className="admin-reports-bar-fill"
-                          style={{
-                            width: `${percentage}%`,
-                            backgroundColor: item.color || '#10b981'
-                          }}
-                        >
-                          {percentage > 15 && (
-                            <span className="admin-reports-bar-percentage">
-                              {percentage}%
-                            </span>
-                          )}
+                        <div className="admin-reports-bar-track">
+                          <div
+                            className="admin-reports-bar-fill"
+                            style={{
+                              width: `${percentage}%`,
+                              backgroundColor: item.color || '#10b981'
+                            }}
+                          />
                         </div>
-                      </div>
-                      <div className="admin-reports-bar-value">{item.kg} items</div>
+
+                        <div className="admin-reports-bar-value">{item.kg} items</div>
                     </div>
                   );
                 })}
@@ -800,10 +795,12 @@ export default function ReportesAdmin() {
                               width: `${percentage}%`,
                               backgroundColor: color
                             }}
-                          >
-                            {percentage > 10 ? `${percentage}%` : ''}
-                          </div>
+                          />
                         </div>
+
+                        {/* Porcentaje al lado de la barra */}
+                        <div className="admin-reports-scores-bar-percentage-side">{percentage}%</div>
+
                         <span className="admin-reports-scores-bar-count">
                           {count}
                         </span>

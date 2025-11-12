@@ -381,6 +381,9 @@
   color: #6b7280;
 }
 
+/* Porcentaje mostrado al lado de la barra (Reporte Materiales) */
+.admin-reports-bar-percentage-side { display: none; }
+
 /* Reporte calificaciones */
 
 .admin-reports-scores-container {
@@ -491,6 +494,19 @@
   color: #6b7280;
   min-width: 40px;
   text-align: right;
+}
+
+/* Porcentaje mostrado al lado de la barra (Reporte Calificaciones) */
+.admin-reports-scores-bar-percentage-side {
+  min-width: 48px;
+  text-align: left;
+  font-size: 0.75rem; 
+  font-weight: 700;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-left: 6px;
 }
 
 /* ============================================ */
