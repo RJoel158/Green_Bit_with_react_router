@@ -10,6 +10,7 @@ interface Material {
   id: number;
   name: string;
   description?: string;
+  state?: number;
 }
 
 type FormData = {
@@ -123,10 +124,15 @@ const FormComp: React.FC = () => {
           console.log("Materiales recibidos:", materialsData);
           
           if (Array.isArray(materialsData) && materialsData.length > 0) {
-            setMaterials(materialsData);
-            console.log("Materiales cargados correctamente:", materialsData.length);
+            // Filtrar solo materiales ACTIVOS (state === 1)
+            const activeMaterials = materialsData.filter((m: Material) => m.state === 1);
+            setMaterials(activeMaterials);
+            console.log("Materiales activos cargados:", activeMaterials.length);
           } else if (materialsData.data && Array.isArray(materialsData.data)) {
-            setMaterials(materialsData.data);
+            // Filtrar solo materiales ACTIVOS (state === 1)
+            const activeMaterials = materialsData.data.filter((m: Material) => m.state === 1);
+            setMaterials(activeMaterials);
+            console.log("Materiales activos cargados:", activeMaterials.length);
           } else {
             console.warn("Formato de materiales incorrecto, usando fallback");
             setMaterials(fallbackMaterials);

@@ -8,7 +8,6 @@ interface ComplaintModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
-  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -17,21 +16,16 @@ interface ComplaintModalProps {
 const ComplaintModal: React.FC<ComplaintModalProps> = ({ 
   appointmentId,
   ratedToUserId, 
-  ratedToName,
-  ratedToCompanyName,
+  ratedToName, 
   userRole,
   onClose,
   onSuccess 
 }) => {
   const [complaint, setComplaint] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successTitle, setSuccessTitle] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [successOnClose, setSuccessOnClose] = useState<(() => void) | undefined>(undefined);
-
-  // Determinar qué nombre mostrar (razón social si es empresa, sino el nombre)
-  const displayName = ratedToCompanyName || ratedToName;
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -42,20 +36,16 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
   const handleSubmit = async () => {
     if (!complaint.trim()) {
-      setSuccessTitle('Validación');
-      setSuccessMessage('Por favor describe el motivo de tu reclamo');
-      setSuccessOnClose(() => undefined);
-      setShowSuccessModal(true);
+      setErrorModalMessage('Por favor describe el motivo de tu reclamo');
+      setShowErrorModal(true);
       return;
     }
 
     // Obtener usuario actual
     const userString = localStorage.getItem('user');
     if (!userString) {
-      setSuccessTitle('Error');
-      setSuccessMessage('No se encontró información del usuario');
-      setSuccessOnClose(() => undefined);
-      setShowSuccessModal(true);
+      setErrorModalMessage('Error: No se encontró información del usuario');
+      setShowErrorModal(true);
       return;
     }
 
@@ -71,21 +61,21 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
         score: 1, // Score = 1 para reclamos (mínimo permitido)
         comment: `[RECLAMO] ${complaint}`
       });
-      // Mostrar éxito usando SuccessModal
-      setSuccessTitle('Reclamo enviado');
-      setSuccessMessage('Reclamo enviado exitosamente');
-      setSuccessOnClose(() => () => {
-        if (onSuccess) onSuccess();
-        onClose();
-      });
+
       setShowSuccessModal(true);
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      setTimeout(() => {
+        onClose();
+      }, 1500);
     } catch (error: any) {
-  console.error('[ComplaintModal] Error al enviar reclamo:', error);
-  const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
-  setSuccessTitle('Error');
-  setSuccessMessage(errorMessage);
-  setSuccessOnClose(() => undefined);
-  setShowSuccessModal(true);
+      console.error('[ComplaintModal] Error al enviar reclamo:', error);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
+      setErrorModalMessage(`Error: ${errorMessage}`);
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -93,12 +83,12 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
   return (
     <>
-    <div className="complaint-overlay" onClick={(e) => e.stopPropagation()}>
-      <div className="complaint-modal">
-        {/* Ícono de advertencia */}
-        <div className="complaint-icon-container">
-          <AlertTriangle size={64} color="#f44336" strokeWidth={2} />
-        </div>
+      <div className="complaint-overlay" onClick={(e) => e.stopPropagation()}>
+        <div className="complaint-modal">
+          {/* Ícono de advertencia */}
+          <div className="complaint-icon-container">
+            <AlertTriangle size={64} color="#f44336" strokeWidth={2} />
+          </div>
 
           <h2 className="complaint-title">
             Reportar problema con {userRole === 'recolector' ? 'el reciclador' : 'el recolector'}
@@ -121,54 +111,60 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
             {complaint.length}/500 caracteres
           </div>
 
-        {/* Información del usuario reportado */}
-        <div className="complaint-user-info">
-          <div className="complaint-avatar">
-            <span className="complaint-avatar-initial">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
+          {/* Información del usuario reportado */}
+          <div className="complaint-user-info">
+            <div className="complaint-avatar">
+              <img 
+                src="https://i.pravatar.cc/150?img=5"
+                alt="Avatar"
+                className="complaint-avatar-img"
+              />
+            </div>
+            <div className="complaint-user-details">
+              <h3 className="complaint-user-name">
+                {ratedToName}
+              </h3>
+              <p className="complaint-date">
+                {today}
+              </p>
+            </div>
           </div>
-          <div className="complaint-user-details">
-            <h3 className="complaint-user-name">
-              {displayName}
-            </h3>
-            <p className="complaint-date">
-              {today}
-            </p>
-          </div>
-        </div>
 
-        <div className="complaint-buttons">
-          <button
-            onClick={onClose}
-            className="complaint-cancel-button"
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </button>
-          
-          <button
-            onClick={handleSubmit}
-            disabled={!complaint.trim() || isSubmitting}
-            className={`complaint-submit-button ${
-              (!complaint.trim() || isSubmitting) ? 'complaint-submit-button--disabled' : ''
-            }`}
-          >
-            {isSubmitting ? 'Enviando...' : 'Enviar Reclamo'}
-          </button>
+          <div className="complaint-buttons">
+            <button
+              onClick={onClose}
+              className="complaint-cancel-button"
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </button>
+            
+            <button
+              onClick={handleSubmit}
+              disabled={!complaint.trim() || isSubmitting}
+              className={`complaint-submit-button ${
+                (!complaint.trim() || isSubmitting) ? 'complaint-submit-button--disabled' : ''
+              }`}
+            >
+              {isSubmitting ? 'Enviando...' : 'Enviar Reclamo'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-     
       {showSuccessModal && (
         <SuccessModal
-          title={successTitle}
-          message={successMessage}
-          onClose={() => {
-            setShowSuccessModal(false);
-            if (successOnClose) successOnClose();
-          }}
+          title="✓ ¡Reclamo enviado!"
+          message="Tu reclamo ha sido registrado exitosamente. Nuestro equipo lo revisará pronto."
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
+
+      {showErrorModal && (
+        <SuccessModal
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </>

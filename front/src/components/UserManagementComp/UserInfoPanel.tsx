@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import './UserManagement.css';
 import CheckModal from '../CommonComp/CheckModal';
-import ConfirmModal from '../CommonComp/ConfirmModal';
 import SuccessModal from '../CommonComp/SuccesModal';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../config/endpoints';
@@ -315,14 +314,11 @@ export default function UserInfoPanel({ user, userType, onUserUpdated, onUserDel
       )}
 
       {showDeleteModal && (
-        <ConfirmModal
-          title="¿Borrar Usuario?"
-          message={`Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar permanentemente al usuario "${user?.fullName || user?.email}"?`}
+        <CheckModal
+          title="¿Borrar usuario?"
+          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este usuario permanentemente?"
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
-          confirmText="Eliminar"
-          cancelText="Cancelar"
-          isDangerous={true}
         />
       )}
 

@@ -54,7 +54,8 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
-  const [showConflictModal, setShowConflictModal] = useState<boolean>(false); 
+  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
+  const [errorModalMessage, setErrorModalMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false); // Estado para bloquear botón durante submit
   const [error, setError] = useState<string | null>(null);
@@ -350,8 +351,14 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         const errorData = (err as any).response?.data;
         
         if (status === 409) {
-          // Si es un conflicto (409), mostrar modal y refrescar el mapa
-          setShowConflictModal(true);
+          errorMessage = '⚠️ Esta solicitud ya tiene una cita asignada. Recargando...';
+          // Si es un conflicto (409), refrescar el mapa y cerrar modal
+          setTimeout(() => {
+            onClose();
+            if (onScheduleSuccess) {
+              onScheduleSuccess();
+            }
+          }, 1500);
         } else if (status === 403) {
           errorMessage = '❌ No puedes aceptar tu propia solicitud de reciclaje.';
         } else if (errorData?.error) {
@@ -530,18 +537,12 @@ const SchedulePickupModal: React.FC<SchedulePickupModalProps> = ({
         />
       )}
 
-      {/* Modal de conflicto (error 409) */}
-      {showConflictModal && (
+      {/* Modal de error */}
+      {showErrorModal && (
         <SuccessModal
-          title="Solicitud no disponible"
-          message="Esta solicitud ya tiene una cita asignada o ya no está disponible. Serás redirigido al mapa para ver otras solicitudes."
-          onClose={() => {
-            setShowConflictModal(false);
-            onClose();
-            if (onScheduleSuccess) {
-              onScheduleSuccess();
-            }
-          }}
+          title="❌ Error"
+          message={errorModalMessage}
+          onClose={() => setShowErrorModal(false)}
         />
       )}
     </>
