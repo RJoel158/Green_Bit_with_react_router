@@ -62,13 +62,15 @@ BEGIN
       NEW.collectorId,                    -- Usuario que actúa (recolector)
       'request_received',                 -- Tipo de notificación
       'Solicitud de recolección',         -- Título
-      CONCAT('El usuario ', u.email, ' ha solicitado recoger tu material el ', 
-             DATE_FORMAT(NEW.acceptedDate, '%d/%m/%Y')),  -- Mensaje
+      CONCAT('El usuario ', u.email, ' ha solicitado recoger ', 
+             COALESCE(m.name, 'tu material'), ' el ',
+             DATE_FORMAT(NEW.acceptedDate, '%d/%m/%Y')),  -- Mensaje con nombre del material
       NEW.idRequest,                      -- ID de la request
       NEW.id,                            -- ID del appointment
       NOW() + INTERVAL 7 DAY             -- Expira en 7 días
     FROM request r
     JOIN users u ON u.id = NEW.collectorId
+    LEFT JOIN material m ON m.id = r.materialId
     WHERE r.id = NEW.idRequest;
   END IF;
 END//

@@ -663,10 +663,11 @@ export const completeAppointmentEndpoint = async (req, res) => {
       console.log("[DEBUG] appointmentId (id parameter):", id);
       
       const [appointmentData] = await db.query(
-        `SELECT ac.id, ac.collectorId, ac.idRequest, r.idUser as recyclerId, u.email as collectorEmail
+        `SELECT ac.id, ac.collectorId, ac.idRequest, r.idUser as recyclerId, u.email as collectorEmail, m.name as materialName
          FROM appointmentconfirmation ac
          JOIN request r ON r.id = ac.idRequest
          JOIN users u ON u.id = ac.collectorId
+         LEFT JOIN material m ON m.id = r.materialId
          WHERE ac.id = ?`,
         [parseInt(id)]
       );
@@ -681,17 +682,19 @@ export const completeAppointmentEndpoint = async (req, res) => {
         const collectorId = appointmentData[0].collectorId;
         const collectorEmail = appointmentData[0].collectorEmail;
         const requestId = appointmentData[0].idRequest;
+        const materialName = appointmentData[0].materialName || 'material de reciclaje';
 
         console.log("[DEBUG] ✅ Found appointment data:", { 
           recyclerId, 
           collectorId,
           collectorEmail, 
           requestId,
+          materialName,
           appointmentId: id 
         });
 
         const notificationTitle = "🎉 Recolección completada";
-        const notificationMessage = `${collectorEmail} ha completado la recolección de tu material`;
+        const notificationMessage = `${collectorEmail} ha completado la recolección de ${materialName}`;
 
         // ========== NOTIFICACIÓN AL RECYCLER ==========
         console.log("[DEBUG] Creating notification for RECYCLER (userId: " + recyclerId + ")");
