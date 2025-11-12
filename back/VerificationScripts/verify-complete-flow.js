@@ -1,6 +1,6 @@
 // verify-complete-flow.js
-import db from './config/DBConnect.js';
-import { APPOINTMENT_STATE, REQUEST_STATE } from './shared/constants.js';
+import db from '../config/DBConnect.js';
+import { APPOINTMENT_STATE, REQUEST_STATE } from '../shared/constants.js';
 
 async function verifyCompletionFlow() {
   console.log('\n🔍 Verificando flujo de completación de citas...\n');
