@@ -28,9 +28,6 @@ export default function MaterialesAdmin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filtro de estado
-  const [stateFilter, setStateFilter] = useState<0 | 1>(1);
-
   // Estados para el modal de éxito/error
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
@@ -72,8 +69,8 @@ export default function MaterialesAdmin() {
       console.log('📥 Primer material structure:', data[0]); // Ver estructura del objeto
       setMateriales(data);
       
-      // Aplicar filtros a los materiales cargados
-      const filtered = applyFilters(data, searchTerm, stateFilter);
+      // Aplicar filtros a los materiales cargados (solo activos)
+      const filtered = applyFilters(data, searchTerm, 1);
       setFilteredMateriales(filtered);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar materiales';
@@ -85,9 +82,9 @@ export default function MaterialesAdmin() {
   };
 
   /**
-   * Aplicar filtros (búsqueda + estado)
+   * Aplicar filtros (búsqueda + estado opcional)
    */
-  const applyFilters = (materials: Material[], search: string, state: 0 | 1) => {
+  const applyFilters = (materials: Material[], search: string, state?: 0 | 1) => {
     let filtered = materials;
 
     // Filtrar por búsqueda
@@ -97,8 +94,10 @@ export default function MaterialesAdmin() {
       );
     }
 
-    // Filtrar por estado (1 = Activo, 0 = Inactivo)
-    filtered = filtered.filter(material => material.state === state);
+    // Filtrar por estado solo si se especifica (1 = Activo, 0 = Inactivo)
+    if (state !== undefined) {
+      filtered = filtered.filter(material => material.state === state);
+    }
 
     return filtered;
   };
@@ -108,16 +107,7 @@ export default function MaterialesAdmin() {
    */
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = applyFilters(materiales, term, stateFilter);
-    setFilteredMateriales(filtered);
-  };
-
-  /**
-   * Cambiar filtro de estado
-   */
-  const handleStateFilterChange = (newState: 0 | 1) => {
-    setStateFilter(newState);
-    const filtered = applyFilters(materiales, searchTerm, newState);
+    const filtered = applyFilters(materiales, term, 1);
     setFilteredMateriales(filtered);
   };
 
@@ -190,8 +180,8 @@ export default function MaterialesAdmin() {
       );
       setMateriales(updatedMateriales);
 
-      // Reaplica los filtros con los datos actualizados
-      const filtered = applyFilters(updatedMateriales, searchTerm, stateFilter);
+      // Reaplica los filtros con los datos actualizados (solo activos)
+      const filtered = applyFilters(updatedMateriales, searchTerm, 1);
       setFilteredMateriales(filtered);
 
       // Deseleccionar el material
@@ -256,8 +246,8 @@ export default function MaterialesAdmin() {
         );
         setMateriales(updated);
 
-        // Reaplica los filtros
-        const filtered = applyFilters(updated, searchTerm, stateFilter);
+        // Reaplica los filtros (solo activos)
+        const filtered = applyFilters(updated, searchTerm, 1);
         setFilteredMateriales(filtered);
 
         setSuccessMessage({
@@ -274,8 +264,8 @@ export default function MaterialesAdmin() {
         const updated = materiales.filter(m => m.id !== selectedMaterial.id);
         setMateriales(updated);
 
-        // Reaplica los filtros
-        const filtered = applyFilters(updated, searchTerm, stateFilter);
+        // Reaplica los filtros (solo activos)
+        const filtered = applyFilters(updated, searchTerm, 1);
         setFilteredMateriales(filtered);
 
         setSuccessMessage({
@@ -385,61 +375,6 @@ export default function MaterialesAdmin() {
         onCreateNew={handleOpenModal}
         createButtonText="+ Crear material"
       />
-
-      {/* Filtro de Estado */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        padding: '1rem 2rem',
-        display: 'flex',
-        gap: '1rem',
-        alignItems: 'center',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <span style={{
-          fontWeight: '600',
-          color: '#374151',
-          fontSize: '0.95rem'
-        }}>
-          Filtrar por estado:
-        </span>
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem'
-        }}>
-          {[
-            { label: 'Activos', value: 1 as const },
-            { label: 'Inactivos', value: 0 as const }
-          ].map(filter => (
-            <button
-              key={filter.value}
-              onClick={() => handleStateFilterChange(filter.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: stateFilter === filter.value ? '#149D52' : '#ffffff',
-                color: stateFilter === filter.value ? '#ffffff' : '#374151',
-                fontWeight: stateFilter === filter.value ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.9rem'
-              }}
-              onMouseEnter={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                }
-              }}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Error Banner */}
       {error && (
