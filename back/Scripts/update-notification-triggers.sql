@@ -21,12 +21,13 @@ BEGIN
         r.idUser,                          -- Reciclador es quien actúa
         'appointment_accepted',             -- Tipo
         'Solicitud aceptada',               -- Título
-        CONCAT('Tu solicitud de recolección a ', ur.email, ' fue aceptada'), -- Mensaje
+        CONCAT('Tu solicitud de recolección a ', ur.email, ' de ', COALESCE(m.name, 'tu material'), ' fue aceptada'), -- Mensaje
         NEW.idRequest,
         NEW.id,
         NOW() + INTERVAL 7 DAY
       FROM request r
       JOIN users ur ON ur.id = r.idUser
+      LEFT JOIN material m ON m.id = r.materialId
       WHERE r.id = NEW.idRequest;
     END IF;
     
@@ -38,12 +39,13 @@ BEGIN
         r.idUser,                          -- Reciclador es quien actúa
         'appointment_rejected',             -- Tipo
         'Solicitud rechazada',              -- Título
-        CONCAT('Tu solicitud de recolección a ', ur.email, ' fue rechazada'), -- Mensaje
+        CONCAT('Tu solicitud de recolección de ', COALESCE(m.name, 'tu material'), ' a ', ur.email, ' fue rechazada'), -- Mensaje
         NEW.idRequest,
         NEW.id,
         NOW() + INTERVAL 7 DAY
       FROM request r
       JOIN users ur ON ur.id = r.idUser
+      LEFT JOIN material m ON m.id = r.materialId
       WHERE r.id = NEW.idRequest;
     END IF;
     
@@ -72,12 +74,13 @@ BEGIN
         r.idUser,                          -- Reciclador es quien actúa
         'appointment_completed',            -- Tipo
         'Recolección completada',           -- Título
-        CONCAT('La recolección con ', ur.email, ' ha sido marcada como completada'), -- Mensaje
+        CONCAT('La recolección de ', COALESCE(m.name, 'tu material'), ' con ', ur.email, ' ha sido marcada como completada'), -- Mensaje
         NEW.idRequest,
         NEW.id,
         NOW() + INTERVAL 7 DAY
       FROM request r
       JOIN users ur ON ur.id = r.idUser
+      LEFT JOIN material m ON m.id = r.materialId
       WHERE r.id = NEW.idRequest;
     END IF;
     
