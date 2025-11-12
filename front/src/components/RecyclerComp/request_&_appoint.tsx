@@ -52,8 +52,8 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 10 más recientes
-          const allAppointments = await getAppointmentsByRecycler(user.id, undefined, 10);
+          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 5 más recientes
+          const allAppointments = await getAppointmentsByRecycler(user.id, undefined, 50);
           // Filtrar solo las que están en estado final (no pendientes ni activas)
           const history = allAppointments.filter(apt => 
             apt.state === APPOINTMENT_STATE.COMPLETED || 
@@ -72,8 +72,8 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 10 más recientes
-          const allAppointments = await getAppointmentsByCollector(user.id, undefined, 10);
+          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 5 más recientes
+          const allAppointments = await getAppointmentsByCollector(user.id, undefined, 5);
           // Filtrar solo las que están en estado final (no pendientes ni activas)
           const history = allAppointments.filter(apt => 
             apt.state === APPOINTMENT_STATE.COMPLETED || 

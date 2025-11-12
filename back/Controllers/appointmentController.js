@@ -150,10 +150,11 @@ export const createNewAppointment = async (req, res) => {
     try {
       const [rows] = await db.query(
         `SELECT r.idUser as recyclerId, u.email as recyclerEmail,
-                uc.email as collectorEmail
+                uc.email as collectorEmail, m.name as materialName
          FROM request r
          JOIN users u ON u.id = r.idUser
          JOIN users uc ON uc.id = ?
+         LEFT JOIN material m ON m.id = r.materialId
          WHERE r.id = ?`,
         [parseInt(collectorId), parseInt(idRequest)]
       );
@@ -161,13 +162,14 @@ export const createNewAppointment = async (req, res) => {
       if (rows && rows[0]) {
         const recyclerId = rows[0].recyclerId;
         const collectorEmail = rows[0].collectorEmail;
+        const materialName = rows[0].materialName || 'material de reciclaje';
         
         // Solo emitir notificación en tiempo real (no insertar en BD, los triggers lo hacen)
         sendRealTimeNotification(recyclerId, {
           id: Date.now(),
           type: 'request_received',
           title: 'Solicitud de recolección',
-          body: `El usuario ${collectorEmail} ha solicitado recoger tu material el ${acceptedDate}`,
+          body: `El usuario ${collectorEmail} ha solicitado recoger ${materialName} el ${acceptedDate}`,
           requestId: parseInt(idRequest),
           appointmentId: appointmentId,
           read: false,
@@ -431,9 +433,11 @@ export const acceptAppointmentEndpoint = async (req, res) => {
     // Enviar notificación al collector (quien creó la cita)
     try {
       const [appointmentData] = await db.query(
-        `SELECT ac.collectorId, ac.idRequest, u.email as collectorEmail
+        `SELECT ac.collectorId, ac.idRequest, u.email as collectorEmail, m.name as materialName
          FROM appointmentconfirmation ac
          JOIN users u ON u.id = ac.collectorId
+         JOIN request r ON r.id = ac.idRequest
+         LEFT JOIN material m ON m.id = r.materialId
          WHERE ac.id = ?`,
         [parseInt(id)]
       );
@@ -442,6 +446,7 @@ export const acceptAppointmentEndpoint = async (req, res) => {
         const collectorId = appointmentData[0].collectorId;
         const collectorEmail = appointmentData[0].collectorEmail;
         const requestId = appointmentData[0].idRequest;
+        const materialName = appointmentData[0].materialName || 'material de reciclaje';
 
         // Obtener email del reciclador (quien acepta)
         const [recyclerData] = await db.query(
@@ -451,7 +456,7 @@ export const acceptAppointmentEndpoint = async (req, res) => {
 
         const recyclerEmail = recyclerData?.[0]?.email || 'Usuario';
         const notificationTitle = "✅ Solicitud aceptada";
-        const notificationMessage = `${recyclerEmail} ha aceptado tu solicitud de recolección`;
+        const notificationMessage = `${recyclerEmail} ha aceptado tu solicitud de recolección de ${materialName}`;
 
         // Crear notificación en BD
         const notifId = await NotificationModel.createNotification(
@@ -543,10 +548,11 @@ export const rejectAppointmentEndpoint = async (req, res) => {
       
       const [rows] = await db.query(
         `SELECT ac.idRequest, ac.collectorId, ac.state,
-                u.email as recyclerEmail, r.idUser as recyclerId
+                u.email as recyclerEmail, r.idUser as recyclerId, m.name as materialName
          FROM appointmentconfirmation ac
          JOIN request r ON r.id = ac.idRequest
          JOIN users u ON u.id = r.idUser
+         LEFT JOIN material m ON m.id = r.materialId
          WHERE ac.id = ?`,
         [parseInt(id)]
       );
@@ -558,6 +564,7 @@ export const rejectAppointmentEndpoint = async (req, res) => {
         const recyclerId = rows[0].recyclerId;
         const recyclerEmail = rows[0].recyclerEmail;
         const requestId = rows[0].idRequest;
+        const materialName = rows[0].materialName || 'material de reciclaje';
         
         console.log("[INFO] Datos para notificación:", { collectorId, recyclerId, recyclerEmail, requestId, appointmentId: parseInt(id) });
         
@@ -570,7 +577,7 @@ export const rejectAppointmentEndpoint = async (req, res) => {
             recyclerId,
             'appointment_rejected',
             'Solicitud rechazada',
-            `Tu solicitud de recolección a ${recyclerEmail} fue rechazada`,
+            `Tu solicitud de recolección de ${materialName} a ${recyclerEmail} fue rechazada`,
             requestId,
             parseInt(id)
           ]
@@ -583,7 +590,7 @@ export const rejectAppointmentEndpoint = async (req, res) => {
           id: Date.now(),
           type: 'appointment_rejected',
           title: 'Solicitud rechazada',
-          body: `Tu solicitud de recolección a ${recyclerEmail} fue rechazada`,
+          body: `Tu solicitud de recolección de ${materialName} a ${recyclerEmail} fue rechazada`,
           requestId: requestId,
           appointmentId: parseInt(id),
           read: false,
