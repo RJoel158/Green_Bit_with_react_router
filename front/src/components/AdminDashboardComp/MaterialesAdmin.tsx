@@ -16,7 +16,6 @@ interface Material {
 interface FormData {
   name: string;
   description: string;
-  mostrar: 'Activo' | 'Inactivo';
 }
 
 export default function MaterialesAdmin() {
@@ -28,9 +27,6 @@ export default function MaterialesAdmin() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Filtro de estado
-  const [stateFilter, setStateFilter] = useState<0 | 1>(1);
 
   // Estados para el modal de éxito/error
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -46,7 +42,6 @@ export default function MaterialesAdmin() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
-    mostrar: 'Activo',
   });
 
   // Estados del modal de creación
@@ -74,8 +69,8 @@ export default function MaterialesAdmin() {
       console.log('📥 Primer material structure:', data[0]); // Ver estructura del objeto
       setMateriales(data);
       
-      // Aplicar filtros a los materiales cargados
-      const filtered = applyFilters(data, searchTerm, stateFilter);
+      // Aplicar filtros a los materiales cargados (solo activos)
+      const filtered = applyFilters(data, searchTerm, 1);
       setFilteredMateriales(filtered);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar materiales';
@@ -87,9 +82,9 @@ export default function MaterialesAdmin() {
   };
 
   /**
-   * Aplicar filtros (búsqueda + estado)
+   * Aplicar filtros (búsqueda + estado opcional)
    */
-  const applyFilters = (materials: Material[], search: string, state: 0 | 1) => {
+  const applyFilters = (materials: Material[], search: string, state?: 0 | 1) => {
     let filtered = materials;
 
     // Filtrar por búsqueda
@@ -99,8 +94,10 @@ export default function MaterialesAdmin() {
       );
     }
 
-    // Filtrar por estado (1 = Activo, 0 = Inactivo)
-    filtered = filtered.filter(material => material.state === state);
+    // Filtrar por estado solo si se especifica (1 = Activo, 0 = Inactivo)
+    if (state !== undefined) {
+      filtered = filtered.filter(material => material.state === state);
+    }
 
     return filtered;
   };
@@ -110,16 +107,7 @@ export default function MaterialesAdmin() {
    */
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = applyFilters(materiales, term, stateFilter);
-    setFilteredMateriales(filtered);
-  };
-
-  /**
-   * Cambiar filtro de estado
-   */
-  const handleStateFilterChange = (newState: 0 | 1) => {
-    setStateFilter(newState);
-    const filtered = applyFilters(materiales, searchTerm, newState);
+    const filtered = applyFilters(materiales, term, 1);
     setFilteredMateriales(filtered);
   };
 
@@ -134,7 +122,6 @@ export default function MaterialesAdmin() {
     setFormData({
       name: material.name,
       description: material.description || '',
-      mostrar: material.state === 1 ? 'Activo' : 'Inactivo',
     });
   };
 
@@ -171,33 +158,30 @@ export default function MaterialesAdmin() {
       setLoading(true);
       setError(null);
 
-      // Convertir "Activo" (1) a "Inactivo" (0)
-      const state = formData.mostrar === 'Activo' ? 1 : 0;
-
       console.log('📤 Enviando actualización:', {
         id: selectedMaterial.id,
         name: formData.name,
         description: formData.description,
-        state
+        state: selectedMaterial.state
       });
 
       await materialService.updateMaterial(
         selectedMaterial.id,
         formData.name,
         formData.description,
-        state
+        selectedMaterial.state  // Mantener el estado actual
       );
 
       // Actualizar inmediatamente la lista local sin esperar al servidor
       const updatedMateriales = materiales.map(m => 
         m.id === selectedMaterial.id 
-          ? { ...m, name: formData.name, description: formData.description, state }
+          ? { ...m, name: formData.name, description: formData.description, state: selectedMaterial.state }
           : m
       );
       setMateriales(updatedMateriales);
 
-      // Reaplica los filtros con los datos actualizados
-      const filtered = applyFilters(updatedMateriales, searchTerm, stateFilter);
+      // Reaplica los filtros con los datos actualizados (solo activos)
+      const filtered = applyFilters(updatedMateriales, searchTerm, 1);
       setFilteredMateriales(filtered);
 
       // Deseleccionar el material
@@ -240,19 +224,57 @@ export default function MaterialesAdmin() {
       setLoading(true);
       setError(null);
 
-      // Solo remover de la pantalla, no hacer nada en el backend
-      const updated = materiales.filter(m => m.id !== selectedMaterial.id);
-      setMateriales(updated);
+      // Lógica: Si está ACTIVO → cambiar a INACTIVO (soft delete)
+      //         Si está INACTIVO → eliminar de BD (hard delete)
+      
+      const isActive = selectedMaterial.state === 1;
 
-      // Reaplica los filtros
-      const filtered = applyFilters(updated, searchTerm, stateFilter);
-      setFilteredMateriales(filtered);
+      if (isActive) {
+        // SOFT DELETE: Cambiar estado a inactivo (0)
+        console.log('📋 Soft Delete: Cambiando material a INACTIVO');
+        
+        await materialService.updateMaterial(
+          selectedMaterial.id,
+          selectedMaterial.name,
+          selectedMaterial.description,
+          0  // Cambiar a estado inactivo
+        );
+
+        // Actualizar lista local
+        const updated = materiales.map(m =>
+          m.id === selectedMaterial.id ? { ...m, state: 0 } : m
+        );
+        setMateriales(updated);
+
+        // Reaplica los filtros (solo activos)
+        const filtered = applyFilters(updated, searchTerm, 1);
+        setFilteredMateriales(filtered);
+
+        setSuccessMessage({
+          title: '✓ Material Desactivado',
+          message: 'El material ha sido desactivado y no aparecerá en nuevas solicitudes.'
+        });
+      } else {
+        // HARD DELETE: Eliminar de la base de datos
+        console.log('🗑️ Hard Delete: Eliminando material de la BD');
+        
+        await materialService.deleteMaterial(selectedMaterial.id);
+
+        // Remover de la lista local
+        const updated = materiales.filter(m => m.id !== selectedMaterial.id);
+        setMateriales(updated);
+
+        // Reaplica los filtros (solo activos)
+        const filtered = applyFilters(updated, searchTerm, 1);
+        setFilteredMateriales(filtered);
+
+        setSuccessMessage({
+          title: '🗑️ Material Eliminado',
+          message: 'El material ha sido eliminado de la base de datos.'
+        });
+      }
 
       handleCloseFormData();
-      setSuccessMessage({
-        title: '¡Material Eliminado!',
-        message: 'El material ha sido removido de la vista.'
-      });
       setShowSuccessModal(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al eliminar material';
@@ -316,7 +338,6 @@ export default function MaterialesAdmin() {
     setFormData({
       name: '',
       description: '',
-      mostrar: 'Activo',
     });
   };
 
@@ -354,61 +375,6 @@ export default function MaterialesAdmin() {
         onCreateNew={handleOpenModal}
         createButtonText="+ Crear material"
       />
-
-      {/* Filtro de Estado */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        padding: '1rem 2rem',
-        display: 'flex',
-        gap: '1rem',
-        alignItems: 'center',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <span style={{
-          fontWeight: '600',
-          color: '#374151',
-          fontSize: '0.95rem'
-        }}>
-          Filtrar por estado:
-        </span>
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem'
-        }}>
-          {[
-            { label: 'Activos', value: 1 as const },
-            { label: 'Inactivos', value: 0 as const }
-          ].map(filter => (
-            <button
-              key={filter.value}
-              onClick={() => handleStateFilterChange(filter.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: stateFilter === filter.value ? '#149D52' : '#ffffff',
-                color: stateFilter === filter.value ? '#ffffff' : '#374151',
-                fontWeight: stateFilter === filter.value ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.9rem'
-              }}
-              onMouseEnter={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                }
-              }}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Error Banner */}
       {error && (
@@ -710,41 +676,6 @@ export default function MaterialesAdmin() {
                       transition: 'all 0.2s ease'
                     }}
                   />
-                </div>
-
-                {/* Estado */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.9rem',
-                    fontWeight: '500',
-                    color: '#374151',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Estado
-                  </label>
-                  <select
-                    name="mostrar"
-                    value={formData.mostrar}
-                    onChange={handleFormChange}
-                    disabled={!selectedMaterial}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.5rem',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      backgroundColor: selectedMaterial ? '#ffffff' : '#f3f4f6',
-                      fontFamily: 'system-ui, -apple-system, sans-serif',
-                      boxSizing: 'border-box',
-                      cursor: selectedMaterial ? 'pointer' : 'not-allowed',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
                 </div>
 
                 {/* Botones */}

@@ -42,9 +42,6 @@ const AnnouncementsAdmin: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Filtro de estado
-  const [stateFilter, setStateFilter] = useState<0 | 1>(1);
-
   // Estados para el modal de éxito/error
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
@@ -83,8 +80,8 @@ const AnnouncementsAdmin: React.FC = () => {
       const data = await getAllAnnouncements();
       setAnnouncements(data);
       
-      // Aplicar filtros a los anuncios cargados
-      const filtered = applyFilters(data, searchTerm, stateFilter);
+      // Aplicar filtros a los anuncios cargados (solo activos)
+      const filtered = applyFilters(data, searchTerm, 1);
       setFilteredAnnouncements(filtered);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al cargar anuncios';
@@ -98,7 +95,7 @@ const AnnouncementsAdmin: React.FC = () => {
   /**
    * Aplicar filtros (búsqueda + estado)
    */
-  const applyFilters = (items: Announcement[], search: string, state: 0 | 1) => {
+  const applyFilters = (items: Announcement[], search: string, state?: 0 | 1) => {
     let filtered = items;
 
     // Filtrar por búsqueda
@@ -108,8 +105,10 @@ const AnnouncementsAdmin: React.FC = () => {
       );
     }
 
-    // Filtrar por estado
-    filtered = filtered.filter(item => item.state === state);
+    // Filtrar por estado solo si se especifica
+    if (state !== undefined) {
+      filtered = filtered.filter(item => item.state === state);
+    }
 
     return filtered;
   };
@@ -121,16 +120,7 @@ const AnnouncementsAdmin: React.FC = () => {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
-    const filtered = applyFilters(announcements, term, stateFilter);
-    setFilteredAnnouncements(filtered);
-  };
-
-  /**
-   * Cambiar filtro de estado
-   */
-  const handleStateFilterChange = (newState: 0 | 1) => {
-    setStateFilter(newState);
-    const filtered = applyFilters(announcements, searchTerm, newState);
+    const filtered = applyFilters(announcements, term, 1);
     setFilteredAnnouncements(filtered);
   };
 
@@ -251,8 +241,8 @@ const AnnouncementsAdmin: React.FC = () => {
       );
       setAnnouncements(updatedAnnouncements);
 
-      // Reaplica los filtros con los datos actualizados
-      const filtered = applyFilters(updatedAnnouncements, searchTerm, stateFilter);
+      // Reaplica los filtros con los datos actualizados (solo activos)
+      const filtered = applyFilters(updatedAnnouncements, searchTerm, 1);
       setFilteredAnnouncements(filtered);
 
       setSelectedAnnouncement(null);
@@ -280,7 +270,7 @@ const AnnouncementsAdmin: React.FC = () => {
   };
 
   /**
-   * Confirmar eliminación del anuncio
+   * Confirmar eliminación del anuncio (Soft delete: cambiar estado a 0)
    */
   const handleConfirmDeleteAnnouncement = async () => {
     if (!selectedAnnouncement) return;
@@ -289,18 +279,29 @@ const AnnouncementsAdmin: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Solo remover de la pantalla, no hacer nada en el backend
-      const updated = announcements.filter(a => a.id !== selectedAnnouncement.id);
+      // Soft delete: actualizar estado a 0 (inactivo)
+      await updateAnnouncement(
+        selectedAnnouncement.id,
+        selectedAnnouncement.title,
+        selectedAnnouncement.imagePath,
+        selectedAnnouncement.targetRole,
+        0  // state = 0 (inactivo)
+      );
+
+      // Actualizar lista local: cambiar estado del anuncio a 0 (inactivo)
+      const updated = announcements.map(a =>
+        a.id === selectedAnnouncement.id ? { ...a, state: 0 } : a
+      );
       setAnnouncements(updated);
 
-      // Reaplica los filtros
-      const filtered = applyFilters(updated, searchTerm, stateFilter);
+      // Reaplica los filtros (solo activos, el inactivo desaparece de la vista)
+      const filtered = applyFilters(updated, searchTerm, 1);
       setFilteredAnnouncements(filtered);
 
       setSelectedAnnouncement(null);
       setSuccessMessage({
-        title: '¡Anuncio Eliminado!',
-        message: 'El anuncio ha sido removido de la vista.'
+        title: '¡Anuncio Desactivado!',
+        message: 'El anuncio ha sido desactivado y no aparecerá en ninguna pantalla.'
       });
       setShowSuccessModal(true);
     } catch (err) {
@@ -427,59 +428,6 @@ const AnnouncementsAdmin: React.FC = () => {
       />
 
       {/* Filtro de Estado */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        padding: '1rem 2rem',
-        display: 'flex',
-        gap: '1rem',
-        alignItems: 'center',
-        borderBottom: '1px solid #e5e7eb'
-      }}>
-        <span style={{
-          fontWeight: '600',
-          color: '#374151',
-          fontSize: '0.95rem'
-        }}>
-          Filtrar por estado:
-        </span>
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem'
-        }}>
-          {[
-            { label: 'Activos', value: 1 as const },
-            { label: 'Inactivos', value: 0 as const }
-          ].map(filter => (
-            <button
-              key={filter.value}
-              onClick={() => handleStateFilterChange(filter.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #d1d5db',
-                backgroundColor: stateFilter === filter.value ? '#149D52' : '#ffffff',
-                color: stateFilter === filter.value ? '#ffffff' : '#374151',
-                fontWeight: stateFilter === filter.value ? '600' : '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                fontSize: '0.9rem'
-              }}
-              onMouseEnter={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (stateFilter !== filter.value) {
-                  e.currentTarget.style.backgroundColor = '#ffffff';
-                }
-              }}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Error Banner */}
       {error && (
@@ -919,41 +867,6 @@ const AnnouncementsAdmin: React.FC = () => {
                     <option value="recolector">Recolector</option>
                     <option value="reciclador">Reciclador</option>
                     <option value="both">Ambos</option>
-                  </select>
-                </div>
-
-                {/* Estado */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.9rem',
-                    fontWeight: '500',
-                    color: '#374151',
-                    marginBottom: '0.5rem'
-                  }}>
-                    Estado
-                  </label>
-                  <select
-                    name="state"
-                    value={formData.state}
-                    onChange={handleFormChange}
-                    disabled={!selectedAnnouncement}
-                    style={{
-                      width: '100%',
-                      padding: '0.625rem 0.875rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.5rem',
-                      fontSize: '0.9rem',
-                      outline: 'none',
-                      backgroundColor: selectedAnnouncement ? '#ffffff' : '#f3f4f6',
-                      fontFamily: 'system-ui, -apple-system, sans-serif',
-                      boxSizing: 'border-box',
-                      cursor: selectedAnnouncement ? 'pointer' : 'not-allowed',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <option value="1">Activo</option>
-                    <option value="0">Inactivo</option>
                   </select>
                 </div>
 

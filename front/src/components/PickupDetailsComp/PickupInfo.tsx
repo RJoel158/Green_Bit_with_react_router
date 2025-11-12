@@ -11,7 +11,6 @@ import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
 import ComplaintModal from '../ComplaintModalComp/ComplaintModal';
 import CheckModal from '../CommonComp/CheckModal';
-import ConfirmModal from '../CommonComp/ConfirmModal';
 import SuccessModal from '../CommonComp/SuccesModal';
 import { checkUserRated } from '../../services/scoreService';
 
@@ -78,11 +77,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [shouldReloadOnSuccessClose, setShouldReloadOnSuccessClose] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
-  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
-  const [showAcceptConfirmModal, setShowAcceptConfirmModal] = useState(false);
-  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [showCompletedSuccessModal, setShowCompletedSuccessModal] = useState(false);
-  const [showCompleteCheckModal, setShowCompleteCheckModal] = useState(false);
 
   // Obtener el usuario actual desde localStorage
   const getCurrentUser = () => {
@@ -257,13 +251,10 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Mostrar modal de confirmación
-    setShowCancelConfirmModal(true);
-  };
-
-  const confirmCancelAppointment = async () => {
-    setShowCancelConfirmModal(false);
-    if (!appointmentId || !appointmentData) return;
+    // Confirmar cancelación de la cita
+    if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
+      return;
+    }
 
     setCancelling(true);
 
@@ -499,19 +490,17 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Mostrar modal de confirmación
-    setShowCompleteCheckModal(true);
-  };
+    // Confirmar COMPLETAR (no cancelación)
+    if (!window.confirm('✅ ¿Confirma que la recolección se ha COMPLETADO exitosamente?\n\n⚠️ Esta acción marcará la solicitud como finalizada y no se puede deshacer.')) {
+      return;
+    }
 
-  // Función que se ejecuta cuando se confirma completar la cita
-  const confirmCompleteAppointment = async () => {
-    setShowCompleteCheckModal(false);
     setCompleting(true);
 
     try {
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
-      const userId = user?.id || appointmentData?.collectorId || appointmentData?.recyclerId;
+      const userId = user?.id || appointmentData.collectorId || appointmentData.recyclerId;
 
       const url = apiUrl(`/api/appointments/${appointmentId}/complete`);
       console.log('[INFO] PUT ->', url);
@@ -543,11 +532,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
           if (!alreadyRated) {
             setShowRatingModal(true);
-          } else {
-            setShowCompletedSuccessModal(true);
           }
-        } else {
-          setShowCompletedSuccessModal(true);
         }
 
       } else {
@@ -610,13 +595,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Eliminar lógico de la request
   const handleDeleteRequest = async () => {
     if (!requestData) return;
-    setShowDeleteConfirmModal(true);
-  };
-
-  const confirmDeleteRequest = async () => {
-    setShowDeleteConfirmModal(false);
-    if (!requestData) return;
-    
+    if (!window.confirm('¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario.')) return;
     setDeleting(true);
     try {
       const response = await fetch(apiUrl(`/api/request/${requestData.id}/state`), {
@@ -1041,7 +1020,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
-          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleRatingModalClose}
           onSuccess={handleRatingSuccess}
@@ -1053,7 +1031,6 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
-          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleComplaintModalClose}
           onSuccess={handleComplaintSuccess}

@@ -8,7 +8,6 @@ interface RatingModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
-  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -17,8 +16,7 @@ interface RatingModalProps {
 const RatingModal: React.FC<RatingModalProps> = ({ 
   appointmentId,
   ratedToUserId, 
-  ratedToName,
-  ratedToCompanyName,
+  ratedToName, 
   userRole,
   onClose,
   onSuccess 
@@ -69,9 +67,17 @@ const RatingModal: React.FC<RatingModalProps> = ({
         comment: comment || undefined
       });
 
-      // Mostrar modal de éxito
+      setSuccessMessage({
+        title: '¡Gracias!',
+        message: 'Tu calificación ha sido registrada correctamente.'
+      });
       setShowSuccessModal(true);
       
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      onClose();
     } catch (error: any) {
       console.error('[RatingModal] Error al enviar calificación:', error);
       const msg = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';
@@ -122,13 +128,15 @@ const RatingModal: React.FC<RatingModalProps> = ({
         {/* Información del usuario a calificar */}
         <div className="rating-collector-info">
           <div className="rating-avatar">
-            <span className="rating-avatar-initial">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
+            <img 
+              src="https://i.pravatar.cc/150?img=5"
+              alt="Avatar"
+              className="rating-avatar-img"
+            />
           </div>
           <div className="rating-collector-details">
             <h3 className="rating-collector-name">
-              {displayName}
+              {ratedToName}
             </h3>
             <p className="rating-collector-date">
               {today}
