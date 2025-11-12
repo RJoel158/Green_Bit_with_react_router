@@ -49,12 +49,13 @@ const CountryPhoneSelector: React.FC<Props> = ({ phone, onPhoneChange, error }) 
             alt={selectedCountry.code}
             style={{ width: "30px", height: "20px", objectFit: "cover" }}
           />
-          <select
-            value={selectedCountry.dialCode}
-            onChange={handleCountryChange}
-            className="form-control"
-            style={{ width: "120px", padding: "4px 8px", fontSize: "0.95rem" }}
-          >
+            <select
+              value={selectedCountry.dialCode}
+              onChange={handleCountryChange}
+              className={`form-control form-control-lg`}
+              aria-label="Seleccionar país (prefijo)"
+              style={{ width: "120px", padding: "4px 8px", fontSize: "0.95rem" }}
+            >
             {COUNTRIES.map((c) => (
               <option key={c.code} value={c.dialCode}>
                 {c.name} {c.dialCode}
@@ -68,12 +69,17 @@ const CountryPhoneSelector: React.FC<Props> = ({ phone, onPhoneChange, error }) 
           value={phone ? phone.replace(selectedCountry.dialCode + " ", "").trim() : ""}
           onChange={handlePhoneChange}
           placeholder="71234567"
-          className="form-control"
+          className={`form-control form-control-lg ${error ? "is-invalid" : ""}`}
+          aria-label="Número de teléfono"
           maxLength={15}
         />
       </div>
 
-      {error && <div style={{ color: "#dc3545", fontSize: "0.875rem" }}>{error}</div>}
+      {error && (
+        <div className="invalid-feedback" style={{ display: "block" }}>
+          {error}
+        </div>
+      )}
 
       <small style={{ color: "#999" }}>
         Teléfono: <strong>{phone || `${selectedCountry.dialCode} ...`}</strong>
