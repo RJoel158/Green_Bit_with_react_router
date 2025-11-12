@@ -52,8 +52,14 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: solo COMPLETED (4) - limitado a 5 más recientes
-          const history = await getAppointmentsByRecycler(user.id, APPOINTMENT_STATE.COMPLETED, 5);
+          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 10 más recientes
+          const allAppointments = await getAppointmentsByRecycler(user.id, undefined, 10);
+          // Filtrar solo las que están en estado final (no pendientes ni activas)
+          const history = allAppointments.filter(apt => 
+            apt.state === APPOINTMENT_STATE.COMPLETED || 
+            apt.state === APPOINTMENT_STATE.REJECTED || 
+            apt.state === APPOINTMENT_STATE.CANCELLED
+          );
           setAppointmentHistory(history);
 
         } else if (user.role === 'recolector') {
@@ -66,8 +72,14 @@ export default function RequestAndAppoint({ user }: RequestAndAppointProps) {
           const activeAppts = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.ACCEPTED);
           setActiveAppointments(activeAppts);
 
-          // Historial: solo COMPLETED (4) - limitado a 5 más recientes
-          const history = await getAppointmentsByCollector(user.id, APPOINTMENT_STATE.COMPLETED, 5);
+          // Historial: TODAS las citas finalizadas (COMPLETED, REJECTED, CANCELLED) - limitado a 10 más recientes
+          const allAppointments = await getAppointmentsByCollector(user.id, undefined, 10);
+          // Filtrar solo las que están en estado final (no pendientes ni activas)
+          const history = allAppointments.filter(apt => 
+            apt.state === APPOINTMENT_STATE.COMPLETED || 
+            apt.state === APPOINTMENT_STATE.REJECTED || 
+            apt.state === APPOINTMENT_STATE.CANCELLED
+          );
           setAppointmentHistory(history);
         }
         
