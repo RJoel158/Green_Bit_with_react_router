@@ -114,11 +114,9 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
           {/* Información del usuario reportado */}
           <div className="complaint-user-info">
             <div className="complaint-avatar">
-              <img 
-                src="https://i.pravatar.cc/150?img=5"
-                alt="Avatar"
-                className="complaint-avatar-img"
-              />
+              <div className="complaint-avatar-initial">
+                {ratedToName.charAt(0).toUpperCase()}
+              </div>
             </div>
             <div className="complaint-user-details">
               <h3 className="complaint-user-name">
@@ -154,7 +152,7 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
       {showSuccessModal && (
         <SuccessModal
-          title="✓ ¡Reclamo enviado!"
+          title=" ¡Reclamo enviado!"
           message="Tu reclamo ha sido registrado exitosamente. Nuestro equipo lo revisará pronto."
           onClose={() => setShowSuccessModal(false)}
         />

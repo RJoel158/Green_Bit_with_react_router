@@ -126,11 +126,9 @@ const RatingModal: React.FC<RatingModalProps> = ({
         {/* Información del usuario a calificar */}
         <div className="rating-collector-info">
           <div className="rating-avatar">
-            <img 
-              src="https://i.pravatar.cc/150?img=5"
-              alt="Avatar"
-              className="rating-avatar-img"
-            />
+            <div className="rating-avatar-initial">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
           </div>
           <div className="rating-collector-details">
             <h3 className="rating-collector-name">
