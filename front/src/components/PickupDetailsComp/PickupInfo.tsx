@@ -1047,6 +1047,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleComplaintModalClose}
           onSuccess={handleComplaintSuccess}

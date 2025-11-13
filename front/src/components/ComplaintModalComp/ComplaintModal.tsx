@@ -8,6 +8,7 @@ interface ComplaintModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
+  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
   appointmentId,
   ratedToUserId, 
   ratedToName, 
+  ratedToCompanyName,
   userRole,
   onClose,
   onSuccess 
@@ -26,6 +28,10 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Obtener nombre a mostrar: companyName si es empresa, sino fullName
+  const displayName = ratedToCompanyName || ratedToName;
+  const getInitial = (name: string) => name.charAt(0).toUpperCase();
 
   // Obtener fecha actual
   const today = new Date().toLocaleDateString('es-ES', {
@@ -107,12 +113,12 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
           <div className="complaint-user-info">
             <div className="complaint-avatar">
               <div className="complaint-avatar-initial">
-                {ratedToName.charAt(0).toUpperCase()}
+                {getInitial(displayName)}
               </div>
             </div>
             <div className="complaint-user-details">
               <h3 className="complaint-user-name">
-                {ratedToName}
+                {displayName}
               </h3>
               <p className="complaint-date">
                 {today}
