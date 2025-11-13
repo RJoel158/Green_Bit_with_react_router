@@ -11,6 +11,7 @@ import LargeImageCarousel from './LargeImageCarousel';
 import RatingModal from '../RatingModalComp/RatingModal';
 import ComplaintModal from '../ComplaintModalComp/ComplaintModal';
 import CheckModal from '../CommonComp/CheckModal';
+import ConfirmModal from '../CommonComp/ConfirmModal';
 import SuccessModal from '../CommonComp/SuccesModal';
 import { checkUserRated } from '../../services/scoreService';
 
@@ -73,6 +74,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   const [showRejectCheckModal, setShowRejectCheckModal] = useState(false);
   const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+  const [showAcceptConfirmModal, setShowAcceptConfirmModal] = useState(false);
+  const [showCompleteCheckModal, setShowCompleteCheckModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [showCompletedSuccessModal, setShowCompletedSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState({ title: '', message: '' });
   const [shouldReloadOnSuccessClose, setShouldReloadOnSuccessClose] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -251,10 +257,14 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar cancelación de la cita
-    if (!window.confirm('🚫 ¿Está seguro que desea CANCELAR esta cita?\n\n⚠️ La solicitud volverá a estar disponible en el mapa para otros recolectores.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowCancelConfirmModal(true);
+  };
+
+  // Función que se ejecuta cuando se confirma la cancelación
+  const confirmCancelAppointment = async () => {
+    setShowCancelConfirmModal(false);
+    if (!appointmentId || !appointmentData) return;
 
     setCancelling(true);
 
@@ -329,22 +339,16 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           console.log('[INFO] Marked as cancelled by user:', currentUser.id);
         }
         
-        // Mostrar modal de éxito
-        setSuccessMessage({
-          title: '✓ Éxito',
-          message: 'Cita cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.'
-        });
-        setShowSuccessModal(true);
-        
-        // Actualiza estado local para reflejar la cancelación sin recargar
+        // Actualiza estado local para reflejar la cancelación
         setAppointmentData(prev => prev ? { ...prev, state: APPOINTMENT_STATE.CANCELLED } : prev);
         
-        // Recargar la página después de 1.5 segundos para que el usuario vea el modal
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-        
-        onCancel();
+        // Mostrar modal de éxito
+        setSuccessMessage({
+          title: '✓ Cita Cancelada',
+          message: 'La cita ha sido cancelada exitosamente.\n\nLa solicitud estará disponible nuevamente en el mapa.'
+        });
+        setShowSuccessModal(true);
+        setShouldReloadOnSuccessClose(true);
       } else {
         const msg = result?.error || result?.message || 'El servidor respondió sin confirmar la cancelación';
         console.error('[ERROR] Unexpected response:', { result, status: response.status });
@@ -406,7 +410,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         
         // Mostrar modal de éxito con mensaje mejorado
         setSuccessMessage({
-          title: '✓ Solicitud Aceptada',
+          title: 'Solicitud Aceptada',
           message: '¡Has aceptado la solicitud exitosamente!\n\nEl usuario ha sido notificado y podrás coordinar los detalles de la recolección.'
         });
         setShowSuccessModal(true);
@@ -490,10 +494,14 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       return;
     }
 
-    // Confirmar COMPLETAR (no cancelación)
-    if (!window.confirm('✅ ¿Confirma que la recolección se ha COMPLETADO exitosamente?\n\n⚠️ Esta acción marcará la solicitud como finalizada y no se puede deshacer.')) {
-      return;
-    }
+    // Mostrar modal de confirmación
+    setShowCompleteCheckModal(true);
+  };
+
+  // Función que se ejecuta cuando se confirma completar la cita
+  const confirmCompleteAppointment = async () => {
+    setShowCompleteCheckModal(false);
+    if (!appointmentId || !appointmentData) return;
 
     setCompleting(true);
 
@@ -527,11 +535,21 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
         // Señalizar que se completó una cita para refrescar el historial
         localStorage.setItem('appointmentCompleted', Date.now().toString());
         
-        // Verificar si el usuario ya calificó
+        // Mostrar modal de éxito
+        setSuccessMessage({
+          title: '✓ Recolección Completada',
+          message: 'La recolección se ha completado exitosamente.'
+        });
+        setShowCompletedSuccessModal(true);
+        
+        // Verificar si el usuario ya calificó después de cerrar el modal de éxito
         if (user?.id) {
           const alreadyRated = await checkUserRated(Number(appointmentId), user.id);
           if (!alreadyRated) {
-            setShowRatingModal(true);
+            // Se mostrará el rating modal al cerrar el success modal
+            setTimeout(() => {
+              setShowRatingModal(true);
+            }, 500);
           }
         }
 
@@ -595,7 +613,15 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
   // Eliminar lógico de la request
   const handleDeleteRequest = async () => {
     if (!requestData) return;
-    if (!window.confirm('¿Seguro que deseas eliminar esta solicitud? Esta acción es irreversible para el usuario.')) return;
+    // Mostrar modal de confirmación
+    setShowDeleteConfirmModal(true);
+  };
+
+  // Función que se ejecuta cuando se confirma la eliminación
+  const confirmDeleteRequest = async () => {
+    setShowDeleteConfirmModal(false);
+    if (!requestData) return;
+    
     setDeleting(true);
     try {
       const response = await fetch(apiUrl(`/api/request/${requestData.id}/state`), {
@@ -606,11 +632,11 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       const result = await response.json();
       if (result.success) {
         setSuccessMessage({
-          title: '✓ Éxito',
-          message: 'Solicitud eliminada correctamente.'
+          title: '✓ Solicitud Eliminada',
+          message: 'La solicitud ha sido eliminada correctamente.'
         });
         setShowSuccessModal(true);
-        onCancel();
+        setShouldReloadOnSuccessClose(true);
       } else {
         setErrorModalMessage('No se pudo eliminar la solicitud.');
         setShowErrorModal(true);
@@ -783,7 +809,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                   fontWeight: 600
                 }}
               >
-                {accepting ? 'Aceptando...' : '✓ Aceptar Solicitud'}
+                {accepting ? 'Aceptando...' : ' Aceptar Solicitud'}
               </button>
               <button
                 onClick={handleRejectAppointment}
@@ -863,7 +889,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                   fontWeight: 600
                 }}
               >
-                {completing ? 'Completando...' : '✓ Marcar como Completado'}
+                {completing ? 'Completando...' : ' Marcar como Completado'}
               </button>
               <button
                 onClick={handleCancelAppointment}
@@ -946,7 +972,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
                   fontSize: '0.9rem',
                   fontWeight: 500
                 }}>
-                  ✓ Ya has reportado un problema con esta cita
+                  Ya has reportado un problema con esta cita
                 </div>
               )}
             </>
@@ -961,7 +987,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
               textAlign: 'center',
               fontWeight: 500
             }}>
-              ✓ Esta recolección se ha completado exitosamente
+               Esta recolección se ha completado exitosamente
             </div>
           )}
 
@@ -1020,6 +1046,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
           appointmentId={Number(appointmentId)}
           ratedToUserId={isRecycler() ? appointmentData.collectorId! : appointmentData.recyclerId!}
           ratedToName={isRecycler() ? (appointmentData.collectorName || 'Recolector') : (appointmentData.recyclerName || 'Reciclador')}
+          ratedToCompanyName={isRecycler() ? appointmentData.collectorCompanyName : appointmentData.recyclerCompanyName}
           userRole={isRecycler() ? 'reciclador' : 'recolector'}
           onClose={handleRatingModalClose}
           onSuccess={handleRatingSuccess}
@@ -1133,7 +1160,7 @@ const PickupInfo: React.FC<PickupInfoProps> = ({ requestId, appointmentId, onCan
       {/* Modal de éxito al completar recolección */}
       {showCompletedSuccessModal && (
         <SuccessModal
-          title="✓ Recolección Completada"
+          title="Recolección Completada"
           message="La recolección se ha completado exitosamente."
           onClose={() => {
             setShowCompletedSuccessModal(false);

@@ -8,6 +8,7 @@ interface RatingModalProps {
   appointmentId: number;
   ratedToUserId: number;
   ratedToName: string;
+  ratedToCompanyName?: string;
   userRole: string;
   onClose: () => void;
   onSuccess?: () => void;
@@ -16,7 +17,8 @@ interface RatingModalProps {
 const RatingModal: React.FC<RatingModalProps> = ({ 
   appointmentId,
   ratedToUserId, 
-  ratedToName, 
+  ratedToName,
+  ratedToCompanyName,
   userRole,
   onClose,
   onSuccess 
@@ -67,10 +69,6 @@ const RatingModal: React.FC<RatingModalProps> = ({
         comment: comment || undefined
       });
 
-      setSuccessMessage({
-        title: '¡Gracias!',
-        message: 'Tu calificación ha sido registrada correctamente.'
-      });
       setShowSuccessModal(true);
       
       if (onSuccess) {
@@ -136,7 +134,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
           </div>
           <div className="rating-collector-details">
             <h3 className="rating-collector-name">
-              {ratedToName}
+              {displayName}
             </h3>
             <p className="rating-collector-date">
               {today}
