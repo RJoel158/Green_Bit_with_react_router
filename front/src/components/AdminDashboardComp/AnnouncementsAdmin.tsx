@@ -1123,7 +1123,7 @@ const AnnouncementsAdmin: React.FC = () => {
                       fontSize: '0.8rem',
                       fontWeight: '600'
                     }}>
-                      ✓ Imagen cargada correctamente
+                      Imagen cargada correctamente
                     </small>
                   </div>
                 )}

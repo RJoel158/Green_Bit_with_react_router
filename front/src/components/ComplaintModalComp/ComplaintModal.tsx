@@ -63,14 +63,6 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
       });
 
       setShowSuccessModal(true);
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      setTimeout(() => {
-        onClose();
-      }, 1500);
     } catch (error: any) {
       console.error('[ComplaintModal] Error al enviar reclamo:', error);
       const errorMessage = error?.response?.data?.error || error?.message || 'Error al enviar el reclamo';
@@ -152,9 +144,15 @@ const ComplaintModal: React.FC<ComplaintModalProps> = ({
 
       {showSuccessModal && (
         <SuccessModal
-          title=" ¡Reclamo enviado!"
+          title="¡Reclamo Enviado!"
           message="Tu reclamo ha sido registrado exitosamente. Nuestro equipo lo revisará pronto."
-          onClose={() => setShowSuccessModal(false)}
+          onClose={() => {
+            setShowSuccessModal(false);
+            if (onSuccess) {
+              onSuccess();
+            }
+            onClose();
+          }}
         />
       )}
 

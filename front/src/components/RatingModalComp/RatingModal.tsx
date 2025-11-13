@@ -70,12 +70,6 @@ const RatingModal: React.FC<RatingModalProps> = ({
       });
 
       setShowSuccessModal(true);
-      
-      if (onSuccess) {
-        onSuccess();
-      }
-      
-      onClose();
     } catch (error: any) {
       console.error('[RatingModal] Error al enviar calificación:', error);
       const msg = error?.response?.data?.error || error?.message || 'Error al enviar la calificación';

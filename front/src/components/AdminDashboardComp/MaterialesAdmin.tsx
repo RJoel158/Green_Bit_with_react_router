@@ -251,7 +251,7 @@ export default function MaterialesAdmin() {
         setFilteredMateriales(filtered);
 
         setSuccessMessage({
-          title: '✓ Material Desactivado',
+          title: 'Material Desactivado',
           message: 'El material ha sido desactivado y no aparecerá en nuevas solicitudes.'
         });
       } else {
