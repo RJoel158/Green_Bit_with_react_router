@@ -52,11 +52,12 @@ export const createNotification = async (userId, title, body, type, entityId, re
  * @param {number} userId - ID del usuario
  * @param {number} limit - Límite de notificaciones a obtener
  * @param {number} offset - Offset para paginación
+ * @param {boolean} unreadOnly - Si es true, solo obtiene notificaciones no leídas (default: false)
  * @returns {Promise<Array>} - Array de notificaciones
  */
-export const getUserNotifications = async (userId, limit = 20, offset = 0) => {
+export const getUserNotifications = async (userId, limit = 20, offset = 0, unreadOnly = false) => {
   try {
-    const [rows] = await db.query(`
+    let query = `
       SELECT 
         n.id, 
         n.type, 
@@ -73,9 +74,16 @@ export const getUserNotifications = async (userId, limit = 20, offset = 0) => {
       LEFT JOIN appointmentconfirmation ac ON ac.id = n.appointmentId
       WHERE n.userId = ? 
         AND (n.expireAt IS NULL OR n.expireAt > NOW())
-      ORDER BY n.createdAt DESC
-      LIMIT ? OFFSET ?
-    `, [userId, limit, offset]);
+    `;
+
+    // Si unreadOnly es true, filtrar solo notificaciones no leídas
+    if (unreadOnly) {
+      query += ` AND n.\`read\` = 0`;
+    }
+
+    query += ` ORDER BY n.createdAt DESC LIMIT ? OFFSET ?`;
+
+    const [rows] = await db.query(query, [userId, limit, offset]);
 
     return rows;
   } catch (error) {

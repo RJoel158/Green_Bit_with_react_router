@@ -65,9 +65,13 @@ export const onNotificationReceived = (callback: (notification: Notification) =>
 /**
  * Obtener notificaciones del usuario
  */
-export const fetchNotifications = async (userId: number, limit: number = 20): Promise<Notification[]> => {
+export const fetchNotifications = async (userId: number, limit: number = 20, unreadOnly: boolean = true): Promise<Notification[]> => {
   try {
-    const response = await api.get(API_ENDPOINTS.NOTIFICATIONS.GET_BY_USER(userId, limit));
+    const response = await api.get(API_ENDPOINTS.NOTIFICATIONS.GET_BY_USER(userId, limit), {
+      params: {
+        unreadOnly
+      }
+    });
     return response.data.data || [];
   } catch (error) {
     console.error('[NotificationService] Error fetching notifications:', error);

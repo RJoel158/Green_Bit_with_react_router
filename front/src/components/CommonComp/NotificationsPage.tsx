@@ -6,6 +6,7 @@ import {
   disconnectNotifications,
   onNotificationReceived,
   fetchNotifications,
+  markAsRead,
   type Notification,
 } from '../../services/notificationService';
 import './NotificationsPage.css';
@@ -115,7 +116,8 @@ const NotificationsPage: React.FC = () => {
   const loadNotifications = async () => {
     setIsLoading(true);
     try {
-      const fetchedNotifications = await fetchNotifications(userId, 100);
+      // Cargar solo notificaciones no leídas por defecto
+      const fetchedNotifications = await fetchNotifications(userId, 100, true);
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
@@ -136,6 +138,18 @@ const NotificationsPage: React.FC = () => {
         return notifications.filter(n => n.read);
       default:
         return notifications;
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId: number) => {
+    try {
+      const success = await markAsRead(notificationId, userId);
+      if (success) {
+        // Remover notificación de la lista inmediatamente
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      }
+    } catch (error) {
+      console.error('[NotificationsPage] Error marking as read:', error);
     }
   };
 
@@ -200,19 +214,29 @@ const NotificationsPage: React.FC = () => {
                   <div className="notification-item-time">
                     {formatNotificationTime(notification.createdAt)}
                   </div>
-                  {getNavigationUrl(notification) && (
-                    <button
-                      className="btn-ver-detalles"
-                      onClick={() => {
-                        const url = getNavigationUrl(notification);
-                        if (url) {
-                          navigate(url);
-                        }
-                      }}
-                    >
-                      Ver Detalles
-                    </button>
-                  )}
+                  <div className="notification-item-actions">
+                    {!notification.read && (
+                      <button
+                        className="btn-marcar-leida"
+                        onClick={() => handleMarkAsRead(notification.id)}
+                      >
+                        Marcar como leída
+                      </button>
+                    )}
+                    {getNavigationUrl(notification) && (
+                      <button
+                        className="btn-ver-detalles"
+                        onClick={() => {
+                          const url = getNavigationUrl(notification);
+                          if (url) {
+                            navigate(url);
+                          }
+                        }}
+                      >
+                        Ver Detalles
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

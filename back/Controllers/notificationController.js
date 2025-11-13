@@ -7,9 +7,9 @@ import * as NotificationModel from "../Models/notificationModel.js";
 export const getUserNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { limit = 20, offset = 0 } = req.query;
+    const { limit = 20, offset = 0, unreadOnly = false } = req.query;
 
-    console.log("[INFO] getUserNotifications called:", { userId, limit, offset });
+    console.log("[INFO] getUserNotifications called:", { userId, limit, offset, unreadOnly });
 
     if (!userId || isNaN(parseInt(userId))) {
       return res.status(400).json({
@@ -18,10 +18,14 @@ export const getUserNotifications = async (req, res) => {
       });
     }
 
+    // Convertir unreadOnly a boolean
+    const onlyUnread = unreadOnly === 'true' || unreadOnly === true;
+
     const notifications = await NotificationModel.getUserNotifications(
       parseInt(userId),
       parseInt(limit),
-      parseInt(offset)
+      parseInt(offset),
+      onlyUnread
     );
 
     const unreadCount = await NotificationModel.getUnreadCount(parseInt(userId));

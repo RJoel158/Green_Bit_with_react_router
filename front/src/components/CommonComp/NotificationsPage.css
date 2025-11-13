@@ -245,6 +245,39 @@
   box-shadow: 0 2px 6px rgba(45, 80, 22, 0.15);
 }
 
+.notification-item-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-marcar-leida {
+  align-self: flex-start;
+  padding: 10px 20px;
+  background-color: #f5f5dc;
+  color: var(--verde-principal);
+  border: 2px solid var(--verde-medio);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
+}
+
+.btn-marcar-leida:hover {
+  background-color: var(--verde-claro);
+  color: var(--blanco);
+  box-shadow: 0 4px 12px rgba(74, 124, 89, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-marcar-leida:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(74, 124, 89, 0.15);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .notifications-page-header {

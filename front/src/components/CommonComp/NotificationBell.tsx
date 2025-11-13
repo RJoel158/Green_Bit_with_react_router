@@ -71,7 +71,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
   const loadNotifications = async () => {
     setIsLoading(true);
     try {
-      const fetchedNotifications = await fetchNotifications(userId);
+      // Cargar solo notificaciones no leídas por defecto
+      const fetchedNotifications = await fetchNotifications(userId, 20, true);
       setNotifications(fetchedNotifications);
     } catch (error) {
       console.error('[NotificationBell] Error loading notifications:', error);
@@ -93,9 +94,15 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
     try {
       const success = await markAsRead(notificationId, userId);
       if (success) {
-        // Remover notificación de la lista
+        // Remover notificación de la lista inmediatamente
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
         setUnreadCount(prev => Math.max(0, prev - 1));
+        
+        // Recargar las notificaciones después de un pequeño retraso para asegurar consistencia
+        setTimeout(() => {
+          loadNotifications();
+          loadUnreadCount();
+        }, 300);
       }
     } catch (error) {
       console.error('[NotificationBell] Error marking as read:', error);
@@ -272,17 +279,15 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId }) => {
                     </div>
                   </div>
                 ))}
-                {notifications.length > 5 && (
-                  <div className="notification-item notification-view-more">
-                    <button
-                      className="notification-btn notification-btn-primary w-100"
-                      style={{ marginTop: 8 }}
-                      onClick={() => window.location.href = '/notifications'}
-                    >
-                      Ver más
-                    </button>
-                  </div>
-                )}
+                <div className="notification-item notification-view-more">
+                  <button
+                    className="notification-btn notification-btn-primary w-100"
+                    style={{ marginTop: 8 }}
+                    onClick={() => window.location.href = '/notifications'}
+                  >
+                    Ver más
+                  </button>
+                </div>
               </>
             )}
           </div>
