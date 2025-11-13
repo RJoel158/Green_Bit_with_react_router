@@ -15,11 +15,12 @@ export const create = async (conn, userId, institutionId, date, description) => 
 export const getAll = async () => {
   const [rows] = await db.query(`
     SELECT a.id, a.date, a.description, a.status,
-           u.username AS collector,
-           i.name AS institution
+           COALESCE(u.username, 'N/A') AS collector,
+           COALESCE(i.name, 'N/A') AS institution
     FROM appointments a
-    JOIN users u ON a.user_id = u.id
-    JOIN institutions i ON a.institution_id = i.id
+    LEFT JOIN users u ON a.user_id = u.id
+    LEFT JOIN institutions i ON a.institution_id = i.id
+    ORDER BY a.date DESC
   `);
   return rows;
 };

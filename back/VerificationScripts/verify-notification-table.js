@@ -1,4 +1,4 @@
-import db from './config/DBConnect.js';
+import db from '../config/DBConnect.js';
 
 async function verifyNotificationTable() {
   try {

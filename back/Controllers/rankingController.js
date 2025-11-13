@@ -139,8 +139,17 @@ const RankingController = {
 
   // Cerrar periodo y registrar ranking
   closePeriod: async (req, res) => {
-    const { periodo_id } = req.body;
     try {
+      const { periodo_id } = req.body;
+      
+      // Validar que periodo_id existe
+      if (!periodo_id || isNaN(parseInt(periodo_id))) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'ID del período es requerido y debe ser un número válido' 
+        });
+      }
+
       console.log('[RANKING] Cerrando periodo:', periodo_id);
       // 1. Actualizar estado del periodo
       await RankingPeriod.close(periodo_id);
