@@ -129,7 +129,7 @@ export const checkEmailExists = async (email) => {
   const [rows] = await db.query(
     `SELECT u.id, u.email, u.state 
      FROM users u
-     WHERE LOWER(TRIM(u.email)) = ? AND u.state != 0`,
+     WHERE LOWER(TRIM(u.email)) = ? AND u.state != 0 AND u.state != 3`,
     [emailNormalized]
   );
   
